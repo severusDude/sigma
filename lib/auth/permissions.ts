@@ -28,26 +28,26 @@ export const intern = ac.newRole({
 });
 
 export const supervisor = ac.newRole({
+  ...intern.statements,
   logbook:    ["review", "approve", "read"],
   assessment: ["create", "read", "update"],
   dashboard:  ["view-limited"],
-  ...intern,
 });
 
 export const hr = ac.newRole({
+  ...supervisor.statements,
   intern:     ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
   assignment: ["create", "read", "update", "delete"],
   document:   ["create", "read"],
   report:     ["create", "read"],
   dashboard:  ["view-operational"],
-  ...supervisor,
 });
 
 export const admin = ac.newRole({
+  ...hr.statements,
   user:       ["create", "list", "set-role", "impersonate"],
   system:     ["manage"],
   audit_log:  ["read"],
   dashboard:  ["view-full"],
-  ...hr,
 });
