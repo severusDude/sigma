@@ -26,6 +26,8 @@ function SignInPage() {
         <Image
           src="/placeholder.svg"
           alt="Image"
+          width={400}
+          height={400}
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
