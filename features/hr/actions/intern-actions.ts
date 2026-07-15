@@ -13,6 +13,7 @@ import {
   updateInternSchema,
 } from "../schemas/intern-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
+import { updateTag } from "next/cache";
 
 export async function getInterns(
   query?: string,
@@ -27,8 +28,16 @@ export async function getInterns(
           ? {
               OR: [
                 { name: { contains: query, mode: "insensitive" } },
-                { internProfile: { nik: { contains: query, mode: "insensitive" } } },
-                { internProfile: { institution: { contains: query, mode: "insensitive" } } },
+                {
+                  internProfile: {
+                    nik: { contains: query, mode: "insensitive" },
+                  },
+                },
+                {
+                  internProfile: {
+                    institution: { contains: query, mode: "insensitive" },
+                  },
+                },
               ],
             }
           : {}),
@@ -81,8 +90,7 @@ export async function createIntern(
     const existing = await prisma.user.findFirst({
       where: { internProfile: { nik: parsed.nik } },
     });
-    if (existing)
-      return { success: false, error: "NIK sudah digunakan" };
+    if (existing) return { success: false, error: "NIK sudah digunakan" };
 
     const username =
       parsed.name
@@ -124,12 +132,13 @@ export async function createIntern(
       include: { internProfile: true },
     });
 
+    updateTag("interns");
+
     return { success: true, data: user as Intern };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal membuat intern",
+      error: error instanceof Error ? error.message : "Gagal membuat intern",
     };
   }
 }
@@ -159,13 +168,16 @@ export async function updateIntern(
 
     const internData: Record<string, unknown> = {};
     if (parsed.nik !== undefined) internData.nik = parsed.nik;
-    if (parsed.institution !== undefined) internData.institution = parsed.institution;
+    if (parsed.institution !== undefined)
+      internData.institution = parsed.institution;
     if (parsed.phone !== undefined) internData.phone = parsed.phone || null;
     if (parsed.email !== undefined) internData.email = parsed.email || null;
-    if (parsed.periodStart !== undefined) internData.periodStart = parsed.periodStart;
+    if (parsed.periodStart !== undefined)
+      internData.periodStart = parsed.periodStart;
     if (parsed.periodEnd !== undefined) internData.periodEnd = parsed.periodEnd;
     if (parsed.status !== undefined) internData.status = parsed.status;
-    if (parsed.departmentId !== undefined) internData.departmentId = parsed.departmentId || null;
+    if (parsed.departmentId !== undefined)
+      internData.departmentId = parsed.departmentId || null;
 
     if (Object.keys(internData).length > 0) {
       await prisma.internProfile.update({
@@ -178,6 +190,8 @@ export async function updateIntern(
       where: { id },
       include: { internProfile: true },
     });
+
+    updateTag("interns");
 
     return { success: true, data: user as Intern };
   } catch (error) {
@@ -204,12 +218,13 @@ export async function deleteIntern(id: string): Promise<ActionResponse<void>> {
       where: { userId: id },
     });
 
+    updateTag("interns");
+
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal menghapus intern",
+      error: error instanceof Error ? error.message : "Gagal menghapus intern",
     };
   }
 }
