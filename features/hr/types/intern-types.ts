@@ -4,7 +4,7 @@ export interface InternWithRelations extends InternProfile {
   user: Pick<User, "id" | "name" | "email">;
   department: Pick<Department, "id" | "name"> | null;
   supervisorAssignments: (InternSupervisor & {
-    supervisor: SupervisorProfile & { user: Pick<User, "name" | "email"> };
+    supervisorProfile: SupervisorProfile & { user: Pick<User, "name" | "email"> };
   })[];
 }
 
