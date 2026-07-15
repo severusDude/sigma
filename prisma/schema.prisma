@@ -203,8 +203,8 @@ model Department {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  issues        Issue[]
-  interns       InternProfile[]
+  issues  Issue[]
+  interns InternProfile[]
 
   @@map("department")
 }
@@ -213,13 +213,15 @@ model InternProfile {
   id          String       @id @default(cuid())
   userId      String       @unique
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nik         String       @unique
-  institution String
-  phone       String?
-  email       String?
-  periodStart DateTime
-  periodEnd   DateTime
-  status      InternStatus @default(active)
+  nik            String       @unique
+  institution    String
+  phone          String?
+  email          String?
+  periodStart    DateTime
+  periodEnd      DateTime
+  status         InternStatus @default(active)
+  departmentId   String?
+  department     Department?  @relation(fields: [departmentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -326,8 +328,6 @@ model Logbook {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
-
-  attachments Attachment[]
 
   @@index([internProfileId])
   @@index([issueId])
@@ -445,8 +445,6 @@ model Document {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  attachments Attachment[]
-
   @@index([internProfileId])
   @@index([documentType])
   @@index([documentNumber])
@@ -477,8 +475,6 @@ model Guide {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
-
-  attachments Attachment[]
 
   @@index([isPublished])
   @@map("guide")

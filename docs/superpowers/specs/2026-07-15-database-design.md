@@ -220,7 +220,7 @@ These models are managed by Better-Auth and must not be modified except to add r
 
 ### 4.8 Cross-cutting
 
-**Attachment** — Polymorphic file storage.
+**Attachment** — Polymorphic file storage (no Prisma-level FK relation — resolved at application layer via `attachableType` + `attachableId`).
 - `attachableType` — Enum: logbook, document, guide
 - `attachableId` — UUID of the owning entity
 - `fileName`, `fileUrl`, `mimeType`, `fileSize`
