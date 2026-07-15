@@ -108,6 +108,11 @@ export async function createIntern(
 
     const parsed = createInternSchema.parse(input);
 
+    const existing = await prisma.internProfile.findFirst({
+      where: { nik: parsed.nik, deletedAt: null },
+    });
+    if (existing) return { success: false, error: "NIK sudah digunakan" };
+
     const username =
       parsed.name
         .toLowerCase()
@@ -173,17 +178,17 @@ export async function updateIntern(
 
     const parsed = updateInternSchema.parse(input);
 
-    if (parsed.name) {
+    if (parsed.name !== undefined) {
       const intern = await prisma.internProfile.findUnique({
-        where: { id },
+        where: { id, deletedAt: null },
         select: { userId: true },
       });
-      if (intern) {
-        await prisma.user.update({
-          where: { id: intern.userId },
-          data: { name: parsed.name },
-        });
-      }
+      if (!intern) return { success: false, error: "Intern tidak ditemukan" };
+
+      await prisma.user.update({
+        where: { id: intern.userId },
+        data: { name: parsed.name },
+      });
     }
 
     const intern = await prisma.internProfile.update({
