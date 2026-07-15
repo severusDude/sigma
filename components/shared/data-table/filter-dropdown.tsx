@@ -7,6 +7,7 @@ import { ActiveFilter, FilterCategory } from "@/lib/types/filter";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
@@ -58,60 +59,62 @@ function FilterDropdown<TData>({
       />
 
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Tambah Filter
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Tambah Filter
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
 
-        {filterCategories.map((cat) => (
-          <DropdownMenuSub key={String(cat.id)}>
-            <DropdownMenuSubTrigger className="text-sm">
-              {cat.label}
-            </DropdownMenuSubTrigger>
+          {filterCategories.map((cat) => (
+            <DropdownMenuSub key={String(cat.id)}>
+              <DropdownMenuSubTrigger className="text-sm">
+                {cat.label}
+              </DropdownMenuSubTrigger>
 
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="w-44">
-                <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {cat.label}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent className="w-44">
+                  <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {cat.label}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
 
-                {cat.options.map((opt) => {
-                  const active = isOptionActive(cat.id, opt.value);
+                  {cat.options.map((opt) => {
+                    const active = isOptionActive(cat.id, opt.value);
 
-                  return (
-                    <DropdownMenuItem
-                      key={opt.value}
-                      disabled={active}
-                      className={cn(
-                        "gap-2 text-sm",
-                        active && "font-medium opacity-60",
-                      )}
-                      onSelect={() => {
-                        if (!active) {
-                          onAddFilter({
-                            categoryId: cat.id,
-                            categoryLabel: cat.label,
-                            value: opt.value,
-                            valueLabel: opt.label,
-                          });
-                        }
-                      }}
-                    >
-                      {opt.icon}
-                      <span>{opt.label}</span>
-                      {active && (
-                        <span className="ml-auto text-[10px] text-muted-foreground">
-                          Aktif
-                        </span>
-                      )}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        ))}
+                    return (
+                      <DropdownMenuItem
+                        key={opt.value}
+                        disabled={active}
+                        className={cn(
+                          "gap-2 text-sm",
+                          active && "font-medium opacity-60",
+                        )}
+                        onClick={() => {
+                          if (!active) {
+                            onAddFilter({
+                              categoryId: cat.id,
+                              categoryLabel: cat.label,
+                              value: opt.value,
+                              valueLabel: opt.label,
+                            });
+                          }
+                        }}
+                      >
+                        {opt.icon}
+                        <span>{opt.label}</span>
+                        {active && (
+                          <span className="ml-auto text-[10px] text-muted-foreground">
+                            Aktif
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
