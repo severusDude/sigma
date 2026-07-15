@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ReactQueryProvider from "@/providers/react-query-provider";
 import {
   JetBrains_Mono,
   Plus_Jakarta_Sans,
@@ -51,15 +52,17 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TooltipProvider>{children}</TooltipProvider>
-          <Toaster />
-        </ThemeProvider>
+        <ReactQueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TooltipProvider>{children}</TooltipProvider>
+            <Toaster />
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
