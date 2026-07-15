@@ -5,14 +5,15 @@ import type { SidebarData } from "@/components/layout/sidebar-types"
 import {
   LayoutDashboard,
   Users,
+  Shield,
   UserCog,
-  FileText,
+  Settings,
   BarChart3,
   Sigma,
 } from "lucide-react"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.hr])
+  const { user } = await requireAuth([Role.admin])
 
   const sidebar: SidebarData = {
     user: {
@@ -30,29 +31,33 @@ export default async function Layout({ children }: { children: React.ReactNode }
     navMain: [
       {
         title: "Dashboard",
-        url: "/hr/dashboard",
+        url: "/admin/dashboard",
         icon: <LayoutDashboard className="size-4" />,
-        isActive: true,
       },
       {
-        title: "Manajemen Intern",
-        url: "/hr/intern",
-        icon: <Users className="size-4" />,
+        title: "Manajemen HR",
+        url: "/admin/hr",
+        icon: <Shield className="size-4" />,
       },
       {
         title: "Manajemen Supervisor",
-        url: "/hr/supervisor",
+        url: "/admin/supervisor",
         icon: <UserCog className="size-4" />,
       },
       {
-        title: "Generate Dokumen",
-        url: "/hr/dokumen",
-        icon: <FileText className="size-4" />,
+        title: "Manajemen Intern",
+        url: "/admin/intern",
+        icon: <Users className="size-4" />,
       },
       {
-        title: "Pelaporan",
-        url: "/hr/laporan",
+        title: "Laporan",
+        url: "/admin/laporan",
         icon: <BarChart3 className="size-4" />,
+      },
+      {
+        title: "Pengaturan",
+        url: "/admin/pengaturan",
+        icon: <Settings className="size-4" />,
       },
     ],
   }

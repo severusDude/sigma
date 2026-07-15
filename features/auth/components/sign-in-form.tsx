@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import z from "zod";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { EyeClosedIcon, EyeIcon, Loader2Icon } from "lucide-react";
 
@@ -13,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getRoleHome } from "@/helpers/role-home";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Field,
@@ -29,6 +31,7 @@ export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
@@ -41,8 +44,8 @@ export function SignInForm({
     mutationFn: async (values: z.input<typeof signInSchema>) => {
       const parsed = signInSchema.parse(values);
 
-      const { data, error } = await authClient.signIn.username({
-        username: parsed.email,
+      const { data, error } = await authClient.signIn.email({
+        email: parsed.email,
         password: parsed.password,
       });
 
@@ -59,9 +62,9 @@ export function SignInForm({
 
     // TODO: Localization
     toast.promise(mutationPromise, {
-      loading: "Sedang masuk sebagai warga...",
+      loading: "Sedang masuk...",
       success: () => {
-        return "Login warga berhasil";
+        return "Login berhasil";
       },
       error: (error) => {
         if (error instanceof Error) {
@@ -73,7 +76,8 @@ export function SignInForm({
     });
 
     try {
-      await mutationPromise;
+      const data = await mutationPromise;
+      router.push(getRoleHome(data.user.role ?? ""));
     } catch (error) {
       console.error(error);
     }
