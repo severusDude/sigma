@@ -1,14 +1,7 @@
 import "dotenv/config"
-import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "../generated/prisma/client"
-import bcrypt from "bcryptjs"
-import { randomUUID } from "crypto"
-
-const DATABASE_URL = process.env.DATABASE_URL
-if (!DATABASE_URL) throw new Error("DATABASE_URL is not defined")
-
-const adapter = new PrismaPg({ connectionString: DATABASE_URL })
-const prisma = new PrismaClient({ adapter })
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { Role } from "@/generated/prisma/enums"
 
 async function main() {
   console.log("Seeding database ...")
@@ -36,96 +29,67 @@ async function main() {
   await prisma.systemConfig.deleteMany()
   await prisma.guide.deleteMany()
 
-  const hash = await bcrypt.hash("password123", 10)
-
   // ── Departments ──────────────────────────────────────────
-  const deptDist = await prisma.department.create({
-    data: { id: randomUUID(), name: "Statistik Distribusi" },
+  await prisma.department.create({
+    data: { name: "Statistik Distribusi" },
   })
   await prisma.department.create({
-    data: { id: randomUUID(), name: "Statistik Produksi" },
+    data: { name: "Statistik Produksi" },
   })
   await prisma.department.create({
-    data: { id: randomUUID(), name: "Statistik Sosial" },
+    data: { name: "Statistik Sosial" },
   })
   const deptUmum = await prisma.department.create({
-    data: { id: randomUUID(), name: "Umum & Kepegawaian" },
+    data: { name: "Umum & Kepegawaian" },
   })
+  console.log("  ✓ 4 departments created")
 
   // ── Admin ────────────────────────────────────────────────
-  const adminId = randomUUID()
-  await prisma.user.create({
-    data: {
-      id: adminId,
+  const admin = await auth.api.signUpEmail({
+    body: {
       name: "Mas Adi",
       email: "admin@bps.go.id",
-      emailVerified: true,
+      password: "password123",
       username: "admin",
-      displayUsername: "admin",
-      role: "admin",
     },
   })
-  await prisma.account.create({
-    data: {
-      id: randomUUID(),
-      accountId: "admin@bps.go.id",
-      providerId: "credential",
-      userId: adminId,
-      password: hash,
-    },
+  await prisma.user.update({
+    where: { id: admin.user.id },
+    data: { role: Role.admin },
   })
   console.log("  ✓ admin — admin@bps.go.id / password123")
 
   // ── HR ───────────────────────────────────────────────────
-  const hrId = randomUUID()
-  await prisma.user.create({
-    data: {
-      id: hrId,
+  const hr = await auth.api.signUpEmail({
+    body: {
       name: "Mbak Fitri",
-      email: "hr@bps.go.id",
-      emailVerified: true,
-      username: "hr",
-      displayUsername: "hr",
-      role: "hr",
+      email: "hrd@bps.go.id",
+      password: "password123",
+      username: "hrd",
     },
   })
-  await prisma.account.create({
-    data: {
-      id: randomUUID(),
-      accountId: "hr@bps.go.id",
-      providerId: "credential",
-      userId: hrId,
-      password: hash,
-    },
+  await prisma.user.update({
+    where: { id: hr.user.id },
+    data: { role: Role.hr },
   })
   console.log("  ✓ hr — hr@bps.go.id / password123")
 
   // ── Supervisor ────────────────────────────────────────────
-  const spvId = randomUUID()
-  await prisma.user.create({
-    data: {
-      id: spvId,
+  const supervisor = await auth.api.signUpEmail({
+    body: {
       name: "Pak Dedi",
       email: "supervisor@bps.go.id",
-      emailVerified: true,
+      password: "password123",
       username: "supervisor",
-      displayUsername: "supervisor",
-      role: "supervisor",
     },
   })
-  await prisma.account.create({
-    data: {
-      id: randomUUID(),
-      accountId: "supervisor@bps.go.id",
-      providerId: "credential",
-      userId: spvId,
-      password: hash,
-    },
+  await prisma.user.update({
+    where: { id: supervisor.user.id },
+    data: { role: Role.supervisor },
   })
   await prisma.supervisorProfile.create({
     data: {
-      id: randomUUID(),
-      userId: spvId,
+      userId: supervisor.user.id,
       nip: "198001012010011001",
       field: "Statistik Distribusi",
       phone: "081234567890",
@@ -135,31 +99,17 @@ async function main() {
   console.log("  ✓ supervisor — supervisor@bps.go.id / password123")
 
   // ── Intern ────────────────────────────────────────────────
-  const internId = randomUUID()
-  await prisma.user.create({
-    data: {
-      id: internId,
+  const intern = await auth.api.signUpEmail({
+    body: {
       name: "Rizky",
       email: "intern@bps.go.id",
-      emailVerified: true,
+      password: "password123",
       username: "intern",
-      displayUsername: "intern",
-      role: "intern",
-    },
-  })
-  await prisma.account.create({
-    data: {
-      id: randomUUID(),
-      accountId: "intern@bps.go.id",
-      providerId: "credential",
-      userId: internId,
-      password: hash,
     },
   })
   await prisma.internProfile.create({
     data: {
-      id: randomUUID(),
-      userId: internId,
+      userId: intern.user.id,
       nik: "3273012345678901",
       institution: "Universitas Siliwangi",
       phone: "081298765432",
@@ -172,7 +122,7 @@ async function main() {
   })
   console.log("  ✓ intern — intern@bps.go.id / password123")
 
-  console.log("\nDone!")
+  console.log("\nSeed complete!")
 }
 
 main().catch((e) => {
