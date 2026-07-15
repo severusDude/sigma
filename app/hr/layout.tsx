@@ -27,7 +27,7 @@ const hrSidebar: SidebarData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/hr",
+      url: "/hr/dashboard",
       icon: <LayoutDashboard className="size-4" />,
       isActive: true,
     },

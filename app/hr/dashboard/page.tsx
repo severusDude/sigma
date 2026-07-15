@@ -1,3 +1,3 @@
 export default function DashboardHR() {
-  return <h1>Dashboard HR</h1>
+  return <div className="min-h-[200vh]"><h1>Dashboard HR</h1></div>
 }
