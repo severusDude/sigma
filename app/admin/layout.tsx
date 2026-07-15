@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import SidebarLayout from "@/components/layout/sidebar-layout"
 import { requireAuth } from "@/helpers/guard"
 import { Role } from "@/generated/prisma/enums"
@@ -12,7 +14,7 @@ import {
   Sigma,
 } from "lucide-react"
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
+async function AdminSidebar({ children }: { children: React.ReactNode }) {
   const { user } = await requireAuth([Role.admin])
 
   const sidebar: SidebarData = {
@@ -63,4 +65,12 @@ export default async function Layout({ children }: { children: React.ReactNode }
   }
 
   return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense>
+      <AdminSidebar>{children}</AdminSidebar>
+    </Suspense>
+  )
 }
