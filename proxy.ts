@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const protectedRoutes = [
-  "/dashboard",
+  // "/dashboard",
   "/interns",
   "/supervisors",
   "/admin",
