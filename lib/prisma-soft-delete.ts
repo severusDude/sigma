@@ -94,7 +94,7 @@ function filterWhereRelations(
 const CUSTOM_METHODS = {
   async delete(args: { where: unknown; select?: unknown; include?: unknown }) {
     injectNestedFilters(args as Record<string, unknown>, this.constructor.name);
-    return (this as unknown as { update: Function }).update({
+    return (this as unknown as { update: (args: unknown) => Promise<unknown> }).update({
       where: args.where,
       data: { deletedAt: new Date() },
       select: args.select,
@@ -105,14 +105,14 @@ const CUSTOM_METHODS = {
     const where = excludeDeleted(
       args.where as Record<string, unknown> | undefined,
     );
-    return (this as unknown as { updateMany: Function }).updateMany({
+    return (this as unknown as { updateMany: (args: unknown) => Promise<unknown> }).updateMany({
       where,
       data: { deletedAt: new Date() },
     });
   },
   async restore(args: { where: unknown; select?: unknown; include?: unknown }) {
     injectNestedFilters(args as Record<string, unknown>, this.constructor.name);
-    return (this as unknown as { update: Function }).update({
+    return (this as unknown as { update: (args: unknown) => Promise<unknown> }).update({
       where: args.where,
       data: { deletedAt: null },
       select: args.select,
@@ -120,7 +120,7 @@ const CUSTOM_METHODS = {
     });
   },
   async hardDelete(args: { where: unknown }) {
-    return (this as unknown as { delete: Function }).delete({
+    return (this as unknown as { delete: (args: unknown) => Promise<unknown> }).delete({
       where: args.where,
     });
   },
@@ -128,7 +128,7 @@ const CUSTOM_METHODS = {
 
 // ── build model extensions per soft-delete model ──
 
-const modelExtensions: Record<string, Record<string, Function>> = {};
+const modelExtensions: Record<string, typeof CUSTOM_METHODS> = {};
 for (const name of SOFT_DELETE_MODELS) {
   modelExtensions[name] = { ...CUSTOM_METHODS };
 }
