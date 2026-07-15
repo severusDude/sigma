@@ -50,12 +50,24 @@ const baseColumns: ColumnDef<Intern>[] = [
     ),
   },
   {
-    accessorKey: "institution",
+    id: "institution",
     header: "Institusi",
+    accessorFn: (row) => row.internProfile?.institution,
+    cell: ({ row }) => row.original.internProfile!.institution,
   },
   {
-    accessorKey: "status",
+    id: "supervisor",
+    header: "Supervisor",
+    cell: ({ row }) => {
+      // TODO: fetch supervisor
+
+      return <></>;
+    },
+  },
+  {
+    id: "status",
     header: "Status",
+    accessorFn: (row) => row.internProfile!.status,
     cell: ({ row }) => (
       <Badge
         variant={statusVariant[row.original.internProfile!.status] || "outline"}
@@ -68,6 +80,7 @@ const baseColumns: ColumnDef<Intern>[] = [
   {
     id: "period",
     header: "Periode",
+    accessorFn: (row) => row.internProfile!.periodStart,
     cell: ({ row }) => (
       <span className="text-sm text-muted-foreground whitespace-nowrap">
         {formatDate(row.original.internProfile!.periodStart)} -{" "}
