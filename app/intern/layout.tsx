@@ -4,15 +4,15 @@ import { Role } from "@/generated/prisma/enums"
 import type { SidebarData } from "@/components/layout/sidebar-types"
 import {
   LayoutDashboard,
-  Users,
-  UserCog,
+  BookOpen,
+  Clock,
+  MessageSquare,
   FileText,
-  BarChart3,
   Sigma,
 } from "lucide-react"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.hr])
+  const { user } = await requireAuth([Role.admin, Role.intern])
 
   const sidebar: SidebarData = {
     user: {
@@ -30,29 +30,28 @@ export default async function Layout({ children }: { children: React.ReactNode }
     navMain: [
       {
         title: "Dashboard",
-        url: "/hr/dashboard",
+        url: "/intern/dashboard",
         icon: <LayoutDashboard className="size-4" />,
-        isActive: true,
       },
       {
-        title: "Manajemen Intern",
-        url: "/hr/intern",
-        icon: <Users className="size-4" />,
+        title: "Logbook",
+        url: "/intern/logbook",
+        icon: <BookOpen className="size-4" />,
       },
       {
-        title: "Manajemen Supervisor",
-        url: "/hr/supervisor",
-        icon: <UserCog className="size-4" />,
+        title: "Absensi",
+        url: "/intern/absensi",
+        icon: <Clock className="size-4" />,
       },
       {
-        title: "Generate Dokumen",
-        url: "/hr/dokumen",
+        title: "Bimbingan",
+        url: "/intern/bimbingan",
+        icon: <MessageSquare className="size-4" />,
+      },
+      {
+        title: "Dokumen",
+        url: "/intern/dokumen",
         icon: <FileText className="size-4" />,
-      },
-      {
-        title: "Pelaporan",
-        url: "/hr/laporan",
-        icon: <BarChart3 className="size-4" />,
       },
     ],
   }

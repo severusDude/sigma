@@ -5,14 +5,14 @@ import type { SidebarData } from "@/components/layout/sidebar-types"
 import {
   LayoutDashboard,
   Users,
-  UserCog,
-  FileText,
-  BarChart3,
+  ClipboardCheck,
+  BookOpen,
+  MessageSquare,
   Sigma,
 } from "lucide-react"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.hr])
+  const { user } = await requireAuth([Role.admin, Role.supervisor])
 
   const sidebar: SidebarData = {
     user: {
@@ -30,29 +30,28 @@ export default async function Layout({ children }: { children: React.ReactNode }
     navMain: [
       {
         title: "Dashboard",
-        url: "/hr/dashboard",
+        url: "/supervisor/dashboard",
         icon: <LayoutDashboard className="size-4" />,
-        isActive: true,
       },
       {
-        title: "Manajemen Intern",
-        url: "/hr/intern",
+        title: "Intern Bimbingan",
+        url: "/supervisor/intern",
         icon: <Users className="size-4" />,
       },
       {
-        title: "Manajemen Supervisor",
-        url: "/hr/supervisor",
-        icon: <UserCog className="size-4" />,
+        title: "Penilaian",
+        url: "/supervisor/penilaian",
+        icon: <ClipboardCheck className="size-4" />,
       },
       {
-        title: "Generate Dokumen",
-        url: "/hr/dokumen",
-        icon: <FileText className="size-4" />,
+        title: "Logbook",
+        url: "/supervisor/logbook",
+        icon: <BookOpen className="size-4" />,
       },
       {
-        title: "Pelaporan",
-        url: "/hr/laporan",
-        icon: <BarChart3 className="size-4" />,
+        title: "Bimbingan",
+        url: "/supervisor/bimbingan",
+        icon: <MessageSquare className="size-4" />,
       },
     ],
   }
