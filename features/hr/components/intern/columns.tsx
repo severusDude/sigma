@@ -1,14 +1,16 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
 import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
-  withSelectColumn,
-  withActionColumn,
   type ActionOption,
+  withActionColumn,
+  withSelectColumn,
 } from "@/components/shared/data-table/column-helpers";
-import type { InternRow } from "../../types/intern-types";
+
+import type { Intern } from "../../types/intern-types";
 
 const statusLabel: Record<string, string> = {
   active: "Aktif",
@@ -16,7 +18,10 @@ const statusLabel: Record<string, string> = {
   withdrawn: "Ditarik",
 };
 
-const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+const statusVariant: Record<
+  string,
+  "default" | "secondary" | "outline" | "destructive"
+> = {
   active: "default",
   completed: "secondary",
   withdrawn: "outline",
@@ -30,7 +35,7 @@ function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
-const baseColumns: ColumnDef<InternRow>[] = [
+const baseColumns: ColumnDef<Intern>[] = [
   {
     id: "nameNik",
     header: "Nama",
@@ -38,7 +43,9 @@ const baseColumns: ColumnDef<InternRow>[] = [
     cell: ({ row }) => (
       <div className="flex flex-col">
         <span className="font-medium">{row.original.name}</span>
-        <span className="text-xs text-muted-foreground">{row.original.nik}</span>
+        <span className="text-xs text-muted-foreground">
+          {row.original.internProfile!.nik}
+        </span>
       </div>
     ),
   },
@@ -50,8 +57,11 @@ const baseColumns: ColumnDef<InternRow>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <Badge variant={statusVariant[row.original.status] || "outline"}>
-        {statusLabel[row.original.status] || row.original.status}
+      <Badge
+        variant={statusVariant[row.original.internProfile!.status] || "outline"}
+      >
+        {statusLabel[row.original.internProfile!.status] ||
+          row.original.internProfile!.status}
       </Badge>
     ),
   },
@@ -60,32 +70,33 @@ const baseColumns: ColumnDef<InternRow>[] = [
     header: "Periode",
     cell: ({ row }) => (
       <span className="text-sm text-muted-foreground whitespace-nowrap">
-        {formatDate(row.original.periodStart)} - {formatDate(row.original.periodEnd)}
+        {formatDate(row.original.internProfile!.periodStart)} -{" "}
+        {formatDate(row.original.internProfile!.periodEnd)}
       </span>
     ),
   },
 ];
 
 export function createColumns(actions: {
-  onView: (row: InternRow) => void;
-  onEdit: (row: InternRow) => void;
-  onDelete: (row: InternRow) => void;
+  onView: (row: Intern) => void;
+  onUpdate: (row: Intern) => void;
+  onDelete: (row: Intern) => void;
 }) {
-  const actionOptions: ActionOption<InternRow>[] = [
+  const actionOptions: ActionOption<Intern>[] = [
     {
       label: "Lihat Detail",
       icon: <EyeIcon className="size-4" />,
-      onClick: (row) => actions.onView(row as InternRow),
+      onClick: (row) => actions.onView(row as Intern),
     },
     {
-      label: "Edit",
+      label: "Update",
       icon: <PencilIcon className="size-4" />,
-      onClick: (row) => actions.onEdit(row as InternRow),
+      onClick: (row) => actions.onUpdate(row as Intern),
     },
     {
       label: "Hapus",
       icon: <Trash2Icon className="size-4" />,
-      onClick: (row) => actions.onDelete(row as InternRow),
+      onClick: (row) => actions.onDelete(row as Intern),
       destructive: true,
     },
   ];

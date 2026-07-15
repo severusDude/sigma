@@ -1,8 +1,9 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,11 +14,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+import type { Intern } from "../../types/intern-types";
 import { deleteIntern } from "../../actions/intern-actions";
-import type { InternRow } from "../../types/intern-types";
 
 interface DeleteDialogProps {
-  intern: InternRow | null;
+  intern: Intern | null;
   onClose: () => void;
 }
 
@@ -38,7 +40,8 @@ export function DeleteDialog({ intern, onClose }: DeleteDialogProps) {
     toast.promise(mutationPromise, {
       loading: "Menghapus intern...",
       success: "Intern berhasil dihapus",
-      error: (error) => error instanceof Error ? error.message : "Gagal menghapus intern",
+      error: (error) =>
+        error instanceof Error ? error.message : "Gagal menghapus intern",
     });
     try {
       await mutationPromise;
@@ -59,7 +62,11 @@ export function DeleteDialog({ intern, onClose }: DeleteDialogProps) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} disabled={isPending} className="gap-2">
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isPending}
+            className="gap-2"
+          >
             {isPending && <Loader2Icon className="h-4 w-4 animate-spin" />}
             {isPending ? "Menghapus..." : "Hapus"}
           </AlertDialogAction>

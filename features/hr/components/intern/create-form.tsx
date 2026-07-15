@@ -1,27 +1,52 @@
 "use client";
 
+import { useState } from "react";
+
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { Loader2Icon } from "lucide-react";
+import { DateRange } from "react-day-picker";
+
+import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { createInternSchema, type CreateInternInput } from "../../schemas/intern-schemas";
-import { createIntern } from "../../actions/intern-actions";
+
 import { InternFormFields } from "./form-fields";
+import { createIntern } from "../../actions/intern-actions";
+import {
+  createInternSchema,
+  type CreateInternInput,
+} from "../../schemas/intern-schemas";
+import { InternStatus } from "@/generated/prisma/enums";
 
 interface CreateInternFormProps {
   departmentOptions: { id: string; name: string }[];
   onSuccess: () => void;
 }
 
-export function CreateInternForm({ departmentOptions, onSuccess }: CreateInternFormProps) {
+export function CreateInternForm({
+  departmentOptions,
+  onSuccess,
+}: CreateInternFormProps) {
   const queryClient = useQueryClient();
+  const [period, setPeriod] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
 
-  const form = useForm<CreateInternInput>({
-    resolver: zodResolver(createInternSchema) as any,
+  const form = useForm({
+    resolver: zodResolver(createInternSchema),
     mode: "onChange",
-    defaultValues: { status: "active" as const },
+    defaultValues: {
+      name: "",
+      nik: "",
+      institution: "",
+      phone: "",
+      email: "",
+      periodStart: undefined,
+      periodEnd: undefined,
+      status: InternStatus.active,
+    },
   });
 
   const { mutateAsync, isPending } = useMutation({
@@ -34,11 +59,16 @@ export function CreateInternForm({ departmentOptions, onSuccess }: CreateInternF
   });
 
   async function onSubmit() {
-    const mutationPromise = mutateAsync(form.getValues());
+    const values = form.getValues();
+    if (period?.from) values.periodStart = period.from;
+    if (period?.to) values.periodEnd = period.to;
+
+    const mutationPromise = mutateAsync(values as CreateInternInput);
     toast.promise(mutationPromise, {
       loading: "Menyimpan data intern...",
       success: "Intern berhasil ditambahkan",
-      error: (error) => error instanceof Error ? error.message : "Gagal menambahkan intern",
+      error: (error) =>
+        error instanceof Error ? error.message : "Gagal menambahkan intern",
     });
     try {
       await mutationPromise;
@@ -49,7 +79,18 @@ export function CreateInternForm({ departmentOptions, onSuccess }: CreateInternF
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <InternFormFields control={form.control} departmentOptions={departmentOptions} />
+      <InternFormFields
+        control={form.control}
+        departmentOptions={departmentOptions}
+        periodValue={period}
+        onPeriodChange={(range) => {
+          setPeriod(range);
+          if (range?.from)
+            form.setValue("periodStart", range.from, { shouldValidate: true });
+          if (range?.to)
+            form.setValue("periodEnd", range.to, { shouldValidate: true });
+        }}
+      />
       <Button type="submit" disabled={isPending} className="gap-2 w-full">
         {isPending && <Loader2Icon className="h-4 w-4 animate-spin" />}
         {isPending ? "Menyimpan..." : "Simpan"}
