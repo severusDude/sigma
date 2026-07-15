@@ -44,6 +44,8 @@ export function DetailDialog({ internId, onClose }: DetailDialogProps) {
     enabled: !!internId,
   });
 
+  const intern = data?.internProfile;
+
   return (
     <Dialog open={!!internId} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
@@ -67,46 +69,36 @@ export function DetailDialog({ internId, onClose }: DetailDialogProps) {
               </div>
             )}
 
-            {data && (
+            {data && intern && (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">{data.user.name}</h3>
-                    <p className="text-sm text-muted-foreground">{data.nik}</p>
+                    <h3 className="text-lg font-semibold">{data.name}</h3>
+                    <p className="text-sm text-muted-foreground">{intern.nik}</p>
                   </div>
-                  <Badge>{statusLabel[data.status] || data.status}</Badge>
+                  <Badge>{statusLabel[intern.status] || intern.status}</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Institusi</p>
-                    <p className="font-medium">{data.institution}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Departemen</p>
-                    <p className="font-medium">{data.department?.name || "-"}</p>
+                    <p className="font-medium">{intern.institution}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">No. HP</p>
-                    <p className="font-medium">{data.phone || "-"}</p>
+                    <p className="font-medium">{intern.phone || "-"}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Email</p>
-                    <p className="font-medium">{data.email || "-"}</p>
+                    <p className="font-medium">{intern.email || "-"}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Periode Mulai</p>
-                    <p className="font-medium">{formatDate(data.periodStart)}</p>
+                    <p className="font-medium">{formatDate(intern.periodStart)}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Periode Selesai</p>
-                    <p className="font-medium">{formatDate(data.periodEnd)}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-muted-foreground">Supervisor</p>
-                    <p className="font-medium">
-                      {data.supervisorAssignments?.[0]?.supervisorProfile?.user?.name || "-"}
-                    </p>
+                    <p className="font-medium">{formatDate(intern.periodEnd)}</p>
                   </div>
                 </div>
               </div>
