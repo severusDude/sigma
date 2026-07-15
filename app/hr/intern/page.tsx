@@ -1,15 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import InternPage from "@/features/hr/pages/intern-page";
-import { getInterns } from "@/features/hr/actions/intern-actions";
+import { fetchInterns } from "@/features/hr/data/intern-data";
 
 export default async function Page() {
-  const result = await getInterns();
-
-  if (!result.success) {
-    throw new Error(result.error);
-  }
-
-  const interns = result.data!;
+  const interns = await fetchInterns();
 
   const departments = await prisma.department.findMany({
     select: { id: true, name: true },

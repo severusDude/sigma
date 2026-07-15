@@ -14,6 +14,7 @@ import {
 } from "../schemas/intern-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
+import { fetchInterns } from "../data/intern-data";
 
 export async function getInterns(
   query?: string,
@@ -21,30 +22,7 @@ export async function getInterns(
   try {
     await requirePermission({ intern: ["read"] });
 
-    const users = await prisma.user.findMany({
-      where: {
-        internProfile: { isNot: null },
-        ...(query
-          ? {
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                {
-                  internProfile: {
-                    nik: { contains: query, mode: "insensitive" },
-                  },
-                },
-                {
-                  internProfile: {
-                    institution: { contains: query, mode: "insensitive" },
-                  },
-                },
-              ],
-            }
-          : {}),
-      },
-      include: { internProfile: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const users = await fetchInterns(query);
 
     return { success: true, data: users as Intern[] };
   } catch (error) {
@@ -67,7 +45,7 @@ export async function getInternById(
       include: { internProfile: true },
     });
 
-    if (!user?.internProfile)
+    if (!user?.internProfile || user.internProfile.deletedAt)
       return { success: false, error: "Intern tidak ditemukan" };
     return { success: true, data: user as Intern };
   } catch (error) {
