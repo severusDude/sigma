@@ -1,9 +1,9 @@
 # SIGMA (Sistem Informasi Management Magang) — Product Requirements Document
 
-**Version**: 2.0
+**Version**: 2.1
 **Status**: Draft
 **Author**: PRD Architect Agent
-**Last Updated**: 2026-07-14
+**Last Updated**: 2026-07-15
 **Stakeholders**: PM, Engineering, Admin (IT Support), HR, Supervisor, Intern, Pimpinan BPS Kota Tasikmalaya
 
 ---
@@ -323,6 +323,7 @@ Intern                         HR                          Supervisor           
 - [ ] Given HR/Admin membuka halaman Supervisor, When melihat daftar, Then menampilkan: nama, NIP, bidang, jumlah Intern bimbingan, status aktif
 - [ ] Given HR menambahkan Supervisor baru, When mengisi form (nama, NIP, bidang, kontak), Then data tersimpan
 - [ ] Given HR meng-assign Supervisor ke Intern, When memilih Supervisor + Intern, Then assignment tersimpan dan Intern mendapat notifikasi
+- [ ] Given Supervisor membuat **Issue** (Rencana Kegiatan), When mengisi form (judul, deskripsi, tenggat, assignee Intern), Then Issue tersimpan dan Intern dapat mengisi logbook yang terhubung
 - [ ] Given satu Supervisor memiliki maksimal Intern, When jumlah melebihi batas (misal 5), Then sistem memberi peringatan
 - [ ] Given Intern melihat dashboard, When informasi Supervisor ditampilkan, Then dapat langsung menghubungi via tombol kontak
 
@@ -330,6 +331,7 @@ Intern                         HR                          Supervisor           
 - Supervisor berhalangan — HR dapat reassign Intern ke Supervisor lain
 - Riwayat assignment tersimpan untuk tracking
 - Supervisor dapat non-aktif sementara
+- Issue (Rencana Kegiatan) dapat dijadwalkan ulang tanpa kehilangan logbook terkait
 
 **Dependencies**: F2, F3
 
@@ -338,18 +340,21 @@ Intern                         HR                          Supervisor           
 #### F6: Logbook & Jurnal Harian
 
 **User Story**:
-> Sebagai Intern, saya ingin mencatat kegiatan harian magang saya, sehingga Supervisor dapat memonitoring progres secara real-time.
+> Sebagai Intern, saya ingin mencatat kegiatan harian magang yang terhubung ke Rencana Kegiatan (Issue) yang dibuat Supervisor, sehingga progres pekerjaan terstruktur dan termonitor.
 
 **Acceptance Criteria**:
-- [ ] Given Intern mengisi logbook, When submit dengan data (tanggal, kegiatan, durasi, dokumentasi), Then logbook tersimpan dengan timestamp dan status "Menunggu Review"
+- [ ] Supervisor membuat **Issue** (Rencana Kegiatan) — misal "Publikasi Hasil Industri 2026 Kota Tasikmalaya" — sebagai payung kegiatan yang akan diisi logbook oleh Intern bimbingan
+- [ ] Given Intern mengisi logbook, When memilih Issue terkait dan submit dengan data (tanggal, kegiatan, durasi, dokumentasi), Then logbook tersimpan dengan timestamp dan status "Menunggu Review"
 - [ ] Given Intern ingin mengisi logbook hari sebelumnya, When memilih tanggal, Then diperbolehkan (maksimal H-3 dari hari ini)
-- [ ] Given Supervisor membuka logbook Intern bimbingan, When melihat list logbook, Then melihat semua entry dengan status dan tanggal
+- [ ] Given Supervisor membuka logbook Intern bimbingan, When melihat list logbook, Then melihat semua entry dengan Issue, status, dan tanggal
 - [ ] Given Supervisor mereview logbook, When memberikan komentar dan status "Disetujui" / "Revisi", Then Intern mendapat notifikasi
 - [ ] Given logbook berstatus "Revisi", When Intern mengedit dan submit ulang, Then status kembali ke "Menunggu Review"
 - [ ] Given sistem mengecek pengisian logbook, When Intern tidak mengisi > 3 hari berturut-turut, Then notifikasi pengingat otomatis dikirim ke Intern dan Supervisor
-- [ ] Given Admin/HR ingin melihat statistik logbook, When membuka dashboard, Then menampilkan rata-rata pengisian logbook per periode
+- [ ] Given Admin/HR ingin melihat statistik logbook, When membuka dashboard, Then menampilkan rata-rata pengisian logbook per periode, breakdown per Issue
 
 **Edge Cases**:
+- Satu logbook entry dapat di-link ke satu Issue (Rencana Kegiatan)
+- Issue dapat di-assign ke satu Intern atau ke semua Intern bimbingan Supervisor tersebut
 - Hari libur nasional — tidak wajib diisi, sistem mendeteksi otomatis sesuai kalender
 - Intern bertugas di luar kantor (survei lapangan) — tetap bisa mengisi
 - Multiple entry per hari — diperbolehkan
@@ -642,7 +647,42 @@ Intern                         HR                          Supervisor           
 - **Deployment**: VPS / Server instansi (sesuai ketentuan SPBE)
 - **PWA**: Progressive Web App untuk akses via smartphone
 
-### 6.4 APIs & Integrations
+### 6.4 Database Design
+
+Full database design documentation: `docs/superpowers/specs/2026-07-15-database-design.md`
+
+**Naming Conventions**:
+- All columns use **camelCase** (e.g., `periodStart`, `documentType`)
+- All tables use **snake_case** via Prisma `@@map` (e.g., `intern_profile`, `assessment_component`)
+- Enum values use **snake_case** (e.g., `pending_review`, `field_duty`)
+
+**Key Patterns**:
+- `createdAt` and `updatedAt` on all models
+- **Soft delete** via `deletedAt DateTime?` on business models, enforced by Prisma middleware
+- **Polymorphic attachments** via single `Attachment` table with `attachableType` + `attachableId`
+- **UUID primary keys** (cuid) for all new models
+
+**Models by Domain**:
+
+| Domain | Models |
+|--------|--------|
+| Core (Better-Auth) | User, Session, Account, Verification |
+| Audit | AuditLog |
+| Masters | Department, InternProfile, SupervisorProfile, InternSupervisor |
+| Operations | Issue (Rencana Kegiatan), Logbook, Attendance, GuidanceSession, Assessment, AssessmentComponent |
+| Documents | Document, DocumentTemplate, Guide |
+| System | Notification, SystemConfig |
+| Cross-cutting | Attachment (polymorphic) |
+
+**Issue & Logbook Flow**:
+```
+Supervisor creates Issue (Rencana Kegiatan)
+    └── e.g., "Publikasi Hasil Industri 2026 Kota Tasikmalaya"
+         └── Intern creates Logbook entries linked to that Issue
+              └── Supervisor reviews → approves or requests revision
+```
+
+### 6.5 APIs & Integrations
 
 | Service/API | Purpose | Status |
 |-------------|---------|--------|
@@ -654,7 +694,7 @@ Intern                         HR                          Supervisor           
 | BSrE / Penyedia TTE | Tanda Tangan Elektronik tersertifikasi untuk dokumen resmi | TBD (registrasi BSrE) |
 | TTE SDK/API (contoh: VIDA, Privy, Digisign, atau BSrE) | Integrasi pembubuhan TTE pada dokumen PDF | TBD |
 
-### 6.5 Performance Requirements
+### 6.6 Performance Requirements
 
 - **Page load time (First Contentful Paint)**: < 2 detik
 - **API response time (p95)**: < 500ms untuk read, < 2s untuk write
@@ -666,7 +706,7 @@ Intern                         HR                          Supervisor           
 - **Uptime**: 99.5% availability
 - **Database backup**: Otomatis setiap hari
 
-### 6.6 Security & Privacy
+### 6.7 Security & Privacy
 
 - **Autentikasi**: Better-Auth dengan credential
 - **Authorisasi**: Role-based access control (RBAC) — 4 role distinct dengan hierarki
@@ -710,6 +750,7 @@ Intern                         HR                          Supervisor           
 
 **Supervisor Flow**:
 - Dashboard Supervisor (daftar Intern bimbingan + ringkasan status)
+- Manage Issue / Rencana Kegiatan (CRUD untuk Intern bimbingan)
 - Detail Intern (logbook, presensi, penilaian)
 - Review Logbook (setujui/revisi + komentar)
 - Bimbingan (jadwal + catatan)
