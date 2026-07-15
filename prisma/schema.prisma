@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -12,12 +7,87 @@ datasource db {
   provider = "postgresql"
 }
 
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
 enum Role {
   admin
   hr
   supervisor
   intern
 }
+
+enum InternStatus {
+  active
+  completed
+  withdrawn
+}
+
+enum IssueStatus {
+  active
+  completed
+  cancelled
+}
+
+enum LogbookStatus {
+  pending_review
+  approved
+  revision
+}
+
+enum AttendanceMethod {
+  qr
+  gps
+  manual
+}
+
+enum AttendanceStatus {
+  present
+  late
+  absent
+  permission
+  field_duty
+}
+
+enum GuidanceStatus {
+  requested
+  scheduled
+  completed
+  cancelled
+  no_show
+}
+
+enum AssessmentStatus {
+  draft
+  submitted
+  finalized
+}
+
+enum DocumentType {
+  certificate
+  assessment_report
+  attendance_report
+  assignment_letter
+  completion_letter
+}
+
+enum AttachableType {
+  logbook
+  document
+  guide
+}
+
+enum NotificationType {
+  info
+  warning
+  reminder
+  approval
+}
+
+// ──────────────────────────────────────────────
+// Core / Auth (Better-Auth managed)
+// ──────────────────────────────────────────────
 
 model User {
   id            String    @id
@@ -36,6 +106,11 @@ model User {
   banned          Boolean?  @default(false)
   banReason       String?
   banExpires      DateTime?
+
+  internProfile     InternProfile?
+  supervisorProfile SupervisorProfile?
+  notifications     Notification[]
+  auditLogs         AuditLog[]
 
   @@unique([email])
   @@unique([username])
@@ -90,4 +165,373 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// ──────────────────────────────────────────────
+// Audit
+// ──────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  actorId    String
+  targetId   String?
+  targetType String?
+  metadata   Json     @default("{}")
+  requestId  String?
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([action])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+// ──────────────────────────────────────────────
+// Masters
+// ──────────────────────────────────────────────
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  issues        Issue[]
+  interns       InternProfile[]
+
+  @@map("department")
+}
+
+model InternProfile {
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nik         String       @unique
+  institution String
+  phone       String?
+  email       String?
+  periodStart DateTime
+  periodEnd   DateTime
+  status      InternStatus @default(active)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  supervisorAssignments InternSupervisor[]
+  issues                Issue[]
+  logbooks              Logbook[]
+  attendanceRecords     Attendance[]
+  guidanceRequests      GuidanceSession[]  @relation("InternGuidance")
+  assessments           Assessment[]
+  documents             Document[]
+
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@map("intern_profile")
+}
+
+model SupervisorProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nip        String   @unique
+  field      String
+  phone      String?
+  email      String?
+  maxInterns Int      @default(5)
+  isActive   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  internAssignments InternSupervisor[]
+  createdIssues     Issue[]
+  guidedSessions    GuidanceSession[]  @relation("SupervisorGuidance")
+  givenAssessments  Assessment[]
+
+  @@index([nip])
+  @@index([isActive])
+  @@map("supervisor_profile")
+}
+
+model InternSupervisor {
+  id                String   @id @default(cuid())
+  internProfileId   String
+  internProfile     InternProfile     @relation(fields: [internProfileId], references: [id], onDelete: Cascade)
+  supervisorProfileId String
+  supervisorProfile SupervisorProfile @relation(fields: [supervisorProfileId], references: [id], onDelete: Cascade)
+  assignedAt        DateTime @default(now())
+  endedAt           DateTime?
+  reason            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([internProfileId])
+  @@index([supervisorProfileId])
+  @@map("intern_supervisor")
+}
+
+// ──────────────────────────────────────────────
+// Operations
+// ──────────────────────────────────────────────
+
+model Issue {
+  id                  String      @id @default(cuid())
+  supervisorProfileId String
+  supervisor          SupervisorProfile @relation(fields: [supervisorProfileId], references: [id], onDelete: Cascade)
+  internProfileId     String?
+  internProfile       InternProfile?   @relation(fields: [internProfileId], references: [id])
+  departmentId        String?
+  department          Department?      @relation(fields: [departmentId], references: [id])
+  title               String
+  description         String?
+  startDate           DateTime?
+  endDate             DateTime?
+  status              IssueStatus @default(active)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  logbooks Logbook[]
+
+  @@index([supervisorProfileId])
+  @@index([internProfileId])
+  @@index([status])
+  @@map("issue")
+}
+
+model Logbook {
+  id              String        @id @default(cuid())
+  internProfileId String
+  internProfile   InternProfile @relation(fields: [internProfileId], references: [id], onDelete: Cascade)
+  issueId         String?
+  issue           Issue?        @relation(fields: [issueId], references: [id])
+  date            DateTime      @db.Date
+  activity        String
+  duration        Int           @db.SmallInt
+  status          LogbookStatus @default(pending_review)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  attachments Attachment[]
+
+  @@index([internProfileId])
+  @@index([issueId])
+  @@index([date])
+  @@index([status])
+  @@map("logbook")
+}
+
+model Attendance {
+  id              String           @id @default(cuid())
+  internProfileId String
+  internProfile   InternProfile    @relation(fields: [internProfileId], references: [id], onDelete: Cascade)
+  date            DateTime         @db.Date
+  checkIn         DateTime?
+  checkOut        DateTime?
+  status          AttendanceStatus @default(present)
+  method          AttendanceMethod @default(qr)
+  latitude        Float?
+  longitude       Float?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([internProfileId])
+  @@index([date])
+  @@index([status])
+  @@map("attendance")
+}
+
+model GuidanceSession {
+  id                  String         @id @default(cuid())
+  internProfileId     String
+  internProfile       InternProfile  @relation("InternGuidance", fields: [internProfileId], references: [id], onDelete: Cascade)
+  supervisorProfileId String
+  supervisor          SupervisorProfile @relation("SupervisorGuidance", fields: [supervisorProfileId], references: [id], onDelete: Cascade)
+  topic               String
+  description         String?
+  proposedDate        DateTime?
+  scheduledDate       DateTime?
+  status              GuidanceStatus @default(requested)
+  outcome             String?
+  meetingLink         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([internProfileId])
+  @@index([supervisorProfileId])
+  @@index([status])
+  @@map("guidance_session")
+}
+
+model Assessment {
+  id                String           @id @default(cuid())
+  internProfileId   String
+  internProfile     InternProfile    @relation(fields: [internProfileId], references: [id], onDelete: Cascade)
+  supervisorProfileId String
+  supervisor        SupervisorProfile @relation(fields: [supervisorProfileId], references: [id])
+  periodStart       DateTime         @db.Date
+  periodEnd         DateTime         @db.Date
+  status            AssessmentStatus @default(draft)
+  finalScore        Float?
+  finalGrade        String?
+  finalizedAt       DateTime?
+  finalizedBy       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  components AssessmentComponent[]
+
+  @@index([internProfileId])
+  @@index([supervisorProfileId])
+  @@index([status])
+  @@map("assessment")
+}
+
+model AssessmentComponent {
+  id           String @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  name         String
+  weight       Float   @default(20.0)
+  score        Float?
+  notes        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assessmentId])
+  @@map("assessment_component")
+}
+
+// ──────────────────────────────────────────────
+// Documents
+// ──────────────────────────────────────────────
+
+model Document {
+  id              String       @id @default(cuid())
+  internProfileId String
+  internProfile   InternProfile @relation(fields: [internProfileId], references: [id], onDelete: Cascade)
+  documentType    DocumentType
+  documentNumber  String       @unique
+  title           String
+  fileUrl         String?
+  status          String       @default("draft")
+  qrCode          String?
+  metadata        Json         @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  attachments Attachment[]
+
+  @@index([internProfileId])
+  @@index([documentType])
+  @@index([documentNumber])
+  @@map("document")
+}
+
+model DocumentTemplate {
+  id           String   @id @default(cuid())
+  documentType DocumentType
+  name         String
+  content      String
+  variables    Json     @default("[]")
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([documentType, name])
+  @@map("document_template")
+}
+
+model Guide {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isPublished Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  attachments Attachment[]
+
+  @@index([isPublished])
+  @@map("guide")
+}
+
+// ──────────────────────────────────────────────
+// System
+// ──────────────────────────────────────────────
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title   String
+  body    String?
+  type    NotificationType @default(info)
+  isRead  Boolean          @default(false)
+  link    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notification")
+}
+
+model SystemConfig {
+  id          String @id @default(cuid())
+  key         String @unique
+  value       String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// ──────────────────────────────────────────────
+// Cross-cutting
+// ──────────────────────────────────────────────
+
+model Attachment {
+  id             String          @id @default(cuid())
+  attachableType AttachableType
+  attachableId   String
+  fileName       String
+  fileUrl        String
+  mimeType       String?
+  fileSize       Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([attachableType, attachableId])
+  @@map("attachment")
 }
