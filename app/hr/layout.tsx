@@ -1,6 +1,6 @@
-"use client"
-
 import SidebarLayout from "@/components/layout/sidebar-layout"
+import { requireAuth } from "@/helpers/guard"
+import { Role } from "@/generated/prisma/enums"
 import type { SidebarData } from "@/components/layout/sidebar-types"
 import {
   LayoutDashboard,
@@ -11,49 +11,51 @@ import {
   Sigma,
 } from "lucide-react"
 
-const hrSidebar: SidebarData = {
-  user: {
-    name: "Mbak Fitri",
-    email: "fitri@bps.go.id",
-    avatar: "",
-  },
-  teams: [
-    {
-      name: "SIGMA",
-      logo: <Sigma className="size-5" />,
-      role: "BPS Kota Tasikmalaya",
-    },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/hr/dashboard",
-      icon: <LayoutDashboard className="size-4" />,
-      isActive: true,
-    },
-    {
-      title: "Manajemen Intern",
-      url: "/hr/intern",
-      icon: <Users className="size-4" />,
-    },
-    {
-      title: "Manajemen Supervisor",
-      url: "/hr/supervisor",
-      icon: <UserCog className="size-4" />,
-    },
-    {
-      title: "Generate Dokumen",
-      url: "/hr/dokumen",
-      icon: <FileText className="size-4" />,
-    },
-    {
-      title: "Pelaporan",
-      url: "/hr/laporan",
-      icon: <BarChart3 className="size-4" />,
-    },
-  ],
-}
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const { user } = await requireAuth([Role.admin, Role.hr])
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <SidebarLayout sidebar={hrSidebar}>{children}</SidebarLayout>
+  const sidebar: SidebarData = {
+    user: {
+      name: user.name,
+      email: user.email,
+      avatar: user.image ?? "",
+    },
+    teams: [
+      {
+        name: "SIGMA",
+        logo: <Sigma className="size-5" />,
+        role: "BPS Kota Tasikmalaya",
+      },
+    ],
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/hr/dashboard",
+        icon: <LayoutDashboard className="size-4" />,
+        isActive: true,
+      },
+      {
+        title: "Manajemen Intern",
+        url: "/hr/intern",
+        icon: <Users className="size-4" />,
+      },
+      {
+        title: "Manajemen Supervisor",
+        url: "/hr/supervisor",
+        icon: <UserCog className="size-4" />,
+      },
+      {
+        title: "Generate Dokumen",
+        url: "/hr/dokumen",
+        icon: <FileText className="size-4" />,
+      },
+      {
+        title: "Pelaporan",
+        url: "/hr/laporan",
+        icon: <BarChart3 className="size-4" />,
+      },
+    ],
+  }
+
+  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
 }
