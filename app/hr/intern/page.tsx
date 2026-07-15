@@ -4,7 +4,7 @@ import { Role } from "@/generated/prisma/enums";
 
 export default async function Page() {
   const interns = await prisma.user.findMany({
-    where: { role: Role.intern },
+    where: { role: Role.intern, internProfile: { is: { deletedAt: null } } },
     include: {
       internProfile: true,
     },
