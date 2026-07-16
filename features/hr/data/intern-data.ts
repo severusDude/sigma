@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { cacheTag } from "next/cache";
 
+import { internInclude } from "../types/intern-types";
+
 export async function fetchInterns(query?: string) {
   "use cache";
   cacheTag("interns");
@@ -26,7 +28,7 @@ export async function fetchInterns(query?: string) {
           }
         : {}),
     },
-    include: { internProfile: true },
+    include: internInclude,
     orderBy: { createdAt: "desc" },
   });
 }

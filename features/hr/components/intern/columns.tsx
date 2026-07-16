@@ -2,6 +2,7 @@
 
 import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -58,10 +59,26 @@ const baseColumns: ColumnDef<Intern>[] = [
   {
     id: "supervisor",
     header: "Supervisor",
+    accessorFn: (row) =>
+      row.internProfile?.supervisorAssignments?.[0]?.supervisorProfile?.user
+        ?.name ?? null,
     cell: ({ row }) => {
-      // TODO: fetch supervisor
+      const supervisor =
+        row.original.internProfile?.supervisorAssignments?.[0]
+          ?.supervisorProfile?.user;
 
-      return <></>;
+      if (!supervisor) return <span className="text-muted-foreground">-</span>;
+
+      return (
+        <div className="flex items-center gap-2">
+          <Avatar size="sm">
+            <AvatarFallback>
+              {supervisor.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm">{supervisor.name}</span>
+        </div>
+      );
     },
   },
   {
