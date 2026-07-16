@@ -15,6 +15,7 @@ import {
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
 import { fetchSupervisors } from "../data/supervisor-data";
+import type { AssignResult } from "../types/supervisor-types";
 
 export async function getSupervisors(
   query?: string,
@@ -195,6 +196,60 @@ export async function deleteSupervisor(id: string): Promise<ActionResponse<void>
     return {
       success: false,
       error: error instanceof Error ? error.message : "Gagal menghapus supervisor",
+    };
+  }
+}
+
+export async function assignSupervisor(
+  internProfileId: string,
+  supervisorProfileId: string,
+): Promise<AssignResult> {
+  try {
+    await requirePermission({ supervisor: ["update"] });
+
+    const supervisor = await prisma.supervisorProfile.findUnique({
+      where: { id: supervisorProfileId },
+      include: {
+        user: { select: { name: true } },
+        internAssignments: { where: { endedAt: null } },
+      },
+    });
+
+    if (!supervisor || !supervisor.isActive) {
+      return { success: false, error: "Supervisor tidak ditemukan atau tidak aktif" };
+    }
+
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: internProfileId },
+    });
+
+    if (!intern || intern.status !== "active") {
+      return { success: false, error: "Intern tidak ditemukan atau tidak aktif" };
+    }
+
+    const currentCount = supervisor.internAssignments.length;
+    const isOverLimit = currentCount >= supervisor.maxInterns;
+
+    await prisma.internSupervisor.create({
+      data: {
+        internProfileId,
+        supervisorProfileId,
+      },
+    });
+
+    updateTag("supervisors");
+    updateTag("interns");
+
+    const result: AssignResult = { success: true };
+    if (isOverLimit) {
+      result.warning = `Supervisor ${supervisor.user.name} sudah memiliki ${currentCount + 1} dari ${supervisor.maxInterns} maksimal intern`;
+    }
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal meng-assign supervisor",
     };
   }
 }

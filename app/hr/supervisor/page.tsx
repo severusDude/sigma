@@ -1,8 +1,23 @@
 import SupervisorPage from "@/features/hr/pages/supervisor-page";
-import { fetchSupervisors } from "@/features/hr/data/supervisor-data";
+import {
+  fetchSupervisors,
+  fetchUnassignedInterns,
+  fetchActiveSupervisorOptions,
+} from "@/features/hr/data/supervisor-data";
 
 export default async function Page() {
-  const supervisors = await fetchSupervisors();
+  const [supervisors, unassignedInterns, activeSupervisors] =
+    await Promise.all([
+      fetchSupervisors(),
+      fetchUnassignedInterns(),
+      fetchActiveSupervisorOptions(),
+    ]);
 
-  return <SupervisorPage supervisors={supervisors} />;
+  return (
+    <SupervisorPage
+      supervisors={supervisors}
+      unassignedInterns={unassignedInterns}
+      activeSupervisors={activeSupervisors}
+    />
+  );
 }

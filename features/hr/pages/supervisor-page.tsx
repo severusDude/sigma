@@ -17,15 +17,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import type { Supervisor } from "../types/supervisor-types";
+import type {
+  Supervisor,
+  UnassignedIntern,
+  ActiveSupervisorOption,
+} from "../types/supervisor-types";
 import { createColumns } from "../components/supervisor/columns";
 import { DetailDialog } from "../components/supervisor/detail-dialog";
 import { DeleteDialog } from "../components/supervisor/delete-dialog";
 import { CreateSupervisorForm } from "../components/supervisor/create-form";
 import { UpdateSupervisorForm } from "../components/supervisor/update-form";
+import { QuickAssignCard } from "../components/supervisor/quick-assign-card";
 
 interface SupervisorPageProps {
   supervisors: Supervisor[];
+  unassignedInterns: UnassignedIntern[];
+  activeSupervisors: ActiveSupervisorOption[];
 }
 
 const filterOptions: FilterCategory[] = [
@@ -46,7 +53,11 @@ const sortOptions: SortOption[] = [
   { id: "isActive", label: "Status" },
 ];
 
-export default function SupervisorPage({ supervisors }: SupervisorPageProps) {
+export default function SupervisorPage({
+  supervisors,
+  unassignedInterns,
+  activeSupervisors,
+}: SupervisorPageProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [updateSupervisor, setUpdateSupervisor] = useState<Supervisor | null>(
     null,
@@ -79,12 +90,22 @@ export default function SupervisorPage({ supervisors }: SupervisorPageProps) {
         </Button>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={supervisors ?? []}
-        filterCategories={filterOptions}
-        sortOptions={sortOptions}
-      />
+      <div className="flex items-start justify-between gap-2">
+        <div className="w-2/3">
+          <DataTable
+            columns={columns}
+            data={supervisors ?? []}
+            filterCategories={filterOptions}
+            sortOptions={sortOptions}
+          />
+        </div>
+        <div className="w-1/3">
+          <QuickAssignCard
+            interns={unassignedInterns}
+            supervisors={activeSupervisors}
+          />
+        </div>
+      </div>
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
