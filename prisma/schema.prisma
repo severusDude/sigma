@@ -3,10 +3,6 @@ generator client {
   output   = "../generated/prisma"
 }
 
-generator relationMap {
-  provider = "node ./prisma/generators/relation-map-generator.cjs"
-  output   = "../generated/relation-map"
-}
 
 datasource db {
   provider = "postgresql"

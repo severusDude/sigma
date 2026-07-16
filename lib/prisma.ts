@@ -1,13 +1,13 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-import { createSoftDeleteExtension } from "./prisma-soft-delete";
+import { createSoftDeleteExt } from "./prisma-soft-delete";
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
-const extendedPrisma = prisma.$extends(createSoftDeleteExtension());
+const extendedPrisma = prisma.$extends(createSoftDeleteExt());
 
 export { extendedPrisma as prisma };
