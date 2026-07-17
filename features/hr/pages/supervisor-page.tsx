@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
-import { PlusIcon, UserPlusIcon, ArrowLeftRightIcon } from "lucide-react";
+import { PlusIcon, UserPlusIcon, ArrowLeftRightIcon, InfoIcon } from "lucide-react";
 
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
 import { FilterCategory } from "@/lib/types/filter";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { DataTable } from "@/components/shared/data-table";
 import { ResponsiveModal } from "@/components/shared/responsive-modal";
 
@@ -84,18 +85,26 @@ export default function SupervisorPage({
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={() => setReassignAllOpen(true)} variant="outline" className="gap-2">
             <ArrowLeftRightIcon className="size-4" />
-            Reassign Massal
+            <span className="hidden md:inline">Reassign Massal</span>
           </Button>
           <Button onClick={() => setAssignOpen(true)} variant="secondary" className="gap-2">
             <UserPlusIcon className="size-4" />
-            Assign Intern
+            <span className="hidden md:inline">Assign Intern</span>
           </Button>
           <Button onClick={() => setCreateOpen(true)} className="gap-2">
             <PlusIcon className="size-4" />
-            Tambah Supervisor
+            <span className="hidden md:inline">Tambah Supervisor</span>
           </Button>
         </div>
       </div>
+
+      <Alert className="hidden md:grid">
+        <InfoIcon />
+        <AlertTitle>Informasi</AlertTitle>
+        <AlertDescription>
+          Silakan isi data supervisor dan lakukan penempatan intern pada supervisor yang tersedia.
+        </AlertDescription>
+      </Alert>
 
       <div className="flex flex-col md:flex-row md:items-start md:justify-between md:gap-2">
         <div className="w-full md:w-2/3">

@@ -15,6 +15,7 @@ import {
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
 import { fetchSupervisors, fetchSupervisorInterns } from "../data/supervisor-data";
+import { supervisorInclude } from "../types/supervisor-types";
 import type { AssignResult, AssignedIntern, ReassignAllResult } from "../types/supervisor-types";
 import type { AssignMultipleInput } from "../schemas/supervisor-schemas";
 import { assignMultipleSchema } from "../schemas/supervisor-schemas";
@@ -45,7 +46,7 @@ export async function getSupervisorById(
 
     const user = await prisma.user.findUnique({
       where: { id },
-      include: { supervisorProfile: true },
+      include: supervisorInclude,
     });
 
     if (!user?.supervisorProfile || user.supervisorProfile.deletedAt)

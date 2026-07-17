@@ -192,7 +192,7 @@ export function DetailDialog({
                         Jumlah Intern Bimbingan
                       </p>
                       <p className="font-medium">
-                        {supervisor.internAssignments?.length || 0} Intern
+                        {interns.length} Intern
                       </p>
                     </div>
                   </div>
