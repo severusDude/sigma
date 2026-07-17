@@ -7,15 +7,8 @@ import { PlusIcon, UserPlusIcon, ArrowLeftRightIcon } from "lucide-react";
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
 import { FilterCategory } from "@/lib/types/filter";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { DataTable } from "@/components/shared/data-table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ResponsiveModal } from "@/components/shared/responsive-modal";
 
 import type {
   Supervisor,
@@ -79,7 +72,7 @@ export default function SupervisorPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             Manajemen Supervisor
@@ -88,7 +81,7 @@ export default function SupervisorPage({
             Kelola data supervisor dan bimbingan
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={() => setReassignAllOpen(true)} variant="outline" className="gap-2">
             <ArrowLeftRightIcon className="size-4" />
             Reassign Massal
@@ -104,8 +97,8 @@ export default function SupervisorPage({
         </div>
       </div>
 
-      <div className="flex items-start justify-between gap-2">
-        <div className="w-2/3">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between md:gap-2">
+        <div className="w-full md:w-2/3">
           <DataTable
             columns={columns}
             data={supervisors ?? []}
@@ -113,7 +106,7 @@ export default function SupervisorPage({
             sortOptions={sortOptions}
           />
         </div>
-        <div className="w-1/3">
+        <div className="hidden md:block md:w-1/3">
           <QuickAssignCard
             interns={unassignedInterns}
             supervisors={activeSupervisors}
@@ -121,49 +114,30 @@ export default function SupervisorPage({
         </div>
       </div>
 
-      {/* Create Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-32rem)] md:h-fit gap-0 p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6 pb-4 space-y-1 border-b">
-            <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
-              Tambah Supervisor Baru
-            </DialogTitle>
-            <DialogDescription>Lengkapi data supervisor</DialogDescription>
-          </DialogHeader>
+      {/* Create Dialog/Drawer */}
+      <ResponsiveModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        title="Tambah Supervisor Baru"
+        description="Lengkapi data supervisor"
+      >
+        <CreateSupervisorForm onSuccess={() => setCreateOpen(false)} />
+      </ResponsiveModal>
 
-          <ScrollArea className="max-h-[calc(100vh-12rem)]">
-            <div className="px-6 py-6">
-              <CreateSupervisorForm onSuccess={() => setCreateOpen(false)} />
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      {/* Update Dialog */}
-      <Dialog
+      {/* Update Dialog/Drawer */}
+      <ResponsiveModal
         open={!!updateSupervisor}
         onOpenChange={(open) => !open && setUpdateSupervisor(null)}
+        title="Update Supervisor"
+        description="Perbarui data supervisor"
       >
-        <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-32rem)] md:h-fit gap-0 p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6 pb-4 space-y-1 border-b">
-            <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
-              Update Supervisor
-            </DialogTitle>
-            <DialogDescription>Perbarui data supervisor</DialogDescription>
-          </DialogHeader>
-
-          <ScrollArea className="max-h-[calc(100vh-12rem)]">
-            <div className="px-6 py-6">
-              {updateSupervisor && (
-                <UpdateSupervisorForm
-                  supervisor={updateSupervisor}
-                  onSuccess={() => setUpdateSupervisor(null)}
-                />
-              )}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+        {updateSupervisor && (
+          <UpdateSupervisorForm
+            supervisor={updateSupervisor}
+            onSuccess={() => setUpdateSupervisor(null)}
+          />
+        )}
+      </ResponsiveModal>
 
       {/* Reassign All Dialog */}
       <ReassignAllDialog
