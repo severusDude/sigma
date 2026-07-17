@@ -14,8 +14,8 @@ import {
 } from "../schemas/supervisor-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
-import { fetchSupervisors } from "../data/supervisor-data";
-import type { AssignResult } from "../types/supervisor-types";
+import { fetchSupervisors, fetchSupervisorInterns } from "../data/supervisor-data";
+import type { AssignResult, AssignedIntern, ReassignAllResult } from "../types/supervisor-types";
 import type { AssignMultipleInput } from "../schemas/supervisor-schemas";
 import { assignMultipleSchema } from "../schemas/supervisor-schemas";
 
@@ -332,6 +332,169 @@ export async function assignMultipleInterns(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Gagal meng-assign multiple intern",
+    };
+  }
+}
+
+export async function getSupervisorInterns(
+  supervisorId: string,
+): Promise<ActionResponse<AssignedIntern[]>> {
+  try {
+    await requirePermission({ supervisor: ["read"] });
+
+    const supervisor = await prisma.supervisorProfile.findUnique({
+      where: { userId: supervisorId },
+      select: { id: true },
+    });
+
+    if (!supervisor) {
+      return { success: false, error: "Supervisor tidak ditemukan" };
+    }
+
+    const interns = await fetchSupervisorInterns(supervisor.id);
+
+    return { success: true, data: interns };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal mengambil data intern bimbingan",
+    };
+  }
+}
+
+export async function reassignIntern(
+  internProfileId: string,
+  newSupervisorProfileId: string,
+): Promise<AssignResult> {
+  try {
+    await requirePermission({ supervisor: ["update"] });
+
+    const newSupervisor = await prisma.supervisorProfile.findUnique({
+      where: { id: newSupervisorProfileId },
+      include: {
+        user: { select: { name: true } },
+        internAssignments: { where: { endedAt: null } },
+      },
+    });
+
+    if (!newSupervisor || !newSupervisor.isActive) {
+      return { success: false, error: "Supervisor tujuan tidak ditemukan atau tidak aktif" };
+    }
+
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: internProfileId },
+    });
+
+    if (!intern || intern.status !== "active") {
+      return { success: false, error: "Intern tidak ditemukan atau tidak aktif" };
+    }
+
+    const currentAssignment = await prisma.internSupervisor.findFirst({
+      where: { internProfileId, endedAt: null },
+    });
+
+    if (!currentAssignment) {
+      return { success: false, error: "Intern tidak memiliki supervisor aktif" };
+    }
+
+    if (currentAssignment.supervisorProfileId === newSupervisorProfileId) {
+      return { success: false, error: "Intern sudah di-assign ke supervisor tersebut" };
+    }
+
+    const currentCount = newSupervisor.internAssignments.length;
+    const isOverLimit = currentCount >= newSupervisor.maxInterns;
+
+    await prisma.$transaction([
+      prisma.internSupervisor.update({
+        where: { id: currentAssignment.id },
+        data: { endedAt: new Date(), reason: "Reassign oleh HR" },
+      }),
+      prisma.internSupervisor.create({
+        data: { internProfileId, supervisorProfileId: newSupervisorProfileId },
+      }),
+    ]);
+
+    updateTag("supervisors");
+    updateTag("interns");
+
+    const result: AssignResult = { success: true };
+    if (isOverLimit) {
+      result.warning = `Supervisor ${newSupervisor.user.name} sudah memiliki ${currentCount + 1} dari ${newSupervisor.maxInterns} maksimal intern`;
+    }
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal me-reassign intern",
+    };
+  }
+}
+
+export async function reassignAllInterns(
+  fromSupervisorProfileId: string,
+  toSupervisorProfileId: string,
+): Promise<ReassignAllResult> {
+  try {
+    await requirePermission({ supervisor: ["update"] });
+
+    const [fromSupervisor, toSupervisor] = await Promise.all([
+      prisma.supervisorProfile.findUnique({
+        where: { id: fromSupervisorProfileId },
+      }),
+      prisma.supervisorProfile.findUnique({
+        where: { id: toSupervisorProfileId },
+        include: {
+          user: { select: { name: true } },
+          internAssignments: { where: { endedAt: null } },
+        },
+      }),
+    ]);
+
+    if (!fromSupervisor) {
+      return { success: false, count: 0, error: "Supervisor asal tidak ditemukan" };
+    }
+
+    if (!toSupervisor || !toSupervisor.isActive) {
+      return { success: false, count: 0, error: "Supervisor tujuan tidak ditemukan atau tidak aktif" };
+    }
+
+    if (fromSupervisorProfileId === toSupervisorProfileId) {
+      return { success: false, count: 0, error: "Supervisor asal dan tujuan tidak boleh sama" };
+    }
+
+    const activeAssignments = await prisma.internSupervisor.findMany({
+      where: { supervisorProfileId: fromSupervisorProfileId, endedAt: null },
+    });
+
+    if (activeAssignments.length === 0) {
+      return { success: false, count: 0, error: "Tidak ada intern yang perlu dipindahkan" };
+    }
+
+    const operations = activeAssignments.flatMap((assignment) => [
+      prisma.internSupervisor.update({
+        where: { id: assignment.id },
+        data: { endedAt: new Date(), reason: "Reassign oleh HR" },
+      }),
+      prisma.internSupervisor.create({
+        data: {
+          internProfileId: assignment.internProfileId,
+          supervisorProfileId: toSupervisorProfileId,
+        },
+      }),
+    ]);
+
+    await prisma.$transaction(operations);
+
+    updateTag("supervisors");
+    updateTag("interns");
+
+    return { success: true, count: activeAssignments.length };
+  } catch (error) {
+    return {
+      success: false,
+      count: 0,
+      error: error instanceof Error ? error.message : "Gagal me-reassign semua intern",
     };
   }
 }

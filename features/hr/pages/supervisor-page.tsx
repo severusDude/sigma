@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PlusIcon, UserPlusIcon } from "lucide-react";
+import { PlusIcon, UserPlusIcon, ArrowLeftRightIcon } from "lucide-react";
 
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { CreateSupervisorForm } from "../components/supervisor/create-form";
 import { UpdateSupervisorForm } from "../components/supervisor/update-form";
 import { QuickAssignCard } from "../components/supervisor/quick-assign-card";
 import { AssignDialog } from "../components/supervisor/assign-dialog";
+import { ReassignAllDialog } from "../components/supervisor/reassign-all-dialog";
 
 interface SupervisorPageProps {
   supervisors: Supervisor[];
@@ -59,6 +60,7 @@ export default function SupervisorPage({
   unassignedInterns,
   activeSupervisors,
 }: SupervisorPageProps) {
+  const [reassignAllOpen, setReassignAllOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [updateSupervisor, setUpdateSupervisor] = useState<Supervisor | null>(
@@ -87,6 +89,10 @@ export default function SupervisorPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setReassignAllOpen(true)} variant="outline" className="gap-2">
+            <ArrowLeftRightIcon className="size-4" />
+            Reassign Massal
+          </Button>
           <Button onClick={() => setAssignOpen(true)} variant="secondary" className="gap-2">
             <UserPlusIcon className="size-4" />
             Assign Intern
@@ -159,6 +165,13 @@ export default function SupervisorPage({
         </DialogContent>
       </Dialog>
 
+      {/* Reassign All Dialog */}
+      <ReassignAllDialog
+        open={reassignAllOpen}
+        onClose={() => setReassignAllOpen(false)}
+        supervisors={activeSupervisors}
+      />
+
       {/* Assign Dialog */}
       <AssignDialog
         open={assignOpen}
@@ -168,7 +181,11 @@ export default function SupervisorPage({
       />
 
       {/* Detail Dialog */}
-      <DetailDialog supervisorId={detailId} onClose={() => setDetailId(null)} />
+      <DetailDialog
+        supervisorId={detailId}
+        onClose={() => setDetailId(null)}
+        supervisors={activeSupervisors}
+      />
 
       {/* Delete Dialog */}
       <DeleteDialog

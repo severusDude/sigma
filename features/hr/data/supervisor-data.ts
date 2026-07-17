@@ -5,6 +5,7 @@ import { supervisorInclude } from "../types/supervisor-types";
 import type {
   UnassignedIntern,
   ActiveSupervisorOption,
+  AssignedIntern,
 } from "../types/supervisor-types";
 
 export async function fetchSupervisors(query?: string) {
@@ -61,6 +62,38 @@ export async function fetchUnassignedInterns(): Promise<UnassignedIntern[]> {
     name: i.user.name,
     institution: i.institution,
     departmentName: i.department?.name ?? null,
+  }));
+}
+
+export async function fetchSupervisorInterns(
+  supervisorProfileId: string,
+): Promise<AssignedIntern[]> {
+  "use cache";
+  cacheTag("supervisors");
+
+  const assignments = await prisma.internSupervisor.findMany({
+    where: {
+      supervisorProfileId,
+      endedAt: null,
+    },
+    include: {
+      internProfile: {
+        include: {
+          user: { select: { name: true } },
+          department: { select: { name: true } },
+        },
+      },
+    },
+    orderBy: { assignedAt: "desc" },
+  });
+
+  return assignments.map((a) => ({
+    internProfileId: a.internProfileId,
+    internName: a.internProfile.user.name,
+    nim: a.internProfile.nik,
+    institution: a.internProfile.institution,
+    departmentName: a.internProfile.department?.name ?? null,
+    assignedAt: a.assignedAt.toISOString(),
   }));
 }
 

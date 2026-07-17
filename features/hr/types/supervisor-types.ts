@@ -29,6 +29,21 @@ export interface ActiveSupervisorOption {
   maxInterns: number;
 }
 
+export interface AssignedIntern {
+  internProfileId: string;
+  internName: string;
+  nim: string;
+  institution: string;
+  departmentName: string | null;
+  assignedAt: string;
+}
+
+export interface ReassignAllResult {
+  success: boolean;
+  count: number;
+  error?: string;
+}
+
 export type AssignResult =
   | { success: true; warning?: string }
   | { success: false; error: string };
