@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, ArrowLeftRightIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,7 +29,11 @@ import {
   getSupervisorInterns,
   reassignIntern,
 } from "../../actions/supervisor-actions";
-import type { ActiveSupervisorOption } from "../../types/supervisor-types";
+import type {
+  ActiveSupervisorOption,
+  Supervisor,
+  AssignedIntern,
+} from "../../types/supervisor-types";
 
 interface DetailDialogProps {
   supervisorId: string | null;
@@ -49,29 +53,32 @@ export function DetailDialog({
     setReassigningId(null);
   }, [supervisorId]);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["supervisor", supervisorId],
-    queryFn: async () => {
-      if (!supervisorId) return null;
-      const res = await getSupervisorById(supervisorId);
-      if (!res.success) throw new Error(res.error);
-      return res.data;
-    },
-    enabled: !!supervisorId,
-  });
+  const [supervisorUser, setSupervisorUser] = useState<Supervisor | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: interns = [], isLoading: internsLoading } = useQuery({
-    queryKey: ["supervisor-interns", supervisorId],
-    queryFn: async () => {
-      if (!supervisorId) return [];
-      const res = await getSupervisorInterns(supervisorId);
-      if (!res.success) throw new Error(res.error);
-      return res.data;
-    },
-    enabled: !!supervisorId,
-    staleTime: 30_000,
-    refetchOnWindowFocus: false,
-  });
+  const [interns, setInterns] = useState<AssignedIntern[]>([]);
+  const [internsLoading, setInternsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!supervisorId) {
+      setSupervisorUser(null);
+      setInterns([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setInternsLoading(true);
+
+    getSupervisorById(supervisorId).then((res) => {
+      if (res.success) setSupervisorUser(res.data ?? null);
+      setIsLoading(false);
+    });
+
+    getSupervisorInterns(supervisorId).then((res) => {
+      if (res.success) setInterns(res.data ?? []);
+      setInternsLoading(false);
+    });
+  }, [supervisorId]);
 
   const { mutateAsync: reassignAsync, isPending: isReassigning } = useMutation({
     mutationKey: ["reassign-intern"],
@@ -85,22 +92,6 @@ export function DetailDialog({
       const res = await reassignIntern(internProfileId, newSupervisorProfileId);
       if (!res.success) throw new Error(res.error);
       return res;
-    },
-    onSuccess: async (_res, variables) => {
-      if (!supervisorId) return;
-      const internsKey = ["supervisor-interns", supervisorId];
-
-      await queryClient.cancelQueries({ queryKey: internsKey, exact: true });
-
-      queryClient.setQueryData(internsKey, (old: typeof interns | undefined) =>
-        (old ?? []).filter(
-          (i) => i.internProfileId !== variables.internProfileId,
-        ),
-      );
-
-      queryClient.invalidateQueries({ queryKey: ["supervisor", supervisorId] });
-      queryClient.invalidateQueries({ queryKey: ["supervisors"] });
-      queryClient.invalidateQueries({ queryKey: ["interns"] });
     },
   });
 
@@ -126,13 +117,18 @@ export function DetailDialog({
 
     try {
       await mutationPromise;
+      setInterns((prev) =>
+        prev.filter((i) => i.internProfileId !== internProfileId),
+      );
+      queryClient.invalidateQueries({ queryKey: ["supervisors"] });
+      queryClient.invalidateQueries({ queryKey: ["interns"] });
       setReassigningId(null);
     } catch {
       // error toast sudah ditangani oleh toast.promise
     }
   }
 
-  const supervisor = data?.supervisorProfile;
+  const supervisor = supervisorUser?.supervisorProfile;
   const availableSupervisors = supervisors.filter(
     (s) => s.id !== supervisor?.id,
   );
@@ -156,13 +152,13 @@ export function DetailDialog({
               </div>
             )}
 
-            {data && supervisor && (
+            {supervisorUser && supervisor && (
               <>
                 {/* Info Supervisor */}
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold">{data.name}</h3>
+                      <h3 className="text-lg font-semibold">{supervisorUser.name}</h3>
                       <p className="text-sm text-muted-foreground">
                         {supervisor.nip}
                       </p>

@@ -15,7 +15,7 @@ import type { Supervisor } from "../../types/supervisor-types";
 
 const baseColumns: ColumnDef<Supervisor>[] = [
   {
-    id: "nameNip",
+    id: "name",
     header: "Nama",
     accessorFn: (row) => row.name,
     cell: ({ row }) => (
