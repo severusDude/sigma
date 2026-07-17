@@ -16,6 +16,8 @@ import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
 import { fetchSupervisors } from "../data/supervisor-data";
 import type { AssignResult } from "../types/supervisor-types";
+import type { AssignMultipleInput } from "../schemas/supervisor-schemas";
+import { assignMultipleSchema } from "../schemas/supervisor-schemas";
 
 export async function getSupervisors(
   query?: string,
@@ -250,6 +252,86 @@ export async function assignSupervisor(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Gagal meng-assign supervisor",
+    };
+  }
+}
+
+export async function assignMultipleInterns(
+  input: AssignMultipleInput,
+): Promise<AssignResult> {
+  try {
+    await requirePermission({ supervisor: ["update"] });
+
+    const parsed = assignMultipleSchema.parse(input);
+
+    const internProfileIds = [...new Set(parsed.interns.map((i) => i.internProfileId))];
+
+    const supervisor = await prisma.supervisorProfile.findUnique({
+      where: { id: parsed.supervisorProfileId },
+      include: {
+        user: { select: { name: true } },
+        internAssignments: { where: { endedAt: null } },
+      },
+    });
+
+    if (!supervisor || !supervisor.isActive) {
+      return { success: false, error: "Supervisor tidak ditemukan atau tidak aktif" };
+    }
+
+    const validInterns = await prisma.internProfile.findMany({
+      where: {
+        id: { in: internProfileIds },
+        deletedAt: null,
+        status: "active",
+      },
+    });
+
+    if (validInterns.length !== internProfileIds.length) {
+      return { success: false, error: "Beberapa intern tidak valid atau tidak aktif" };
+    }
+
+    const existingAssignments = await prisma.internSupervisor.findMany({
+      where: {
+        internProfileId: { in: internProfileIds },
+        endedAt: null,
+      },
+    });
+
+    if (existingAssignments.length > 0) {
+      return {
+        success: false,
+        error: "Beberapa intern sudah memiliki supervisor aktif",
+      };
+    }
+
+    const currentCount = supervisor.internAssignments.length;
+    const newCount = internProfileIds.length;
+    const isOverLimit = currentCount + newCount > supervisor.maxInterns;
+
+    await prisma.$transaction(
+      internProfileIds.map((internProfileId) =>
+        prisma.internSupervisor.create({
+          data: {
+            internProfileId,
+            supervisorProfileId: parsed.supervisorProfileId,
+          },
+        }),
+      ),
+    );
+
+    updateTag("supervisors");
+    updateTag("interns");
+
+    const result: AssignResult = { success: true };
+    if (isOverLimit) {
+      result.warning = `Supervisor ${supervisor.user.name} akan memiliki ${currentCount + newCount} dari ${supervisor.maxInterns} maksimal intern`;
+    }
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal meng-assign multiple intern",
     };
   }
 }

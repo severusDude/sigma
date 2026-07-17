@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, UserPlusIcon } from "lucide-react";
 
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { DeleteDialog } from "../components/supervisor/delete-dialog";
 import { CreateSupervisorForm } from "../components/supervisor/create-form";
 import { UpdateSupervisorForm } from "../components/supervisor/update-form";
 import { QuickAssignCard } from "../components/supervisor/quick-assign-card";
+import { AssignDialog } from "../components/supervisor/assign-dialog";
 
 interface SupervisorPageProps {
   supervisors: Supervisor[];
@@ -58,6 +59,7 @@ export default function SupervisorPage({
   unassignedInterns,
   activeSupervisors,
 }: SupervisorPageProps) {
+  const [assignOpen, setAssignOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [updateSupervisor, setUpdateSupervisor] = useState<Supervisor | null>(
     null,
@@ -84,10 +86,16 @@ export default function SupervisorPage({
             Kelola data supervisor dan bimbingan
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
-          <PlusIcon className="size-4" />
-          Tambah Supervisor
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setAssignOpen(true)} variant="secondary" className="gap-2">
+            <UserPlusIcon className="size-4" />
+            Assign Intern
+          </Button>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <PlusIcon className="size-4" />
+            Tambah Supervisor
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-start justify-between gap-2">
@@ -150,6 +158,14 @@ export default function SupervisorPage({
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Assign Dialog */}
+      <AssignDialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        interns={unassignedInterns}
+        supervisors={activeSupervisors}
+      />
 
       {/* Detail Dialog */}
       <DetailDialog supervisorId={detailId} onClose={() => setDetailId(null)} />
