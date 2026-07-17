@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon, ArrowLeftRightIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { getSupervisorById, getSupervisorInterns, reassignIntern } from "../../actions/supervisor-actions";
+import {
+  getSupervisorById,
+  getSupervisorInterns,
+  reassignIntern,
+} from "../../actions/supervisor-actions";
 import type { ActiveSupervisorOption } from "../../types/supervisor-types";
 
 interface DetailDialogProps {
@@ -33,9 +37,17 @@ interface DetailDialogProps {
   supervisors: ActiveSupervisorOption[];
 }
 
-export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialogProps) {
+export function DetailDialog({
+  supervisorId,
+  onClose,
+  supervisors,
+}: DetailDialogProps) {
   const queryClient = useQueryClient();
   const [reassigningId, setReassigningId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setReassigningId(null);
+  }, [supervisorId]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["supervisor", supervisorId],
@@ -57,19 +69,49 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
       return res.data;
     },
     enabled: !!supervisorId,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   const { mutateAsync: reassignAsync, isPending: isReassigning } = useMutation({
     mutationKey: ["reassign-intern"],
-    mutationFn: async ({ internProfileId, newSupervisorProfileId }: { internProfileId: string; newSupervisorProfileId: string }) => {
+    mutationFn: async ({
+      internProfileId,
+      newSupervisorProfileId,
+    }: {
+      internProfileId: string;
+      newSupervisorProfileId: string;
+    }) => {
       const res = await reassignIntern(internProfileId, newSupervisorProfileId);
       if (!res.success) throw new Error(res.error);
       return res;
     },
+    onSuccess: async (_res, variables) => {
+      if (!supervisorId) return;
+      const internsKey = ["supervisor-interns", supervisorId];
+
+      await queryClient.cancelQueries({ queryKey: internsKey, exact: true });
+
+      queryClient.setQueryData(internsKey, (old: typeof interns | undefined) =>
+        (old ?? []).filter(
+          (i) => i.internProfileId !== variables.internProfileId,
+        ),
+      );
+
+      queryClient.invalidateQueries({ queryKey: ["supervisor", supervisorId] });
+      queryClient.invalidateQueries({ queryKey: ["supervisors"] });
+      queryClient.invalidateQueries({ queryKey: ["interns"] });
+    },
   });
 
-  async function handleReassign(internProfileId: string, newSupervisorProfileId: string) {
-    const mutationPromise = reassignAsync({ internProfileId, newSupervisorProfileId });
+  async function handleReassign(
+    internProfileId: string,
+    newSupervisorProfileId: string,
+  ) {
+    const mutationPromise = reassignAsync({
+      internProfileId,
+      newSupervisorProfileId,
+    });
     toast.promise(mutationPromise, {
       loading: "Memindahkan intern...",
       success: (res) => {
@@ -84,11 +126,10 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
 
     try {
       await mutationPromise;
-      queryClient.invalidateQueries({ queryKey: ["supervisor"] });
-      queryClient.invalidateQueries({ queryKey: ["supervisor-interns"] });
-      queryClient.invalidateQueries({ queryKey: ["interns"] });
       setReassigningId(null);
-    } catch {}
+    } catch {
+      // error toast sudah ditangani oleh toast.promise
+    }
   }
 
   const supervisor = data?.supervisorProfile;
@@ -103,9 +144,7 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
           <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
             Detail Supervisor
           </DialogTitle>
-          <DialogDescription>
-            Informasi lengkap supervisor
-          </DialogDescription>
+          <DialogDescription>Informasi lengkap supervisor</DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[calc(100vh-12rem)]">
           <div className="px-6 py-6 space-y-6">
@@ -124,9 +163,13 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-lg font-semibold">{data.name}</h3>
-                      <p className="text-sm text-muted-foreground">{supervisor.nip}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {supervisor.nip}
+                      </p>
                     </div>
-                    <Badge variant={supervisor.isActive ? "default" : "outline"}>
+                    <Badge
+                      variant={supervisor.isActive ? "default" : "outline"}
+                    >
                       {supervisor.isActive ? "Aktif" : "Nonaktif"}
                     </Badge>
                   </div>
@@ -149,7 +192,9 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                       <p className="font-medium">{supervisor.maxInterns}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Jumlah Intern Bimbingan</p>
+                      <p className="text-muted-foreground">
+                        Jumlah Intern Bimbingan
+                      </p>
                       <p className="font-medium">
                         {supervisor.internAssignments?.length || 0} Intern
                       </p>
@@ -192,7 +237,9 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate">
                               {intern.nim} · {intern.institution}
-                              {intern.departmentName ? ` - ${intern.departmentName}` : ""}
+                              {intern.departmentName
+                                ? ` - ${intern.departmentName}`
+                                : ""}
                             </p>
                           </div>
 
@@ -203,7 +250,10 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                                   value=""
                                   onValueChange={(val) => {
                                     if (val) {
-                                      handleReassign(intern.internProfileId, val);
+                                      handleReassign(
+                                        intern.internProfileId,
+                                        val,
+                                      );
                                     }
                                   }}
                                 >
@@ -214,7 +264,9 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                                     <SelectValue placeholder="Pilih Supervisor...">
                                       {(value: string | null) =>
                                         value
-                                          ? (supervisors.find((s) => s.id === value)?.name ?? value)
+                                          ? (supervisors.find(
+                                              (s) => s.id === value,
+                                            )?.name ?? value)
                                           : null
                                       }
                                     </SelectValue>
@@ -244,7 +296,9 @@ export function DetailDialog({ supervisorId, onClose, supervisors }: DetailDialo
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setReassigningId(intern.internProfileId)}
+                                onClick={() =>
+                                  setReassigningId(intern.internProfileId)
+                                }
                                 className="gap-1.5 text-xs"
                                 disabled={isReassigning}
                               >

@@ -68,9 +68,6 @@ export async function fetchUnassignedInterns(): Promise<UnassignedIntern[]> {
 export async function fetchSupervisorInterns(
   supervisorProfileId: string,
 ): Promise<AssignedIntern[]> {
-  "use cache";
-  cacheTag("supervisors");
-
   const assignments = await prisma.internSupervisor.findMany({
     where: {
       supervisorProfileId,
