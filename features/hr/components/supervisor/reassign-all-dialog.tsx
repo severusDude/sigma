@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRightIcon, Loader2Icon } from "lucide-react";
+import { ArrowDown, ArrowRightIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -136,7 +136,7 @@ export function ReassignAllDialog({
 
           {/* Arrow */}
           <div className="flex justify-center -my-2">
-            <ArrowRightIcon className="size-5 text-muted-foreground/40" />
+            <ArrowDown className="size-5 text-muted-foreground/40" />
           </div>
 
           {/* Supervisor Tujuan */}
