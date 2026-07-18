@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { SortOption } from "@/lib/types/sort";
 import { FilterCategory } from "@/lib/types/filter";
@@ -12,6 +14,7 @@ import { FileText, Send } from "lucide-react";
 import type { DocumentRow } from "../types/document-types";
 import { createColumns } from "../components/document/columns";
 import { ActionCard } from "../components/document/action-card";
+import { generateCertificates } from "../actions/document-actions";
 
 interface DocumentPageProps {
   interns: DocumentRow[];
@@ -49,7 +52,29 @@ const batchActions = [
   {
     label: "Generate Document",
     icon: <FileText className="size-4" />,
-    onClick: () => {},
+    onClick: async (rows: DocumentRow[]) => {
+      const internIds = rows.map((r) => r.id);
+      const result = await generateCertificates(internIds);
+
+      if (!result.success) {
+        toast.error(result.error || "Gagal generate sertifikat");
+        return;
+      }
+
+      const success = result.data.filter((r) => !r.error);
+      const failed = result.data.filter((r) => r.error);
+
+      if (failed.length === 0) {
+        toast.success(`Berhasil membuat ${success.length} sertifikat`);
+      } else {
+        toast.warning(`${success.length} berhasil, ${failed.length} gagal`);
+        failed.forEach((f) =>
+          console.warn(`[cert-gen] ${f.internName}: ${f.error}`),
+        );
+      }
+
+      router.refresh();
+    },
   },
   {
     label: "Generate & Kirim ke TTE",
@@ -60,6 +85,7 @@ const batchActions = [
 
 export default function DocumentPage({ interns }: DocumentPageProps) {
   const [tab, setTab] = useState<DocumentType>(DocumentType.certificate);
+  const router = useRouter();
 
   const columns = createColumns({
     onView: () => {},
