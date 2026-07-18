@@ -41,6 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+/generated/certificates
 
 
 # Task artifacts
