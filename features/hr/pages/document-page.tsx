@@ -56,8 +56,8 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
     {
       label: "Generate Document",
       icon: <FileText className="size-4" />,
-      onClick: async (rows: DocumentRow[]) => {
-        const internIds = rows.map((r) => r.id);
+      onClick: async (rows: DocumentRow | DocumentRow[]) => {
+        const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
         const result = await generateCertificates(internIds);
 
         if (!result.success) {
@@ -65,8 +65,9 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
           return;
         }
 
-        const success = result.data.filter((r) => !r.error);
-        const failed = result.data.filter((r) => r.error);
+        const data = result.data!;
+        const success = data.filter((r) => !r.error);
+        const failed = data.filter((r) => r.error);
 
         if (failed.length === 0) {
           toast.success(`Berhasil membuat ${success.length} sertifikat`);
