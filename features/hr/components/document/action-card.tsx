@@ -1,9 +1,10 @@
 "use client";
 
-import { FileText, Send, Eye } from "lucide-react";
+import { FileTextIcon, SendIcon } from "lucide-react";
 
-import { DocumentPreview } from "@/components/shared/document";
 import { Button } from "@/components/ui/button";
+import { DocumentType } from "@/generated/prisma/enums";
+import { DocumentPreview } from "@/components/shared/document";
 import {
   Select,
   SelectContent,
@@ -11,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DocumentType } from "@/generated/prisma/enums";
 
 const documentTypeLabels: Record<string, string> = {
   [DocumentType.certificate]: "Sertifikat Standar",
@@ -50,11 +50,11 @@ export function ActionCard() {
 
         <div className="space-y-3">
           <Button className="w-full gap-2" disabled>
-            <FileText className="size-4" />
+            <FileTextIcon className="size-4" />
             Generate Document
           </Button>
           <Button variant="secondary" className="w-full gap-2" disabled>
-            <Send className="size-4" />
+            <SendIcon className="size-4" />
             Generate &amp; Kirim ke TTE
           </Button>
         </div>
