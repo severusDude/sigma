@@ -47,7 +47,13 @@ export async function generateCertificates(
         });
 
         if (!user?.internProfile) {
-          results.push({ internId, internName: user?.name ?? "Unknown", docNumber: null, filePath: null, error: "Intern profile not found" });
+          results.push({
+            internId,
+            internName: user?.name ?? "Unknown",
+            docNumber: null,
+            filePath: null,
+            error: "Intern profile not found",
+          });
           continue;
         }
 
@@ -57,17 +63,30 @@ export async function generateCertificates(
         const docNumber = await generateDocumentNumber();
 
         const formatDate = (d: Date) =>
-          new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d));
+          new Intl.DateTimeFormat("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }).format(new Date(d));
 
-        const outputPath = path.join(process.cwd(), "generated", "certificates", `${docNumber}.pdf`);
+        const outputPath = path.join(
+          process.cwd(),
+          "generated",
+          "certificates",
+          `${docNumber}.pdf`,
+        );
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
         await renderToFile(
           <InternshipCertificate
             recipientName={user.name}
-            organization={intern.institution}
+            organization="Badan Pusat Statistik Kota Tasikmalaya"
             dateRange={`${formatDate(intern.periodStart)} — ${formatDate(intern.periodEnd)}`}
-            signerTitle={supervisor ? [supervisor.field] : ["Kepala Badan Pusat Statistik", "Provinsi Jawa Timur"]}
+            signerTitle={
+              supervisor
+                ? [supervisor.field]
+                : ["Kepala Badan Pusat Statistik", "Kota Tasikmalaya"]
+            }
             signerName={supervisor?.user?.name ?? "Dr. Ir. Zulkipli, M.Si."}
           />,
           outputPath,
@@ -92,7 +111,13 @@ export async function generateCertificates(
           filePath: outputPath,
         });
       } catch (e) {
-        const name = (await prisma.user.findUnique({ where: { id: internId }, select: { name: true } }))?.name ?? "Unknown";
+        const name =
+          (
+            await prisma.user.findUnique({
+              where: { id: internId },
+              select: { name: true },
+            })
+          )?.name ?? "Unknown";
         results.push({
           internId,
           internName: name,
@@ -107,7 +132,10 @@ export async function generateCertificates(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to generate certificates",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to generate certificates",
     };
   }
 }

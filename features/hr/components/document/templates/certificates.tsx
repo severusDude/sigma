@@ -332,9 +332,9 @@ interface Props {
 
 export function InternshipCertificate({
   recipientName = "Rizka Nurul Septiana Hakim",
-  organization = "Badan Pusat Statistik Provinsi Jawa Timur",
+  organization = "Badan Pusat Statistik",
   dateRange = "6 Februari - 31 Juli 2023",
-  signerTitle = ["Kepala Badan Pusat Statistik", "Provinsi Jawa Timur"],
+  signerTitle = ["Kepala Badan Pusat Statistik", "Kota Tasikmalaya"],
   signerName = "Dr. Ir. Zulkipli, M.Si.",
   bpsLogoSrc,
   pojokLogoSrc,
@@ -362,7 +362,7 @@ export function InternshipCertificate({
               </View>
               <View style={styles.bpsTextCol}>
                 <Text style={styles.bpsLine1}>BADAN PUSAT STATISTIK</Text>
-                <Text style={styles.bpsLine2}>PROVINSI JAWA TIMUR</Text>
+                <Text style={styles.bpsLine2}>KOTA TASIKMALAYA</Text>
               </View>
             </View>
 
