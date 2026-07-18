@@ -2,6 +2,7 @@
 
 import { FileText, Send, Eye } from "lucide-react";
 
+import { DocumentPreview } from "@/components/shared/document";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -23,8 +24,8 @@ const documentTypeLabels: Record<string, string> = {
 export function ActionCard() {
   return (
     <aside className="flex flex-col gap-4 w-80 shrink-0">
-      <div className="rounded-md border bg-muted/50 p-4">
-        <h3 className="text-sm font-medium mb-3">Template Dokumen</h3>
+      <div className="p-4 border rounded-md bg-muted/50">
+        <h3 className="mb-3 text-sm font-medium">Template Dokumen</h3>
 
         <div className="space-y-3">
           <Select defaultValue={DocumentType.certificate}>
@@ -40,15 +41,12 @@ export function ActionCard() {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" className="w-full gap-2" disabled>
-            <Eye className="size-4" />
-            Lihat Preview
-          </Button>
+          <DocumentPreview size="thumbnail" />
         </div>
       </div>
 
-      <div className="rounded-md border bg-muted/50 p-4">
-        <h3 className="text-sm font-medium mb-3">Generate</h3>
+      <div className="p-4 border rounded-md bg-muted/50">
+        <h3 className="mb-3 text-sm font-medium">Generate</h3>
 
         <div className="space-y-3">
           <Button className="w-full gap-2" disabled>
