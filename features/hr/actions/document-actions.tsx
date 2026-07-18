@@ -59,9 +59,8 @@ export async function generateCertificates(
         const formatDate = (d: Date) =>
           new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(d));
 
-        const outputDir = path.join(process.cwd(), "generated", "certificates");
-        fs.mkdirSync(outputDir, { recursive: true });
-        const outputPath = path.join(outputDir, `${docNumber}.pdf`);
+        const outputPath = path.join(process.cwd(), "generated", "certificates", `${docNumber}.pdf`);
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
         await renderToFile(
           <InternshipCertificate
