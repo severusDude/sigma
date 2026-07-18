@@ -5,7 +5,7 @@ import { PreviewSkeleton } from "./preview-skeleton";
 
 type PreviewSize = "full" | "modal" | "thumbnail";
 
-interface DocumentPreviewProps {
+export interface DocumentPreviewProps {
   docId?: string;
   templateType?: string;
   size?: PreviewSize;

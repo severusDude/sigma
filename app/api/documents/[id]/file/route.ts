@@ -8,8 +8,13 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const document = await prisma.document.findUnique({
-    where: { id },
+  const document = await prisma.document.findFirst({
+    where: {
+      OR: [
+        { id },
+        { internProfile: { userId: id } },
+      ],
+    },
     select: { fileUrl: true },
   });
 
