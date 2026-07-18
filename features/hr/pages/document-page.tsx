@@ -48,44 +48,44 @@ const sortOptions: SortOption[] = [
   { id: "period", label: "Periode" },
 ];
 
-const batchActions = [
-  {
-    label: "Generate Document",
-    icon: <FileText className="size-4" />,
-    onClick: async (rows: DocumentRow[]) => {
-      const internIds = rows.map((r) => r.id);
-      const result = await generateCertificates(internIds);
-
-      if (!result.success) {
-        toast.error(result.error || "Gagal generate sertifikat");
-        return;
-      }
-
-      const success = result.data.filter((r) => !r.error);
-      const failed = result.data.filter((r) => r.error);
-
-      if (failed.length === 0) {
-        toast.success(`Berhasil membuat ${success.length} sertifikat`);
-      } else {
-        toast.warning(`${success.length} berhasil, ${failed.length} gagal`);
-        failed.forEach((f) =>
-          console.warn(`[cert-gen] ${f.internName}: ${f.error}`),
-        );
-      }
-
-      router.refresh();
-    },
-  },
-  {
-    label: "Generate & Kirim ke TTE",
-    icon: <Send className="size-4" />,
-    onClick: () => {},
-  },
-];
-
 export default function DocumentPage({ interns }: DocumentPageProps) {
   const [tab, setTab] = useState<DocumentType>(DocumentType.certificate);
   const router = useRouter();
+
+  const batchActions = [
+    {
+      label: "Generate Document",
+      icon: <FileText className="size-4" />,
+      onClick: async (rows: DocumentRow[]) => {
+        const internIds = rows.map((r) => r.id);
+        const result = await generateCertificates(internIds);
+
+        if (!result.success) {
+          toast.error(result.error || "Gagal generate sertifikat");
+          return;
+        }
+
+        const success = result.data.filter((r) => !r.error);
+        const failed = result.data.filter((r) => r.error);
+
+        if (failed.length === 0) {
+          toast.success(`Berhasil membuat ${success.length} sertifikat`);
+        } else {
+          toast.warning(`${success.length} berhasil, ${failed.length} gagal`);
+          failed.forEach((f) =>
+            console.warn(`[cert-gen] ${f.internName}: ${f.error}`),
+          );
+        }
+
+        router.refresh();
+      },
+    },
+    {
+      label: "Generate & Kirim ke TTE",
+      icon: <Send className="size-4" />,
+      onClick: () => {},
+    },
+  ];
 
   const columns = createColumns({
     onView: () => {},
