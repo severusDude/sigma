@@ -27,7 +27,7 @@ export async function GET(
     return new Response(new Uint8Array(fileBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${id}.pdf"`,
+        "Content-Disposition": "inline",
         "Cache-Control": "private, max-age=3600",
       },
     });
