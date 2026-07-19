@@ -3,8 +3,6 @@
 import { prisma } from "@/lib/prisma";
 import type { ActionResponse } from "@/lib/types";
 import { requirePermission } from "@/lib/auth/authorize";
-import { updateTag } from "next/cache";
-
 import type { Logbook } from "../types/logbook-types";
 import { logbookInclude } from "../types/logbook-types";
 import {
@@ -16,7 +14,7 @@ import {
 import { fetchLogbooks } from "../data/logbook-data";
 
 export async function getLogbooks(
-  query?: { status?: string; from?: Date; to?: Date },
+  query?: Parameters<typeof fetchLogbooks>[1],
 ): Promise<ActionResponse<Logbook[]>> {
   try {
     const session = await requirePermission({ journal: ["read"] });
@@ -24,17 +22,17 @@ export async function getLogbooks(
     const internProfile = await prisma.internProfile.findUnique({
       where: { userId: session.user.id },
     });
-    if (!internProfile)
+    if (!internProfile) {
       return { success: false, error: "Profil intern tidak ditemukan" };
+    }
 
-    const logbooks = await fetchLogbooks(internProfile.id, query as any);
+    const logbooks = await fetchLogbooks(internProfile.id, query);
 
-    return { success: true, data: logbooks as Logbook[] };
+    return { success: true, data: logbooks };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal mengambil logbook",
+      error: error instanceof Error ? error.message : "Gagal mengambil logbook",
     };
   }
 }
@@ -60,15 +58,13 @@ export async function getLogbookById(
       include: logbookInclude,
     });
 
-    if (!logbook)
-      return { success: false, error: "Logbook tidak ditemukan" };
+    if (!logbook) return { success: false, error: "Logbook tidak ditemukan" };
 
     return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal mengambil logbook",
+      error: error instanceof Error ? error.message : "Gagal mengambil logbook",
     };
   }
 }
@@ -120,14 +116,11 @@ export async function createLogbook(
       include: logbookInclude,
     });
 
-    updateTag("logbook");
-
     return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal membuat logbook",
+      error: error instanceof Error ? error.message : "Gagal membuat logbook",
     };
   }
 }
@@ -153,8 +146,7 @@ export async function updateLogbook(
       },
     });
 
-    if (!existing)
-      return { success: false, error: "Logbook tidak ditemukan" };
+    if (!existing) return { success: false, error: "Logbook tidak ditemukan" };
 
     if (existing.status === "approved") {
       return {
@@ -187,8 +179,6 @@ export async function updateLogbook(
       include: logbookInclude,
     });
 
-    updateTag("logbook");
-
     return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
@@ -199,9 +189,7 @@ export async function updateLogbook(
   }
 }
 
-export async function deleteLogbook(
-  id: string,
-): Promise<ActionResponse<void>> {
+export async function deleteLogbook(id: string): Promise<ActionResponse<void>> {
   try {
     const session = await requirePermission({ journal: ["delete"] });
 
@@ -219,8 +207,7 @@ export async function deleteLogbook(
       },
     });
 
-    if (!existing)
-      return { success: false, error: "Logbook tidak ditemukan" };
+    if (!existing) return { success: false, error: "Logbook tidak ditemukan" };
 
     if (existing.status !== "pending_review") {
       return {
@@ -234,14 +221,11 @@ export async function deleteLogbook(
       where: { id },
     });
 
-    updateTag("logbook");
-
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Gagal menghapus logbook",
+      error: error instanceof Error ? error.message : "Gagal menghapus logbook",
     };
   }
 }

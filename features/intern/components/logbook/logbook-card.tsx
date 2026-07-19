@@ -15,7 +15,7 @@ import {
 import { id } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogbookStatus } from "@/generated/prisma/enums";
 import {
   DropdownMenu,
@@ -79,79 +79,80 @@ export function LogbookCard({
   const status = statusConfig[logbook.status] ?? statusConfig.pending_review;
 
   return (
-    <Card className="relative border border-outline-variant/50 hover:border-primary transition-all p-6 group ring-0">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">
-            {format(new Date(logbook.date), "EEEE, d MMMM yyyy", {
-              locale: id,
-            })}
-          </p>
-          <p className="text-xs text-primary mt-0.5">
-            {formatDuration(logbook.duration)}
-          </p>
-        </div>
-        <Badge
-          variant={status.variant}
-          className={`gap-1 text-[10px] font-bold uppercase ${status.badgeClass}`}
-        >
-          {status.icon}
-          {status.label}
-        </Badge>
-      </div>
-
-      <p className="text-base font-semibold mb-2 group-hover:text-primary transition-colors">
-        {logbook.issue?.title || "Kegiatan Harian"}
-      </p>
-
-      <p className="text-sm text-muted-foreground line-clamp-3 mb-6">
-        {logbook.activity}
-      </p>
-
-      {logbook.notes && logbook.status === LogbookStatus.revision && (
-        <div className="bg-surface-container-low border border-primary/10 p-4">
-          <div className="flex items-center gap-2 mb-1.5">
-            <MessageSquareIcon className="size-4 text-primary" />
-            <span className="text-xs font-semibold uppercase text-primary">
-              Catatan Pembimbing
-            </span>
+    <Card className="relative transition-all border border-outline-variant/50 hover:border-primary group ring-0">
+      <CardHeader className="flex flex-col items-start justify-between">
+        <main className="flex items-start justify-between w-full mb-4">
+          <div className="flex flex-col">
+            <h2 className="text-sm font-medium text-muted-foreground">
+              {format(new Date(logbook.date), "EEEE, d MMMM yyyy", {
+                locale: id,
+              })}
+            </h2>
+            <p className="text-xs text-primary mt-0.5">
+              {formatDuration(logbook.duration)}
+            </p>
           </div>
-          <p className="text-sm italic text-foreground">
-            {logbook.notes}
-          </p>
-        </div>
-      )}
-
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="ghost" size="icon" className="absolute top-4 right-4 size-8">
-              <MoreHorizontalIcon className="size-4" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onView(logbook)}>
-            <EyeIcon className="mr-2 size-4" />
-            Detail
-          </DropdownMenuItem>
-          {logbook.status !== LogbookStatus.approved && (
-            <DropdownMenuItem onClick={() => onEdit(logbook)}>
-              <PencilIcon className="mr-2 size-4" />
-              Edit
-            </DropdownMenuItem>
-          )}
-          {logbook.status === LogbookStatus.pending_review && (
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(logbook)}
+          <div className="flex items-center justify-end gap-2">
+            <Badge
+              variant={status.variant}
+              className={`gap-1 text-[10px] font-bold uppercase ${status.badgeClass}`}
             >
-              <Trash2Icon className="mr-2 size-4" />
-              Hapus
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              {status.icon}
+              {status.label}
+            </Badge>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontalIcon className="size-4" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onView(logbook)}>
+                  <EyeIcon className="mr-2 size-4" />
+                  Detail
+                </DropdownMenuItem>
+                {logbook.status !== LogbookStatus.approved && (
+                  <DropdownMenuItem onClick={() => onEdit(logbook)}>
+                    <PencilIcon className="mr-2 size-4" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {logbook.status === LogbookStatus.pending_review && (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(logbook)}
+                  >
+                    <Trash2Icon className="mr-2 size-4" />
+                    Hapus
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </main>
+        <CardTitle className="text-lg font-semibold transition-colors group-hover:text-primary">
+          {logbook.issue?.title || "Kegiatan Harian"}
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="mb-6 text-sm text-muted-foreground line-clamp-3">
+        {logbook.activity}
+
+        {logbook.notes && logbook.status === LogbookStatus.revision && (
+          <div className="p-4 border bg-surface-container-low border-primary/10">
+            <div className="flex items-center gap-2 mb-1.5">
+              <MessageSquareIcon className="size-4 text-primary" />
+              <span className="text-xs font-semibold uppercase text-primary">
+                Catatan Pembimbing
+              </span>
+            </div>
+            <p className="text-sm italic text-foreground">{logbook.notes}</p>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }

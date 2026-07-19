@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 import { LogbookFormFields } from "./form-fields";
 import { createLogbook } from "../../actions/logbook-actions";
+import type { Logbook } from "../../types/logbook-types";
 import {
   createLogbookSchema,
   type CreateLogbookInput,
@@ -40,13 +41,20 @@ export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookForm
     mutationFn: async (values: CreateLogbookInput) => {
       const res = await createLogbook(values);
       if (!res.success) throw new Error(res.error);
-      return res.data;
+      return res.data!;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Logbook[]>(["logbooks"], (old) => {
+        const list = old ?? [];
+        return [data, ...list];
+      });
+      queryClient.invalidateQueries({ queryKey: ["logbooks"] });
     },
   });
 
   async function onSubmit() {
     const values = form.getValues();
-    const mutationPromise = mutateAsync(values);
+    const mutationPromise = mutateAsync(values).then(() => onSuccess());
     toast.promise(mutationPromise, {
       loading: "Menyimpan logbook...",
       success: "Logbook berhasil ditambahkan",
@@ -55,8 +63,6 @@ export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookForm
     });
     try {
       await mutationPromise;
-      await queryClient.invalidateQueries({ queryKey: ["logbooks"] });
-      onSuccess();
     } catch {}
   }
 

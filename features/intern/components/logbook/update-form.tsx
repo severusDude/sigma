@@ -42,13 +42,20 @@ export function UpdateLogbookForm({ logbook, issueOptions, onSuccess }: UpdateLo
     mutationFn: async (values: UpdateLogbookInput) => {
       const res = await updateLogbook(logbook.id, values);
       if (!res.success) throw new Error(res.error);
-      return res.data;
+      return res.data!;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<Logbook[]>(["logbooks"], (old) => {
+        if (!old) return [data];
+        return old.map((item) => (item.id === data.id ? data : item));
+      });
+      queryClient.invalidateQueries({ queryKey: ["logbooks"] });
     },
   });
 
   async function onSubmit() {
     const values = form.getValues();
-    const mutationPromise = mutateAsync(values);
+    const mutationPromise = mutateAsync(values).then(() => onSuccess());
     toast.promise(mutationPromise, {
       loading: "Memperbarui logbook...",
       success: "Logbook berhasil diperbarui",
@@ -57,8 +64,6 @@ export function UpdateLogbookForm({ logbook, issueOptions, onSuccess }: UpdateLo
     });
     try {
       await mutationPromise;
-      await queryClient.invalidateQueries({ queryKey: ["logbooks"] });
-      onSuccess();
     } catch {}
   }
 

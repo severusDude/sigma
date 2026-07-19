@@ -27,15 +27,22 @@ export function DeleteDialog({ logbook, onClose }: DeleteDialogProps) {
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["delete-logbook", logbook?.id],
-    mutationFn: async () => {
-      if (!logbook) return;
-      const res = await deleteLogbook(logbook.id);
+    mutationFn: async (id: string) => {
+      const res = await deleteLogbook(id);
       if (!res.success) throw new Error(res.error);
+    },
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<Logbook[]>(["logbooks"], (old) => {
+        if (!old) return [];
+        return old.filter((item) => item.id !== id);
+      });
+      queryClient.invalidateQueries({ queryKey: ["logbooks"] });
     },
   });
 
   async function onConfirm() {
-    const mutationPromise = mutateAsync();
+    if (!logbook) return;
+    const mutationPromise = mutateAsync(logbook.id).then(() => onClose());
     toast.promise(mutationPromise, {
       loading: "Menghapus logbook...",
       success: "Logbook berhasil dihapus",
@@ -44,8 +51,6 @@ export function DeleteDialog({ logbook, onClose }: DeleteDialogProps) {
     });
     try {
       await mutationPromise;
-      queryClient.invalidateQueries({ queryKey: ["logbooks"] });
-      onClose();
     } catch {}
   }
 
