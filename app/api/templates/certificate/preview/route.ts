@@ -1,16 +1,9 @@
-import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 import type { DocumentProps } from "@react-pdf/renderer";
 import { InternshipCertificate } from "@/features/hr/components/document/templates/certificates";
-import { requirePermission } from "@/lib/auth/authorize";
 
 export async function GET() {
-  try {
-    await requirePermission({ document: ["read"] });
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
   const element = InternshipCertificate({
     recipientName: "Nama Peserta Magang",
     organization: "Badan Pusat Statistik Provinsi Jawa Timur",
