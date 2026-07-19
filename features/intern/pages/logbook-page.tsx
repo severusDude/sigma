@@ -62,7 +62,7 @@ function groupByWeek(logbooks: Logbook[]) {
   const currentWeek = getISOWeek(now);
   const currentYear = now.getFullYear();
 
-  const groups: { label: string; logbooks: Logbook[] }[] = [];
+  const groups: { label: string; logbooks: Logbook[]; rangeStart: Date; rangeEnd: Date }[] = [];
   const weekMap = new Map<string, Logbook[]>();
 
   for (const lb of logbooks) {
@@ -84,16 +84,19 @@ function groupByWeek(logbooks: Logbook[]) {
     const weekNum = Number(weekStr);
     const yearNum = Number(yearStr);
 
+    const rangeStart = startOfWeek(new Date(yearNum, 0, 1 + (weekNum - 1) * 7), {
+      weekStartsOn: 1,
+    });
+    const rangeEnd = new Date(rangeStart);
+    rangeEnd.setDate(rangeStart.getDate() + 6);
+
     let label: string;
     if (weekNum === currentWeek && yearNum === currentYear) {
       label = "Minggu Ini";
     } else if (weekNum === currentWeek - 1 && yearNum === currentYear) {
       label = "Minggu Lalu";
     } else {
-      const start = startOfWeek(new Date(yearNum, 0, 1 + (weekNum - 1) * 7), {
-        weekStartsOn: 1,
-      });
-      label = format(start, "d MMM yyyy", { locale: id });
+      label = format(rangeStart, "d MMM yyyy", { locale: id });
     }
 
     groups.push({
@@ -101,6 +104,8 @@ function groupByWeek(logbooks: Logbook[]) {
       logbooks: lbs.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       ),
+      rangeStart,
+      rangeEnd,
     });
   }
 
@@ -290,7 +295,7 @@ export default function LogbookPage({
             ) : (
               <Accordion multiple defaultValue={defaultWeeks}>
                 {weekGroups.map((group) => (
-                  <WeekGroup key={group.label} value={group.label} label={group.label}>
+                  <WeekGroup key={group.label} value={group.label} label={group.label} rangeStart={group.rangeStart} rangeEnd={group.rangeEnd}>
                     {group.logbooks.map((lb) => (
                       <LogbookCard
                         key={lb.id}
