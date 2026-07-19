@@ -21,6 +21,7 @@ import { id } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Accordion } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -126,6 +127,11 @@ export default function LogbookPage({
   });
 
   const weekGroups = useMemo(() => groupByWeek(logbooks), [logbooks]);
+
+  const defaultWeeks = useMemo(
+    () => weekGroups.filter((g) => g.label === "Minggu Ini" || g.label === "Minggu Lalu").map((g) => g.label),
+    [weekGroups],
+  );
 
   const approvedCount = useMemo(
     () => logbooks.filter((lb) => lb.status === "approved").length,
@@ -282,9 +288,9 @@ export default function LogbookPage({
                 </Button>
               </div>
             ) : (
-              <div className="space-y-8">
+              <Accordion multiple defaultValue={defaultWeeks}>
                 {weekGroups.map((group) => (
-                  <WeekGroup key={group.label} label={group.label}>
+                  <WeekGroup key={group.label} value={group.label} label={group.label}>
                     {group.logbooks.map((lb) => (
                       <LogbookCard
                         key={lb.id}
@@ -296,7 +302,7 @@ export default function LogbookPage({
                     ))}
                   </WeekGroup>
                 ))}
-              </div>
+              </Accordion>
             )}
           </TabsContent>
           <TabsContent value="statistik" className="mt-4">
