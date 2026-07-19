@@ -1,15 +1,24 @@
+import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
+import LogbookPage from "@/features/intern/pages/logbook-page";
 
-export default async function LogbookPage() {
-  await requireAuth([Role.admin, Role.intern]);
+export default async function Page() {
+  const { user } = await requireAuth([Role.admin, Role.intern]);
+
+  const internProfile = await prisma.internProfile.findUnique({
+    where: { userId: user.id },
+    select: {
+      periodStart: true,
+      periodEnd: true,
+    },
+  });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold tracking-tight">Logbook</h1>
-      <p className="text-sm text-muted-foreground">
-        Catat kegiatan harian magang Anda
-      </p>
-    </div>
+    <LogbookPage
+      periodStart={internProfile?.periodStart ?? undefined}
+      periodEnd={internProfile?.periodEnd ?? undefined}
+      internName={user.name}
+    />
   );
 }
