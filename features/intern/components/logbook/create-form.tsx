@@ -55,7 +55,7 @@ export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookForm
     });
     try {
       await mutationPromise;
-      queryClient.invalidateQueries({ queryKey: ["logbooks"] });
+      await queryClient.invalidateQueries({ queryKey: ["logbooks"] });
       onSuccess();
     } catch {}
   }

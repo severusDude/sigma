@@ -42,7 +42,7 @@ export function WeekGroup({
         <Separator orientation="horizontal" className="flex-1" />
       </AccordionTrigger>
       <AccordionContent className="pt-2">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">{children}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">{children}</div>
       </AccordionContent>
     </AccordionItem>
   );
