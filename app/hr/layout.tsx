@@ -47,8 +47,8 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
         icon: <UserCog className="size-4" />,
       },
       {
-        title: "Generate Dokumen",
-        url: "/hr/dokumen",
+        title: "Generate Documents",
+        url: "/hr/documents",
         icon: <FileText className="size-4" />,
       },
       {
