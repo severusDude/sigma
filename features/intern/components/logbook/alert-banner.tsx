@@ -1,10 +1,12 @@
 "use client";
 
-import { AlertTriangleIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
-import { Alert, AlertDescription, AlertAction } from "@/components/ui/alert";
+import { AlertTriangleIcon, XIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
 
 interface AlertBannerProps {
   message: string;
@@ -26,29 +28,29 @@ export function AlertBanner({
   return (
     <Alert
       variant={variant}
-      className={cn("flex items-start gap-3 rounded-lg p-4", className)}
+      className={cn("flex items-center justify-between gap-3 p-4", className)}
     >
       <AlertTriangleIcon className="mt-0.5 size-5 shrink-0" />
-      <AlertDescription className="flex-1 text-sm [&:not(:first-child)]:mt-0">
+      <AlertDescription className="flex-1 text-sm not-first:mt-0">
         {message}
       </AlertDescription>
-      {action && (
-        <button
-          onClick={action.onClick}
-          className={cn(
-            "shrink-0 text-sm font-medium underline-offset-2 hover:underline",
-            variant === "warning" && "text-amber-800",
-            variant === "info" && "text-blue-800",
-          )}
-        >
-          {action.label}
-        </button>
-      )}
-      <AlertAction className="static top-auto right-auto p-0.5 opacity-70 hover:opacity-100">
-        <button onClick={() => setDismissed(true)}>
+      <div className="flex items-center gap-2">
+        {action && (
+          <button
+            onClick={action.onClick}
+            className={cn(
+              "shrink-0 text-sm font-medium underline-offset-2 hover:underline",
+              variant === "warning" && "text-amber-800",
+              variant === "info" && "text-blue-800",
+            )}
+          >
+            {action.label}
+          </button>
+        )}
+        <Button variant="ghost" size="icon" onClick={() => setDismissed(true)}>
           <XIcon className="size-4" />
-        </button>
-      </AlertAction>
+        </Button>
+      </div>
     </Alert>
   );
 }

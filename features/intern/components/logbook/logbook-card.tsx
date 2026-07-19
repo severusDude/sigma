@@ -1,21 +1,22 @@
 "use client";
 
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import {
-  MoreHorizontalIcon,
+  AlertCircleIcon,
+  CheckCircle2Icon,
+  ClockIcon,
   EyeIcon,
+  MessageSquareIcon,
+  MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon,
-  ClockIcon,
-  MessageSquareIcon,
-  CheckCircle2Icon,
-  AlertCircleIcon,
 } from "lucide-react";
 
+import { id } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LogbookStatus } from "@/generated/prisma/enums";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { Logbook } from "../../types/logbook-types";
-import { LogbookStatus } from "@/generated/prisma/enums";
 
 interface LogbookCardProps {
   logbook: Logbook;
@@ -35,7 +35,11 @@ interface LogbookCardProps {
 
 const statusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive"; icon: React.ReactNode }
+  {
+    label: string;
+    variant: "default" | "secondary" | "outline" | "destructive";
+    icon: React.ReactNode;
+  }
 > = {
   [LogbookStatus.pending_review]: {
     label: "MENUNGGU REVIEW",
@@ -62,22 +66,29 @@ function formatDuration(minutes: number) {
   return `${h} Jam ${m} Menit`;
 }
 
-export function LogbookCard({ logbook, onView, onEdit, onDelete }: LogbookCardProps) {
+export function LogbookCard({
+  logbook,
+  onView,
+  onEdit,
+  onDelete,
+}: LogbookCardProps) {
   const status = statusConfig[logbook.status] ?? statusConfig.pending_review;
 
   return (
-    <Card className="rounded-lg border-l-4 border-l-transparent hover:border-l-muted-foreground/20 transition-colors shadow-sm">
+    <Card className="transition-colors border-l-4 rounded-lg shadow-sm border-l-transparent hover:border-l-muted-foreground/20">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-2 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-foreground">
-                {format(new Date(logbook.date), "EEEE, d MMMM yyyy", { locale: id })}
+                {format(new Date(logbook.date), "EEEE, d MMMM yyyy", {
+                  locale: id,
+                })}
               </span>
               <span className="text-xs text-muted-foreground">
                 {formatDuration(logbook.duration)}
               </span>
-              <Badge variant={status.variant} className="gap-1">
+              <Badge variant={status.variant} className="gap-1 font-semibold">
                 {status.icon}
                 {status.label}
               </Badge>
@@ -92,7 +103,7 @@ export function LogbookCard({ logbook, onView, onEdit, onDelete }: LogbookCardPr
             </p>
 
             {logbook.notes && logbook.status === LogbookStatus.revision && (
-              <div className="flex gap-2 rounded-md bg-muted p-3 mt-2">
+              <div className="flex gap-2 p-3 mt-2 rounded-md bg-muted">
                 <MessageSquareIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">
