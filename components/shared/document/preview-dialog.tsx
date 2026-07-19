@@ -15,7 +15,7 @@ interface PreviewDialogProps {
 export function PreviewDialog({ docId, onClose }: PreviewDialogProps) {
   return (
     <Dialog open={!!docId} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl h-[90vh]">
+      <DialogContent className="max-w-7xl max-h-[80vh]">
         <DialogTitle className="sr-only">Preview Sertifikat</DialogTitle>
         {docId && <DocumentPreview docId={docId} size="modal" />}
       </DialogContent>

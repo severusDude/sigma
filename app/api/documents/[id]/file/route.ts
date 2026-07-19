@@ -24,7 +24,7 @@ export async function GET(
 
   try {
     const fileBuffer = fs.readFileSync(document.fileUrl);
-    return new Response(fileBuffer, {
+    return new Response(new Uint8Array(fileBuffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename="${id}.pdf"`,
