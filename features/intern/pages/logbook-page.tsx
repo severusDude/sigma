@@ -62,7 +62,12 @@ function groupByWeek(logbooks: Logbook[]) {
   const currentWeek = getISOWeek(now);
   const currentYear = now.getFullYear();
 
-  const groups: { label: string; logbooks: Logbook[]; rangeStart: Date; rangeEnd: Date }[] = [];
+  const groups: {
+    label: string;
+    logbooks: Logbook[];
+    rangeStart: Date;
+    rangeEnd: Date;
+  }[] = [];
   const weekMap = new Map<string, Logbook[]>();
 
   for (const lb of logbooks) {
@@ -84,9 +89,12 @@ function groupByWeek(logbooks: Logbook[]) {
     const weekNum = Number(weekStr);
     const yearNum = Number(yearStr);
 
-    const rangeStart = startOfWeek(new Date(yearNum, 0, 1 + (weekNum - 1) * 7), {
-      weekStartsOn: 1,
-    });
+    const rangeStart = startOfWeek(
+      new Date(yearNum, 0, 1 + (weekNum - 1) * 7),
+      {
+        weekStartsOn: 1,
+      },
+    );
     const rangeEnd = new Date(rangeStart);
     rangeEnd.setDate(rangeStart.getDate() + 6);
 
@@ -134,7 +142,10 @@ export default function LogbookPage({
   const weekGroups = useMemo(() => groupByWeek(logbooks), [logbooks]);
 
   const defaultWeeks = useMemo(
-    () => weekGroups.filter((g) => g.label === "Minggu Ini" || g.label === "Minggu Lalu").map((g) => g.label),
+    () =>
+      weekGroups
+        .filter((g) => g.label === "Minggu Ini" || g.label === "Minggu Lalu")
+        .map((g) => g.label),
     [weekGroups],
   );
 
@@ -295,7 +306,13 @@ export default function LogbookPage({
             ) : (
               <Accordion multiple defaultValue={defaultWeeks}>
                 {weekGroups.map((group) => (
-                  <WeekGroup key={group.label} value={group.label} label={group.label} rangeStart={group.rangeStart} rangeEnd={group.rangeEnd}>
+                  <WeekGroup
+                    key={group.label}
+                    value={group.label}
+                    label={group.label}
+                    rangeStart={group.rangeStart}
+                    rangeEnd={group.rangeEnd}
+                  >
                     {group.logbooks.map((lb) => (
                       <LogbookCard
                         key={lb.id}
@@ -321,7 +338,7 @@ export default function LogbookPage({
 
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-            <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+            <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
               <div className="px-6">
                 <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                   Tambah Logbook
@@ -344,7 +361,7 @@ export default function LogbookPage({
           onOpenChange={(open) => !open && setUpdateLogbook(null)}
         >
           <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-            <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+            <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
               <div className="px-6">
                 <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                   Edit Logbook
