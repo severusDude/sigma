@@ -17,12 +17,12 @@ const sizeClasses: Record<PreviewSize, string> = {
   thumbnail: "w-full h-60",
 };
 
-function PreviewIframe({ src }: { src: string }) {
+function PreviewEmbed({ src }: { src: string }) {
   return (
-    <iframe
+    <embed
       src={src}
+      type="application/pdf"
       className="w-full h-full rounded-md border"
-      title="PDF Preview"
     />
   );
 }
@@ -35,7 +35,7 @@ export function DocumentPreview({ docId, templateType = "certificate", size = "m
   return (
     <Suspense fallback={<PreviewSkeleton size={size} />}>
       <div className={sizeClasses[size]}>
-        <PreviewIframe src={src} />
+        <PreviewEmbed src={src} />
       </div>
     </Suspense>
   );
