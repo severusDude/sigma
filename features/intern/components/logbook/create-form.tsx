@@ -21,7 +21,10 @@ interface CreateLogbookFormProps {
   onSuccess: () => void;
 }
 
-export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookFormProps) {
+export function CreateLogbookForm({
+  issueOptions,
+  onSuccess,
+}: CreateLogbookFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<CreateLogbookInput>({
@@ -30,7 +33,7 @@ export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookForm
     defaultValues: {
       date: undefined,
       activity: "",
-      duration: undefined,
+      duration: 0,
       issueId: "",
       notes: "",
     },
@@ -69,7 +72,7 @@ export function CreateLogbookForm({ issueOptions, onSuccess }: CreateLogbookForm
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <LogbookFormFields control={form.control} issueOptions={issueOptions} />
-      <Button type="submit" disabled={isPending} className="gap-2 w-full">
+      <Button type="submit" disabled={isPending} className="w-full gap-2">
         {isPending && <Loader2Icon className="size-4 animate-spin" />}
         {isPending ? "Menyimpan..." : "Simpan"}
       </Button>

@@ -14,15 +14,28 @@ import {
   CalendarDaysIcon,
   ClipboardCheckIcon,
   ClockIcon,
+  FilterIcon,
   PlusIcon,
+  SearchIcon,
 } from "lucide-react";
 
 import { id } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +59,7 @@ import { getLogbooks } from "../actions/logbook-actions";
 import { WeekGroup } from "../components/logbook/week-group";
 import { LogbookCard } from "../components/logbook/logbook-card";
 import { AlertBanner } from "../components/logbook/alert-banner";
+import { CtaCard } from "../components/logbook/cta-card";
 import { DetailDialog } from "../components/logbook/detail-dialog";
 import { DeleteDialog } from "../components/logbook/delete-dialog";
 import { CreateLogbookForm } from "../components/logbook/create-form";
@@ -129,6 +143,15 @@ export default function LogbookPage({
   const [updateLogbook, setUpdateLogbook] = useState<Logbook | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleteLogbook, setDeleteLogbook] = useState<Logbook | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const statusLabels: Record<string, string> = {
+    all: "Status",
+    pending_review: "Menunggu Review",
+    approved: "Disetujui",
+    revision: "Revisi",
+  };
 
   const { data: logbooks = [], isLoading } = useQuery({
     queryKey: ["logbooks"],
@@ -138,6 +161,11 @@ export default function LogbookPage({
       return res.data ?? [];
     },
   });
+
+  const hasTodayEntry = useMemo(() => {
+    const today = new Date().toDateString();
+    return logbooks.some((lb) => new Date(lb.date).toDateString() === today);
+  }, [logbooks]);
 
   const weekGroups = useMemo(() => groupByWeek(logbooks), [logbooks]);
 
@@ -281,6 +309,53 @@ export default function LogbookPage({
             <TabsTrigger value="statistik">Statistik</TabsTrigger>
           </TabsList>
           <TabsContent value="riwayat" className="mt-4">
+            {logbooks.length > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative flex-1">
+                  <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    placeholder="Cari logbook..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button variant="outline" className="gap-2">
+                        <FilterIcon className="size-4" />
+                        {statusLabels[statusFilter]}
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent align="end" className="w-46">
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Filter Status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup
+                        value={statusFilter}
+                        onValueChange={setStatusFilter}
+                        className="text-nowrap"
+                      >
+                        <DropdownMenuRadioItem value="all">
+                          Semua
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="pending_review">
+                          Menunggu Review
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="approved">
+                          Disetujui
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="revision">
+                          Revisi
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
@@ -305,25 +380,44 @@ export default function LogbookPage({
               </div>
             ) : (
               <Accordion multiple defaultValue={defaultWeeks}>
-                {weekGroups.map((group) => (
-                  <WeekGroup
-                    key={group.label}
-                    value={group.label}
-                    label={group.label}
-                    rangeStart={group.rangeStart}
-                    rangeEnd={group.rangeEnd}
-                  >
-                    {group.logbooks.map((lb) => (
-                      <LogbookCard
-                        key={lb.id}
-                        logbook={lb}
-                        onView={(l) => setDetailId(l.id)}
-                        onEdit={(l) => setUpdateLogbook(l)}
-                        onDelete={(l) => setDeleteLogbook(l)}
-                      />
-                    ))}
-                  </WeekGroup>
-                ))}
+                {weekGroups.map((group) => {
+                  const displayedLogbooks = group.logbooks.filter((lb) => {
+                    if (searchQuery) {
+                      const q = searchQuery.toLowerCase();
+                      if (
+                        !lb.activity.toLowerCase().includes(q) &&
+                        !(lb.notes || "").toLowerCase().includes(q) &&
+                        !(lb.issue?.title || "").toLowerCase().includes(q)
+                      )
+                        return false;
+                    }
+                    if (statusFilter !== "all" && lb.status !== statusFilter)
+                      return false;
+                    return true;
+                  });
+                  return (
+                    <WeekGroup
+                      key={group.label}
+                      value={group.label}
+                      label={group.label}
+                      rangeStart={group.rangeStart}
+                      rangeEnd={group.rangeEnd}
+                    >
+                      {group.label === "Minggu Ini" && !hasTodayEntry && (
+                        <CtaCard onCreate={() => setCreateOpen(true)} />
+                      )}
+                      {displayedLogbooks.map((lb) => (
+                        <LogbookCard
+                          key={lb.id}
+                          logbook={lb}
+                          onView={(l) => setDetailId(l.id)}
+                          onEdit={(l) => setUpdateLogbook(l)}
+                          onDelete={(l) => setDeleteLogbook(l)}
+                        />
+                      ))}
+                    </WeekGroup>
+                  );
+                })}
               </Accordion>
             )}
           </TabsContent>

@@ -22,7 +22,11 @@ interface UpdateLogbookFormProps {
   onSuccess: () => void;
 }
 
-export function UpdateLogbookForm({ logbook, issueOptions, onSuccess }: UpdateLogbookFormProps) {
+export function UpdateLogbookForm({
+  logbook,
+  issueOptions,
+  onSuccess,
+}: UpdateLogbookFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<UpdateLogbookInput>({
@@ -31,7 +35,7 @@ export function UpdateLogbookForm({ logbook, issueOptions, onSuccess }: UpdateLo
     defaultValues: {
       date: logbook.date ? new Date(logbook.date) : undefined,
       activity: logbook.activity,
-      duration: logbook.duration,
+      duration: logbook.duration || 0,
       issueId: logbook.issueId || "",
       notes: logbook.notes || "",
     },
@@ -70,7 +74,7 @@ export function UpdateLogbookForm({ logbook, issueOptions, onSuccess }: UpdateLo
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <LogbookFormFields control={form.control} issueOptions={issueOptions} />
-      <footer className="flex gap-2 justify-end">
+      <footer className="flex justify-end gap-2">
         <Button type="submit" disabled={isPending} className="gap-2">
           {isPending && <Loader2Icon className="size-4 animate-spin" />}
           {isPending ? "Menyimpan..." : "Perbarui"}

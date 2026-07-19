@@ -49,12 +49,18 @@ export function LogbookFormFields<T extends FieldValues>({
                 }
               />
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onSelect={(date) => field.onChange(date)}
-                  locale={id}
-                />
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        field.onChange(
+                          new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())),
+                        );
+                      }
+                    }}
+                    locale={id}
+                  />
               </PopoverContent>
             </Popover>
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
