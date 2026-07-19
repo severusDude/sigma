@@ -1,8 +1,10 @@
 "use client";
 
-import { FileText, Send, Eye } from "lucide-react";
+import { FileTextIcon, SendIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DocumentType } from "@/generated/prisma/enums";
+import { DocumentPreview } from "@/components/shared/document";
 import {
   Select,
   SelectContent,
@@ -10,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DocumentType } from "@/generated/prisma/enums";
 
 const documentTypeLabels: Record<string, string> = {
   [DocumentType.certificate]: "Sertifikat Standar",
@@ -23,8 +24,8 @@ const documentTypeLabels: Record<string, string> = {
 export function ActionCard() {
   return (
     <aside className="flex flex-col gap-4 w-80 shrink-0">
-      <div className="rounded-md border bg-muted/50 p-4">
-        <h3 className="text-sm font-medium mb-3">Template Dokumen</h3>
+      <div className="p-4 border rounded-md bg-muted/50">
+        <h3 className="mb-3 text-sm font-medium">Template Dokumen</h3>
 
         <div className="space-y-3">
           <Select defaultValue={DocumentType.certificate}>
@@ -40,23 +41,20 @@ export function ActionCard() {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" className="w-full gap-2" disabled>
-            <Eye className="size-4" />
-            Lihat Preview
-          </Button>
+          <DocumentPreview size="thumbnail" />
         </div>
       </div>
 
-      <div className="rounded-md border bg-muted/50 p-4">
-        <h3 className="text-sm font-medium mb-3">Generate</h3>
+      <div className="p-4 border rounded-md bg-muted/50">
+        <h3 className="mb-3 text-sm font-medium">Generate</h3>
 
         <div className="space-y-3">
           <Button className="w-full gap-2" disabled>
-            <FileText className="size-4" />
+            <FileTextIcon className="size-4" />
             Generate Document
           </Button>
           <Button variant="secondary" className="w-full gap-2" disabled>
-            <Send className="size-4" />
+            <SendIcon className="size-4" />
             Generate &amp; Kirim ke TTE
           </Button>
         </div>
