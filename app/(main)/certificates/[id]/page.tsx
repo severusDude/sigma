@@ -3,12 +3,16 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DocumentPreview } from "@/components/shared/document";
+import { requireAuth } from "@/helpers/guard";
+import { Role } from "@/generated/prisma/enums";
 
-export default function CertificatePage({
+export default async function CertificatePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAuth([Role.admin, Role.hr]);
+
   return (
     <Suspense
       fallback={

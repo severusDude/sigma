@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import fs from "fs";
+import { requirePermission } from "@/lib/auth/authorize";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
+    await requirePermission({ document: ["read"] });
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
 
   const document = await prisma.document.findFirst({
