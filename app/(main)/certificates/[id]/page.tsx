@@ -1,17 +1,33 @@
 import { cacheLife } from "next/cache";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DocumentPreview } from "@/components/shared/document";
 
-export default async function CertificatePage({
+export default function CertificatePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-4 p-6">
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-[calc(100vh-12rem)] animate-pulse rounded bg-muted" />
+        </div>
+      }
+    >
+      {params.then(({ id }) => (
+        <CertificateContent id={id} />
+      ))}
+    </Suspense>
+  );
+}
+
+async function CertificateContent({ id }: { id: string }) {
   "use cache";
   cacheLife("days");
-
-  const { id } = await params;
 
   const document = await prisma.document.findUnique({
     where: { id, documentType: "certificate" },
