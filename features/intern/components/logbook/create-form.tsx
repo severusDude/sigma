@@ -31,7 +31,7 @@ export function CreateLogbookForm({
     resolver: zodResolver(logbookFormSchema),
     mode: "onChange",
     defaultValues: {
-      date: undefined,
+      date: (() => { const d = new Date(); return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); })(),
       activity: "",
       startTime: "08:00",
       endTime: "16:00",

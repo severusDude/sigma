@@ -384,7 +384,6 @@ export default function LogbookPage({
                 </Button>
               </div>
             ) : (
-
               <Accordion multiple defaultValue={defaultWeeks}>
                 {weekGroups.map((group) => {
                   const displayedLogbooks = group.logbooks.filter((lb) => {

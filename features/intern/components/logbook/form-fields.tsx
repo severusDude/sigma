@@ -78,6 +78,10 @@ export function LogbookFormFields<T extends FieldValues>({
                   <Calendar
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
+                    disabled={[
+                      { after: (() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; })() },
+                      { dayOfWeek: [0, 6] },
+                    ]}
                     onSelect={(date) => {
                       if (date) {
                         field.onChange(
