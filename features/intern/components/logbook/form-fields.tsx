@@ -212,7 +212,7 @@ function ComboBoxField<T extends FieldValues>({
 
         return (
           <Field>
-            <FieldLabel htmlFor="issue">Tugas Terkait</FieldLabel>
+            <FieldLabel htmlFor="issue">Issue Terkait</FieldLabel>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger
                 render={
@@ -222,15 +222,15 @@ function ComboBoxField<T extends FieldValues>({
                     aria-expanded={open}
                     className="justify-between w-full text-xs font-normal"
                   >
-                    {selectedLabel || "Pilih tugas (opsional)"}
+                    {selectedLabel || "Pilih Issue (opsional)"}
                     <ChevronsUpDownIcon className="ml-2 opacity-50 size-4 shrink-0" />
                   </Button>
                 }
               />
               <PopoverContent className="w-(--anchor-width) p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Cari tugas..." />
-                  <CommandEmpty>Tidak ada tugas ditemukan</CommandEmpty>
+                  <CommandInput placeholder="Cari Issue..." />
+                  <CommandEmpty>Tidak ada Issue ditemukan</CommandEmpty>
                   <CommandList>
                     <CommandGroup>
                       {options.map((option) => (

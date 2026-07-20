@@ -424,7 +424,7 @@ export function LogbookFormFields<T extends FieldValues>({
                 onValueChange={(val) => field.onChange(val || undefined)}
               >
                 <SelectTrigger id="issue">
-                  <SelectValue placeholder="Pilih tugas (opsional)" />
+                  <SelectValue placeholder="Pilih Issue (opsional)" />
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false}>
                   {issueOptions.map((issue) => (
