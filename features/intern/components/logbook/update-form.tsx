@@ -74,8 +74,17 @@ export function UpdateLogbookForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <LogbookFormFields control={form.control} issueOptions={issueOptions} />
-      <footer className="flex justify-end gap-2">
-        <Button type="submit" disabled={isPending} className="gap-2">
+      <footer className="flex justify-end w-full gap-2">
+        <Button
+          variant="outline"
+          type="reset"
+          disabled={isPending}
+          onClick={() => form.reset()}
+          className="px-4 space-x-2"
+        >
+          Reset
+        </Button>
+        <Button type="submit" disabled={isPending} className="px-8 space-x-2">
           {isPending && <Loader2Icon className="size-4 animate-spin" />}
           {isPending ? "Menyimpan..." : "Perbarui"}
         </Button>

@@ -438,7 +438,8 @@ export default function LogbookPage({
                   Tambah Logbook
                 </DialogTitle>
                 <DialogDescription>
-                  Catat kegiatan harian magang Anda
+                  Catat aktivitas harian Anda dengan detail dan lampirkan bukti
+                  pendukung
                 </DialogDescription>
               </div>
             </DialogHeader>

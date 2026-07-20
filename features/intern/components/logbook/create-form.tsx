@@ -15,6 +15,7 @@ import {
   createLogbookSchema,
   type CreateLogbookInput,
 } from "../../schemas/logbook-schemas";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CreateLogbookFormProps {
   issueOptions?: { id: string; title: string }[];
@@ -72,10 +73,20 @@ export function CreateLogbookForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <LogbookFormFields control={form.control} issueOptions={issueOptions} />
-      <Button type="submit" disabled={isPending} className="w-full gap-2">
-        {isPending && <Loader2Icon className="size-4 animate-spin" />}
-        {isPending ? "Menyimpan..." : "Simpan"}
-      </Button>
+      <footer className="flex items-center justify-end w-full gap-2 pt-4">
+        <Button
+          type="reset"
+          variant="outline"
+          disabled={isPending}
+          className="px-4"
+        >
+          Reset
+        </Button>
+        <Button type="submit" disabled={isPending} className="px-8 space-x-2">
+          {isPending && <Spinner />}
+          {isPending ? "Menyimpan..." : "Simpan"}
+        </Button>
+      </footer>
     </form>
   );
 }
