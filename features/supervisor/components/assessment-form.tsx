@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
+  ArrowLeftIcon,
   SaveIcon,
   SendHorizontalIcon,
   ClockIcon,
@@ -228,6 +229,15 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
 
   return (
     <div className="space-y-4">
+      <Button
+        variant="link"
+        onClick={() => router.push("/supervisor/penilaian")}
+        className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeftIcon className="size-4" />
+        Kembali
+      </Button>
+
       {/* Card Header */}
       <div className="flex items-center justify-between rounded-none border bg-card p-4">
         <div className="flex items-center gap-3">

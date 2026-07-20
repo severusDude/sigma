@@ -23,7 +23,7 @@ function getStatusBadgeVariant(status: string | null): "default" | "secondary" |
   if (status === null) return "outline"
   const map: Record<string, "default" | "secondary" | "outline" | "destructive" | "ghost" | "link"> = {
     draft: "outline",
-    submitted: "secondary",
+    submitted: "default",
     finalized: "default",
   }
   return map[status] ?? "outline"
@@ -58,7 +58,7 @@ export function AssessmentCard({ intern }: AssessmentCardProps) {
       return (
         <Link
           href={`/supervisor/penilaian/${intern.internProfileId}`}
-          className={cn(buttonVariants({ variant: "secondary"}), "gap-2 w-full")}
+          className={cn(buttonVariants({ variant: "outline"}), "gap-2 w-full")}
         >
           <FileEditIcon className="size-3.5" />
           Lihat/Edit
@@ -69,7 +69,7 @@ export function AssessmentCard({ intern }: AssessmentCardProps) {
     return (
       <Link
         href={`/supervisor/penilaian/${intern.internProfileId}/view`}
-        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2")}
+        className={cn(buttonVariants({ variant: "outline"}), "gap-2 w-full")}
       >
         <EyeIcon className="size-3.5" />
         Lihat Hasil
