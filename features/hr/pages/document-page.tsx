@@ -15,7 +15,6 @@ import type { DocumentRow } from "../types/document-types";
 import { createColumns } from "../components/document/columns";
 import { ActionCard } from "../components/document/action-card";
 import { generateCertificates } from "../actions/document-actions";
-import { PreviewDialog } from "@/components/shared/document";
 
 interface DocumentPageProps {
   interns: DocumentRow[];
@@ -52,14 +51,15 @@ const sortOptions: SortOption[] = [
 export default function DocumentPage({ interns }: DocumentPageProps) {
   const [tab, setTab] = useState<DocumentType>(DocumentType.certificate);
   const router = useRouter();
-  const [previewDocId, setPreviewDocId] = useState<string | null>(null);
 
   const batchActions = [
     {
       label: "Generate Document",
       icon: <FileText className="size-4" />,
       onClick: async (rows: DocumentRow | DocumentRow[]) => {
-        const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
+        const internIds = (Array.isArray(rows) ? rows : [rows]).map(
+          (r) => r.id,
+        );
         const result = await generateCertificates(internIds);
 
         if (!result.success) {
@@ -91,7 +91,7 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
   ];
 
   const columns = createColumns({
-    onView: (row) => setPreviewDocId(row.id),
+    onView: () => {},
   });
 
   return (
@@ -117,7 +117,7 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
         {tabConfig.map((t) => (
           <TabsContent key={t.value} value={t.value}>
             {t.value === DocumentType.certificate ? (
-              <div className="flex gap-4 items-start">
+              <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <DataTable
                     columns={columns}
@@ -138,7 +138,6 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
           </TabsContent>
         ))}
       </Tabs>
-      <PreviewDialog docId={previewDocId} onClose={() => setPreviewDocId(null)} />
     </div>
   );
 }
