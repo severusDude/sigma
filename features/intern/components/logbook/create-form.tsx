@@ -1,21 +1,20 @@
 "use client";
 
 import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
-
 import { LogbookFormFields } from "./form-fields";
-import { createLogbook } from "../../actions/logbook-actions";
 import type { Logbook } from "../../types/logbook-types";
+import { createLogbook } from "../../actions/logbook-actions";
 import {
-  createLogbookSchema,
-  type CreateLogbookInput,
+  logbookFormSchema,
+  type LogbookFormInput,
 } from "../../schemas/logbook-schemas";
-import { Spinner } from "@/components/ui/spinner";
 
 interface CreateLogbookFormProps {
   issueOptions?: { id: string; title: string }[];
@@ -28,13 +27,14 @@ export function CreateLogbookForm({
 }: CreateLogbookFormProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm<CreateLogbookInput>({
-    resolver: zodResolver(createLogbookSchema),
+  const form = useForm<LogbookFormInput>({
+    resolver: zodResolver(logbookFormSchema),
     mode: "onChange",
     defaultValues: {
       date: undefined,
       activity: "",
-      duration: 0,
+      startTime: "08:00",
+      endTime: "16:00",
       issueId: "",
       notes: "",
     },
@@ -42,8 +42,11 @@ export function CreateLogbookForm({
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["create-logbook"],
-    mutationFn: async (values: CreateLogbookInput) => {
-      const res = await createLogbook(values);
+    mutationFn: async (values: LogbookFormInput) => {
+      const [sh, sm] = values.startTime.split(":").map(Number);
+      const [eh, em] = values.endTime.split(":").map(Number);
+      const duration = eh * 60 + em - (sh * 60 + sm);
+      const res = await createLogbook({ ...values, duration });
       if (!res.success) throw new Error(res.error);
       return res.data!;
     },

@@ -1,25 +1,33 @@
 "use client";
 
 import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { Button } from "@/components/ui/button";
-
 import { LogbookFormFields } from "./form-fields";
-import { updateLogbook } from "../../actions/logbook-actions";
 import type { Logbook } from "../../types/logbook-types";
+import { updateLogbook } from "../../actions/logbook-actions";
 import {
-  updateLogbookSchema,
-  type UpdateLogbookInput,
+  logbookFormSchema,
+  type LogbookFormInput,
 } from "../../schemas/logbook-schemas";
 
 interface UpdateLogbookFormProps {
   logbook: Logbook;
   issueOptions?: { id: string; title: string }[];
   onSuccess: () => void;
+}
+
+function computeEndTime(duration: number): string {
+  const startMinutes = 8 * 60;
+  const endMinutes = startMinutes + duration;
+  const h = Math.floor(endMinutes / 60);
+  const m = endMinutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 export function UpdateLogbookForm({
@@ -29,13 +37,14 @@ export function UpdateLogbookForm({
 }: UpdateLogbookFormProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm<UpdateLogbookInput>({
-    resolver: zodResolver(updateLogbookSchema),
+  const form = useForm<LogbookFormInput>({
+    resolver: zodResolver(logbookFormSchema),
     mode: "onChange",
     defaultValues: {
       date: logbook.date ? new Date(logbook.date) : undefined,
       activity: logbook.activity,
-      duration: logbook.duration || 0,
+      startTime: "08:00",
+      endTime: computeEndTime(logbook.duration || 480),
       issueId: logbook.issueId || "",
       notes: logbook.notes || "",
     },
@@ -43,8 +52,11 @@ export function UpdateLogbookForm({
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["update-logbook", logbook.id],
-    mutationFn: async (values: UpdateLogbookInput) => {
-      const res = await updateLogbook(logbook.id, values);
+    mutationFn: async (values: LogbookFormInput) => {
+      const [sh, sm] = values.startTime.split(":").map(Number);
+      const [eh, em] = values.endTime.split(":").map(Number);
+      const duration = eh * 60 + em - (sh * 60 + sm);
+      const res = await updateLogbook(logbook.id, { ...values, duration });
       if (!res.success) throw new Error(res.error);
       return res.data!;
     },
@@ -85,7 +97,7 @@ export function UpdateLogbookForm({
           Reset
         </Button>
         <Button type="submit" disabled={isPending} className="px-8 space-x-2">
-          {isPending && <Loader2Icon className="size-4 animate-spin" />}
+          {isPending && <Spinner />}
           {isPending ? "Menyimpan..." : "Perbarui"}
         </Button>
       </footer>
