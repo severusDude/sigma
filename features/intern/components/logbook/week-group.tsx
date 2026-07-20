@@ -26,7 +26,7 @@ export function WeekGroup({
   children,
 }: WeekGroupProps) {
   return (
-    <AccordionItem value={value}>
+    <AccordionItem value={value} className="border-none">
       <AccordionTrigger className="hover:no-underline hover:bg-card/50 rounded-md py-2.5 gap-2 flex items-center">
         <div className="flex items-center min-w-0 gap-2">
           <h3 className="text-sm font-semibold tracking-wider uppercase text-nowrap">
@@ -42,7 +42,7 @@ export function WeekGroup({
         <Separator orientation="horizontal" className="flex-1" />
       </AccordionTrigger>
       <AccordionContent className="pt-2">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">{children}</div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">{children}</div>
       </AccordionContent>
     </AccordionItem>
   );
