@@ -94,6 +94,11 @@ function groupByWeek(logbooks: Logbook[]) {
     weekMap.get(key)!.push(lb);
   }
 
+  const currentKey = `${currentYear}-W${String(currentWeek).padStart(2, "0")}`;
+  if (!weekMap.has(currentKey)) {
+    weekMap.set(currentKey, []);
+  }
+
   const sortedWeeks = Array.from(weekMap.entries()).sort(([a], [b]) =>
     b.localeCompare(a),
   );
@@ -379,6 +384,7 @@ export default function LogbookPage({
                 </Button>
               </div>
             ) : (
+
               <Accordion multiple defaultValue={defaultWeeks}>
                 {weekGroups.map((group) => {
                   const displayedLogbooks = group.logbooks.filter((lb) => {
