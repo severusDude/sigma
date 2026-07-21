@@ -4,6 +4,17 @@ import { cacheTag } from "next/cache"
 import type { AssessmentViewData } from "../types/assessment-view-types"
 import { getPredikat, getGrade } from "../types/assessment-view-types"
 
+async function resolveFinalizedByName(id: string | null): Promise<string | null> {
+  if (!id) return null
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { name: true },
+  })
+
+  return user?.name ?? id
+}
+
 export async function fetchAssessmentViewData(
   supervisorProfileId: string,
   internProfileId: string,
@@ -54,7 +65,7 @@ export async function fetchAssessmentViewData(
     predikat: getPredikat(assessment?.finalScore ?? null),
     grade: getGrade(assessment?.finalScore ?? null),
     finalizedAt: assessment?.finalizedAt ?? null,
-    finalizedBy: assessment?.finalizedBy ?? null,
+    finalizedBy: await resolveFinalizedByName(assessment?.finalizedBy ?? null),
     assessmentId: assessment?.id ?? null,
     components: (assessment?.components ?? []).map((c) => ({
       name: c.name,
