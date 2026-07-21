@@ -77,7 +77,7 @@ export function FiltersBar({
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="relative flex-1 max-w-sm min-w-50">
         <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Cari rencana kegiatan..."
@@ -96,18 +96,19 @@ export function FiltersBar({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <label className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
           Status
         </label>
         <Select
+          items={statusOptions}
           value={statusFilter}
           onValueChange={(val) => onStatusChange(val ?? "all")}
         >
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-42">
             <FilterIcon className="size-3.5 mr-1" />
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent alignItemWithTrigger={false} side="bottom">
             {statusOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
@@ -118,7 +119,7 @@ export function FiltersBar({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <label className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
           Intern
         </label>
         <Popover open={internOpen} onOpenChange={setInternOpen}>
@@ -127,7 +128,7 @@ export function FiltersBar({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 justify-between min-w-[160px] text-xs font-normal"
+                className="justify-between h-8 text-xs font-normal min-w-40"
               >
                 <span className="truncate">
                   {selectedInterns.length === 0
@@ -138,7 +139,7 @@ export function FiltersBar({
               </Button>
             }
           />
-          <PopoverContent className="w-[220px] p-0" align="start">
+          <PopoverContent className="p-0 w-55" align="start">
             <Command>
               <CommandInput placeholder="Cari intern..." />
               <CommandList>
@@ -166,7 +167,7 @@ export function FiltersBar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-[10px] w-full"
+                  className="w-full h-6 text-xs"
                   onClick={() => {
                     onInternsChange([]);
                     setInternOpen(false);
@@ -181,12 +182,12 @@ export function FiltersBar({
         {selectedNames.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">
             {selectedNames.slice(0, 2).map((name) => (
-              <Badge key={name} variant="secondary" className="text-[10px] h-4">
+              <Badge key={name} variant="secondary" className="h-4 text-xs">
                 {name}
               </Badge>
             ))}
             {selectedNames.length > 2 && (
-              <Badge variant="secondary" className="text-[10px] h-4">
+              <Badge variant="secondary" className="h-4 text-xs">
                 +{selectedNames.length - 2}
               </Badge>
             )}

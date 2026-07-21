@@ -1,15 +1,14 @@
 "use client";
 
-import z from "zod";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
 import { SelectItemType } from "@/lib/types";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IssueStatus } from "@/generated/prisma/enums";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Select,
@@ -22,6 +21,10 @@ import {
 import { IssueFormFields } from "./form-fields";
 import type { Issue } from "../../types/issue-types";
 import { updateIssue } from "../../actions/issue-actions";
+import {
+  issueFormSchema,
+  type IssueFormInput,
+} from "../../schemas/issue-schemas";
 
 interface InternOption {
   id: string;
@@ -34,22 +37,16 @@ interface UpdateIssueFormProps {
   onSuccess: () => void;
 }
 
-const updateFormSchema = z.object({
-  title: z.string().min(1, "Judul wajib diisi"),
-  description: z.string().optional(),
-  internProfileId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  status: z.string().optional(),
-});
-
-type UpdateFormInput = z.infer<typeof updateFormSchema>;
-
 const statusOptions: SelectItemType<IssueStatus>[] = [
   { value: IssueStatus.active, label: "Aktif" },
   { value: IssueStatus.completed, label: "Selesai" },
   { value: IssueStatus.cancelled, label: "Dibatalkan" },
 ];
+
+function toDateString(date: Date | string | null | undefined): string {
+  if (!date) return "";
+  return new Date(date).toISOString().split("T")[0];
+}
 
 export function UpdateIssueForm({
   issue,
@@ -58,26 +55,22 @@ export function UpdateIssueForm({
 }: UpdateIssueFormProps) {
   const queryClient = useQueryClient();
 
-  const form = useForm<UpdateFormInput>({
-    resolver: zodResolver(updateFormSchema),
+  const form = useForm<IssueFormInput>({
+    resolver: zodResolver(issueFormSchema),
     mode: "onChange",
     defaultValues: {
       title: issue.title,
       description: issue.description ?? "",
       internProfileId: issue.internProfile?.id ?? "",
-      startDate: issue.startDate
-        ? new Date(issue.startDate).toISOString().split("T")[0]
-        : "",
-      endDate: issue.endDate
-        ? new Date(issue.endDate).toISOString().split("T")[0]
-        : "",
+      startDate: toDateString(issue.startDate),
+      endDate: toDateString(issue.endDate),
       status: issue.status,
     },
   });
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["update-issue", issue.id],
-    mutationFn: async (values: UpdateFormInput) => {
+    mutationFn: async (values: IssueFormInput) => {
       const res = await updateIssue(issue.id, {
         title: values.title,
         description: values.description || undefined,
@@ -116,8 +109,8 @@ export function UpdateIssueForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="edit-status">Status</Label>
+      <Field>
+        <FieldLabel htmlFor="edit-status">Status</FieldLabel>
         <Select
           items={statusOptions}
           value={form.watch("status")}
@@ -127,14 +120,14 @@ export function UpdateIssueForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent alignItemWithTrigger={false}>
-            {statusOptions.map(({ value, label }) => (
-              <SelectItem key={value} value={value}>
-                {label}
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </Field>
 
       <IssueFormFields control={form.control} internOptions={internOptions} />
 

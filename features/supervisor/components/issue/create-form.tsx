@@ -1,6 +1,5 @@
 "use client";
 
-import z from "zod";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
@@ -12,6 +11,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IssueFormFields } from "./form-fields";
 import type { Issue } from "../../types/issue-types";
 import { createIssue } from "../../actions/issue-actions";
+import {
+  issueFormSchema,
+  type IssueFormInput,
+} from "../../schemas/issue-schemas";
 
 interface InternOption {
   id: string;
@@ -22,16 +25,6 @@ interface CreateIssueFormProps {
   internOptions: InternOption[];
   onSuccess: () => void;
 }
-
-const issueFormSchema = z.object({
-  title: z.string().min(1, "Judul wajib diisi"),
-  description: z.string().optional(),
-  internProfileId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-});
-
-type IssueFormInput = z.infer<typeof issueFormSchema>;
 
 export function CreateIssueForm({
   internOptions,
@@ -92,7 +85,7 @@ export function CreateIssueForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <IssueFormFields control={form.control} internOptions={internOptions} />
-      <footer className="flex items-center justify-end w-full gap-2 pt-4 border-t border-border">
+      <footer className="flex items-center justify-end w-full gap-2 pt-4">
         <Button
           type="reset"
           variant="outline"

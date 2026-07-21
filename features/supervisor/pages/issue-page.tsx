@@ -21,6 +21,7 @@ import { CreateIssueForm } from "../components/issue/create-form";
 import { UpdateIssueForm } from "../components/issue/update-form";
 import { DetailDialog } from "../components/issue/detail-dialog";
 import { DeleteDialog } from "../components/issue/delete-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface InternOption {
   id: string;
@@ -54,9 +55,7 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter((issue) =>
-        issue.title.toLowerCase().includes(q),
-      );
+      result = result.filter((issue) => issue.title.toLowerCase().includes(q));
     }
 
     if (statusFilter !== "all") {
@@ -85,7 +84,10 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
             Kelola rencana kegiatan untuk intern bimbingan
           </p>
         </div>
-        <Button className="shrink-0 space-x-2" onClick={() => setCreateOpen(true)}>
+        <Button
+          className="space-x-2 shrink-0"
+          onClick={() => setCreateOpen(true)}
+        >
           <PlusIcon className="size-4" />
           <span>Buat Baru</span>
         </Button>
@@ -102,32 +104,34 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
       />
 
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="rounded-xl border border-border/50 p-5 space-y-4"
+              className="p-5 space-y-4 border rounded-xl border-border/50"
             >
               <div className="flex items-center justify-between">
-                <div className="h-5 w-16 rounded animate-pulse bg-muted" />
-                <div className="size-7 rounded animate-pulse bg-muted" />
+                <div className="w-16 h-5 rounded animate-pulse bg-muted" />
+                <div className="rounded size-7 animate-pulse bg-muted" />
               </div>
-              <div className="h-5 w-full rounded animate-pulse bg-muted" />
-              <div className="h-5 w-3/4 rounded animate-pulse bg-muted" />
+              <div className="w-full h-5 rounded animate-pulse bg-muted" />
+              <div className="w-3/4 h-5 rounded animate-pulse bg-muted" />
               <div className="space-y-2.5 pt-2">
-                <div className="h-4 w-32 rounded animate-pulse bg-muted" />
-                <div className="h-4 w-40 rounded animate-pulse bg-muted" />
-                <div className="h-4 w-24 rounded animate-pulse bg-muted" />
+                <div className="w-32 h-4 rounded animate-pulse bg-muted" />
+                <div className="w-40 h-4 rounded animate-pulse bg-muted" />
+                <div className="w-24 h-4 rounded animate-pulse bg-muted" />
               </div>
-              <div className="h-9 w-full rounded animate-pulse bg-muted" />
+              <div className="w-full rounded h-9 animate-pulse bg-muted" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+        <div className="flex flex-col items-center justify-center py-20 space-y-3 text-center">
           <FileTextIcon className="size-12 text-muted-foreground/40" />
           <div>
-            {searchQuery || statusFilter !== "all" || selectedInterns.length > 0 ? (
+            {searchQuery ||
+            statusFilter !== "all" ||
+            selectedInterns.length > 0 ? (
               <>
                 <p className="font-medium">Tidak ada hasil</p>
                 <p className="text-sm text-muted-foreground">
@@ -153,7 +157,7 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
           </div>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((issue) => (
             <IssueCard
               key={issue.id}
@@ -167,17 +171,25 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Buat Rencana Kegiatan</DialogTitle>
-            <DialogDescription>
-              Buat rencana kegiatan baru untuk intern bimbingan
-            </DialogDescription>
+        <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-60rem)] md:h-fit gap-0">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
+            <div className="px-6">
+              <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
+                Buat Rencana Kegiatan
+              </DialogTitle>
+              <DialogDescription>
+                Buat rencana kegiatan baru untuk intern bimbingan
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <CreateIssueForm
-            internOptions={internOptions}
-            onSuccess={() => setCreateOpen(false)}
-          />
+          <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <div className="pt-6">
+              <CreateIssueForm
+                internOptions={internOptions}
+                onSuccess={() => setCreateOpen(false)}
+              />
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
@@ -185,20 +197,29 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
         open={!!editingIssue}
         onOpenChange={(open) => !open && setEditingIssue(null)}
       >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Rencana Kegiatan</DialogTitle>
-            <DialogDescription>
-              Ubah rencana kegiatan yang sudah ada
-            </DialogDescription>
+        <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-60rem)] md:h-fit gap-0">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
+            <div className="px-6">
+              <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
+                Edit Rencana Kegiatan
+              </DialogTitle>
+              <DialogDescription>
+                Ubah rencana kegiatan yang sudah ada
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          {editingIssue && (
-            <UpdateIssueForm
-              issue={editingIssue}
-              internOptions={internOptions}
-              onSuccess={() => setEditingIssue(null)}
-            />
-          )}
+
+          <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <div className="pt-6">
+              {editingIssue && (
+                <UpdateIssueForm
+                  issue={editingIssue}
+                  internOptions={internOptions}
+                  onSuccess={() => setEditingIssue(null)}
+                />
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 

@@ -1,32 +1,37 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function Loading() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <div className="h-7 w-56 rounded animate-pulse bg-muted" />
-        <div className="h-4 w-80 rounded animate-pulse bg-muted" />
+        <Skeleton className="w-56 h-7" />
+        <Skeleton className="h-4 w-80" />
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <div className="h-8 w-[200px] rounded animate-pulse bg-muted" />
-        <div className="h-8 w-[140px] rounded animate-pulse bg-muted" />
-        <div className="h-8 w-[160px] rounded animate-pulse bg-muted" />
+        <Skeleton className="h-8 w-50" />
+        <Skeleton className="h-8 w-35" />
+        <Skeleton className="w-40 h-8" />
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="rounded-xl border border-border/50 p-5 space-y-4">
+          <div
+            key={i}
+            className="p-5 space-y-4 border rounded-xl border-border/50"
+          >
             <div className="flex items-center justify-between">
-              <div className="h-5 w-16 rounded animate-pulse bg-muted" />
-              <div className="size-7 rounded animate-pulse bg-muted" />
+              <Skeleton className="w-16 h-5" />
+              <Skeleton className="size-7" />
             </div>
-            <div className="h-5 w-full rounded animate-pulse bg-muted" />
-            <div className="h-5 w-3/4 rounded animate-pulse bg-muted" />
+            <Skeleton className="w-full h-5" />
+            <Skeleton className="w-3/4 h-5" />
             <div className="space-y-2.5 pt-2">
-              <div className="h-4 w-32 rounded animate-pulse bg-muted" />
-              <div className="h-4 w-40 rounded animate-pulse bg-muted" />
-              <div className="h-4 w-24 rounded animate-pulse bg-muted" />
+              <Skeleton className="w-32 h-4" />
+              <Skeleton className="w-40 h-4" />
+              <Skeleton className="w-24 h-4" />
             </div>
-            <div className="h-9 w-full rounded animate-pulse bg-muted" />
+            <Skeleton className="w-full h-9" />
           </div>
         ))}
       </div>

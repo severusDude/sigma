@@ -1,12 +1,20 @@
 "use client";
 
-import type { Control } from "react-hook-form";
-import { useController } from "react-hook-form";
 import { UserIcon } from "lucide-react";
+import {
+  Controller,
+  type Control,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 
-import { Input } from "@base-ui/react/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -20,98 +28,131 @@ interface InternOption {
   name: string;
 }
 
-interface IssueFormValues {
-  title: string;
-  description?: string;
-  internProfileId?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-interface IssueFormFieldsProps {
-  control: Control<IssueFormValues>;
+interface IssueFormFieldsProps<T extends FieldValues> {
+  control: Control<T>;
   internOptions: InternOption[];
 }
 
-export function IssueFormFields({
+export function IssueFormFields<T extends FieldValues>({
   control,
   internOptions,
-}: IssueFormFieldsProps) {
-  const titleField = useController({ control, name: "title" });
-  const descriptionField = useController({ control, name: "description" });
-  const internField = useController({ control, name: "internProfileId" });
-  const startDateField = useController({ control, name: "startDate" });
-  const endDateField = useController({ control, name: "endDate" });
-
+}: IssueFormFieldsProps<T>) {
   return (
-    <div className="space-y-5">
-      <div className="space-y-2">
-        <Label htmlFor="title">Judul Rencana Kegiatan</Label>
-        <Input
-          id="title"
-          placeholder="Misal: Pengolahan Data Regsosek 2024"
-          value={titleField.field.value ?? ""}
-          onValueChange={titleField.field.onChange}
-        />
-        {titleField.fieldState.error && (
-          <p className="text-xs text-destructive">
-            {titleField.fieldState.error.message}
-          </p>
+    <div className="grid gap-4">
+      <Controller
+        name={"title" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="title">Judul Rencana Kegiatan</FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                id="title"
+                placeholder="Misal: Pengolahan Data Regsosek 2024"
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            </InputGroup>
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
-      </div>
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Deskripsi</Label>
-        <Textarea
-          id="description"
-          placeholder="Jelaskan ruang lingkup kegiatan ini..."
-          value={descriptionField.field.value ?? ""}
-          onChange={(e) => descriptionField.field.onChange(e.target.value)}
-          className="min-h-[80px]"
-        />
-      </div>
+      <Controller
+        name={"description" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="description">Deskripsi</FieldLabel>
+            <InputGroup>
+              <InputGroupAddon align="block-start">
+                <span className="text-xs text-muted-foreground">
+                  Jelaskan ruang lingkup kegiatan ini...
+                </span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {(field.value || "").length}/500
+                </span>
+              </InputGroupAddon>
+              <InputGroupTextarea
+                {...field}
+                id="description"
+                rows={12}
+                maxLength={500}
+                aria-invalid={fieldState.invalid}
+                className="resize-none min-h-28"
+              />
+            </InputGroup>
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="intern">Assign ke Intern</Label>
-        <Select
-          value={internField.field.value ?? ""}
-          onValueChange={(val) => internField.field.onChange(val || undefined)}
-        >
-          <SelectTrigger id="intern" className="w-full">
-            <UserIcon className="size-3.5 mr-1" />
-            <SelectValue placeholder="Semua Intern (default)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Semua Intern</SelectItem>
-            {internOptions.map((intern) => (
-              <SelectItem key={intern.id} value={intern.id}>
-                {intern.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Controller
+        name={"internProfileId" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="intern">Assign ke Intern</FieldLabel>
+            <Select
+              value={field.value ?? ""}
+              onValueChange={(val) => field.onChange(val || undefined)}
+            >
+              <SelectTrigger id="intern" className="w-full">
+                <UserIcon className="size-3.5 mr-1" />
+                <SelectValue placeholder="Semua Intern (default)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Semua Intern</SelectItem>
+                {internOptions.map((intern) => (
+                  <SelectItem key={intern.id} value={intern.id}>
+                    {intern.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="startDate">Tanggal Mulai</Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={startDateField.field.value ?? ""}
-            onValueChange={startDateField.field.onChange}
-          />
-        </div>
+        <Controller
+          name={"startDate" as FieldPath<T>}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="startDate">Tanggal Mulai</FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="startDate"
+                  type="date"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              </InputGroup>
+              {fieldState.error && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="endDate">Tanggal Selesai</Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={endDateField.field.value ?? ""}
-            onValueChange={endDateField.field.onChange}
-          />
-        </div>
+        <Controller
+          name={"endDate" as FieldPath<T>}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="endDate">Tanggal Selesai</FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="endDate"
+                  type="date"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              </InputGroup>
+              {fieldState.error && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
       </div>
     </div>
   );
