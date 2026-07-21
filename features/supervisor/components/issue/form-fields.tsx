@@ -148,6 +148,7 @@ export function IssueFormFields<T extends FieldValues>({
               onSelect={onPeriodChange}
               locale={id}
               numberOfMonths={2}
+              min={2}
             />
           </PopoverContent>
         </Popover>

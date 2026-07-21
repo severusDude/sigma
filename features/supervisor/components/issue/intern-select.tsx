@@ -139,7 +139,7 @@ export function InternSelect({
                       {initials(intern.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs">{intern.name}</span>
+                  <span className="text-xs text-nowrap">{intern.name}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
