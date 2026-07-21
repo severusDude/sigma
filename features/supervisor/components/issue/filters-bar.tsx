@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import {
-  SearchIcon,
-  FilterIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  XIcon,
-} from "lucide-react";
+
+import { ChevronDownIcon, FilterIcon, SearchIcon, XIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { IssueStatus } from "@/generated/prisma/enums";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -20,11 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -32,8 +29,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Checkbox } from "@/components/ui/checkbox";
-import { IssueStatus } from "@/generated/prisma/enums";
+import { SelectItemType } from "@/lib/types";
 
 interface InternOption {
   id: string;
@@ -61,7 +57,7 @@ export function FiltersBar({
 }: FiltersBarProps) {
   const [internOpen, setInternOpen] = useState(false);
 
-  const statusOptions = [
+  const statusOptions: SelectItemType<IssueStatus>[] = [
     { value: "all", label: "Semua Status" },
     { value: IssueStatus.active, label: "Aktif" },
     { value: IssueStatus.completed, label: "Selesai" },
@@ -87,12 +83,12 @@ export function FiltersBar({
           placeholder="Cari rencana kegiatan..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-8 h-8 text-xs"
+          className="h-8 pl-8 text-xs"
         />
         {searchQuery && (
           <button
             onClick={() => onSearchChange("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute -translate-y-1/2 right-2 top-1/2 text-muted-foreground hover:text-foreground"
           >
             <XIcon className="size-3.5" />
           </button>

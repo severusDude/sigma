@@ -1,15 +1,16 @@
 "use client";
 
+import z from "zod";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
+import { SelectItemType } from "@/lib/types";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { IssueStatus } from "@/generated/prisma/enums";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import z from "zod";
-
 import {
   Select,
   SelectContent,
@@ -17,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { IssueFormFields } from "./form-fields";
-import { IssueStatus } from "@/generated/prisma/enums";
 import type { Issue } from "../../types/issue-types";
 import { updateIssue } from "../../actions/issue-actions";
 
@@ -43,6 +44,12 @@ const updateFormSchema = z.object({
 });
 
 type UpdateFormInput = z.infer<typeof updateFormSchema>;
+
+const statusOptions: SelectItemType<IssueStatus>[] = [
+  { value: IssueStatus.active, label: "Aktif" },
+  { value: IssueStatus.completed, label: "Selesai" },
+  { value: IssueStatus.cancelled, label: "Dibatalkan" },
+];
 
 export function UpdateIssueForm({
   issue,
@@ -98,7 +105,9 @@ export function UpdateIssueForm({
       loading: "Memperbarui rencana kegiatan...",
       success: "Rencana kegiatan berhasil diperbarui",
       error: (error) =>
-        error instanceof Error ? error.message : "Gagal memperbarui rencana kegiatan",
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui rencana kegiatan",
     });
     try {
       await mutationPromise;
@@ -110,23 +119,26 @@ export function UpdateIssueForm({
       <div className="space-y-2">
         <Label htmlFor="edit-status">Status</Label>
         <Select
+          items={statusOptions}
           value={form.watch("status")}
           onValueChange={(val) => form.setValue("status", val ?? "")}
         >
           <SelectTrigger id="edit-status" className="w-full">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={IssueStatus.active}>Aktif</SelectItem>
-            <SelectItem value={IssueStatus.completed}>Selesai</SelectItem>
-            <SelectItem value={IssueStatus.cancelled}>Dibatalkan</SelectItem>
+          <SelectContent alignItemWithTrigger={false}>
+            {statusOptions.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       <IssueFormFields control={form.control} internOptions={internOptions} />
 
-      <footer className="flex items-center justify-end w-full gap-2 pt-4 border-t border-border">
+      <footer className="flex items-center justify-end w-full gap-2 pt-4">
         <Button
           type="reset"
           variant="outline"

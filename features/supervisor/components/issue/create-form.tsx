@@ -1,5 +1,6 @@
 "use client";
 
+import z from "zod";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import z from "zod";
 
 import { IssueFormFields } from "./form-fields";
 import type { Issue } from "../../types/issue-types";
@@ -80,7 +80,9 @@ export function CreateIssueForm({
       loading: "Menyimpan rencana kegiatan...",
       success: "Rencana kegiatan berhasil dibuat",
       error: (error) =>
-        error instanceof Error ? error.message : "Gagal membuat rencana kegiatan",
+        error instanceof Error
+          ? error.message
+          : "Gagal membuat rencana kegiatan",
     });
     try {
       await mutationPromise;

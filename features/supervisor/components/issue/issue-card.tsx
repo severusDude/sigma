@@ -2,21 +2,21 @@
 
 import { format } from "date-fns";
 import {
+  BookOpenIcon,
   CalendarDaysIcon,
   EyeIcon,
   MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon,
-  UsersIcon,
   UserIcon,
-  BookOpenIcon,
+  UsersIcon,
 } from "lucide-react";
 
 import { id } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IssueStatus } from "@/generated/prisma/enums";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,33 +42,35 @@ const statusConfig: Record<
 > = {
   [IssueStatus.active]: {
     label: "AKTIF",
-    badgeClass: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
+    badgeClass:
+      "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
   },
   [IssueStatus.completed]: {
     label: "SELESAI",
-    badgeClass: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+    badgeClass:
+      "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
   },
   [IssueStatus.cancelled]: {
     label: "DIBATALKAN",
-    badgeClass: "bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700",
+    badgeClass:
+      "bg-neutral-100 text-neutral-500 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700",
   },
 };
 
-function formatDateRange(start: Date | string | null | undefined, end: Date | string | null | undefined) {
+function formatDateRange(
+  start: Date | string | null | undefined,
+  end: Date | string | null | undefined,
+) {
   if (!start && !end) return "—";
   if (start && end) {
     return `${format(new Date(start), "d MMM", { locale: id })} — ${format(new Date(end), "d MMM yyyy", { locale: id })}`;
   }
-  if (start) return `${format(new Date(start), "d MMM yyyy", { locale: id })} — ...`;
+  if (start)
+    return `${format(new Date(start), "d MMM yyyy", { locale: id })} — ...`;
   return `... — ${format(new Date(end!), "d MMM yyyy", { locale: id })}`;
 }
 
-export function IssueCard({
-  issue,
-  onView,
-  onEdit,
-  onDelete,
-}: IssueCardProps) {
+export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
   const status = statusConfig[issue.status] ?? statusConfig.active;
 
   return (
@@ -114,7 +116,7 @@ export function IssueCard({
           </DropdownMenu>
         </div>
 
-        <CardTitle className="text-base font-semibold transition-colors group-hover:text-primary leading-snug line-clamp-2">
+        <CardTitle className="text-base font-semibold leading-snug transition-colors group-hover:text-primary line-clamp-2">
           {issue.title}
         </CardTitle>
       </CardHeader>

@@ -2,8 +2,8 @@
 
 import { toast } from "sonner";
 import { Trash2Icon } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +50,9 @@ export function DeleteDialog({ issue, onClose }: DeleteDialogProps) {
       loading: "Menghapus rencana kegiatan...",
       success: "Rencana kegiatan berhasil dihapus",
       error: (error) =>
-        error instanceof Error ? error.message : "Gagal menghapus rencana kegiatan",
+        error instanceof Error
+          ? error.message
+          : "Gagal menghapus rencana kegiatan",
     });
     try {
       await mutationPromise;
@@ -68,15 +70,16 @@ export function DeleteDialog({ issue, onClose }: DeleteDialogProps) {
           <AlertDialogDescription>
             {issue?._count.logbooks && issue._count.logbooks > 0 ? (
               <span>
-                Rencana kegiatan <strong>&ldquo;{issue?.title}&rdquo;</strong> memiliki{" "}
-                {issue._count.logbooks} entri logbook terkait. Tidak dapat dihapus.
-                Ubah status menjadi &ldquo;Dibatalkan&rdquo; jika tidak digunakan.
+                Rencana kegiatan <strong>&ldquo;{issue?.title}&rdquo;</strong>{" "}
+                memiliki {issue._count.logbooks} entri logbook terkait. Tidak
+                dapat dihapus. Ubah status menjadi &ldquo;Dibatalkan&rdquo; jika
+                tidak digunakan.
               </span>
             ) : (
               <span>
                 Yakin ingin menghapus rencana kegiatan{" "}
-                <strong>&ldquo;{issue?.title}&rdquo;</strong>? Tindakan ini tidak
-                dapat dibatalkan.
+                <strong>&ldquo;{issue?.title}&rdquo;</strong>? Tindakan ini
+                tidak dapat dibatalkan.
               </span>
             )}
           </AlertDialogDescription>
