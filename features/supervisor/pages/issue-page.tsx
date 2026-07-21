@@ -65,7 +65,7 @@ export default function IssuePage({ internOptions }: IssuePageProps) {
     if (selectedInterns.length > 0) {
       result = result.filter(
         (issue) =>
-          issue.internProfileId &&
+          !issue.internProfileId ||
           selectedInterns.includes(issue.internProfileId),
       );
     }

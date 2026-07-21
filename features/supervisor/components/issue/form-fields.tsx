@@ -1,6 +1,5 @@
 "use client";
 
-import { UserIcon } from "lucide-react";
 import {
   Controller,
   type Control,
@@ -15,13 +14,7 @@ import {
   InputGroupInput,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { InternSelect } from "./intern-select";
 
 interface InternOption {
   id: string;
@@ -93,23 +86,11 @@ export function IssueFormFields<T extends FieldValues>({
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor="intern">Assign ke Intern</FieldLabel>
-            <Select
+            <InternSelect
+              options={internOptions}
               value={field.value ?? ""}
               onValueChange={(val) => field.onChange(val || undefined)}
-            >
-              <SelectTrigger id="intern" className="w-full">
-                <UserIcon className="size-3.5 mr-1" />
-                <SelectValue placeholder="Semua Intern (default)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Semua Intern</SelectItem>
-                {internOptions.map((intern) => (
-                  <SelectItem key={intern.id} value={intern.id}>
-                    {intern.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}
