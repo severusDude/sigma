@@ -21,6 +21,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import { AssessementRadarChart } from "./assessment-radar-chart";
 
 function formatDate(date: Date | string) {
   return new Intl.DateTimeFormat("id-ID", {
@@ -236,44 +237,7 @@ export default function AssessmentView({ data }: AssessmentViewProps) {
         <div className="space-y-4 w-2/3">
           <div className="rounded-none border bg-card p-6">
             {hasAssessment && computedScore !== null && (
-              <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center">
-                <CircularGauge
-                  score={Math.round(computedScore * 10) / 10}
-                  size={180}
-                />
-
-                <div className="text-center sm:text-left">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Predikat Kinerja
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {data.predikat}
-                    <span className="ml-2 inline-flex items-center justify-center rounded-none border px-2 py-0.5 text-sm font-semibold tracking-wide">
-                      {data.grade}
-                    </span>
-                  </p>
-                  <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
-                    {isFinalized && (
-                      <Badge
-                        variant="secondary"
-                        className="gap-1 rounded-none text-xs"
-                      >
-                        <ShieldCheckIcon className="size-3" />
-                        Tervalidasi HR
-                      </Badge>
-                    )}
-                    {isFinalized && (
-                      <Badge
-                        variant="default"
-                        className="gap-1 rounded-none text-xs"
-                      >
-                        <FileCheckIcon className="size-3" />
-                        Dokumen Tersedia
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <AssessementRadarChart data={data.components} />
             )}
           </div>
 
