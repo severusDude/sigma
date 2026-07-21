@@ -21,52 +21,75 @@ Intern dan Supervisor melihat detail hasil penilaian yang sudah difinalisasi ole
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Hasil Penilaian                                           │
+│  Budi Pratama                    [🔒 DIFINALISASI-TERKUNCI]│
 │                                                            │
-│  Intern: Ahmad Fauzi                                      │
-│  NIM: 2024XXXX · BPS Kota Tasikmalaya                    │
-│  Supervisor: Budi Santoso                                 │
-│  Periode Penilaian: 01 Jan 2026 - 30 Jun 2026            │
-│  Status: ✅ Sudah Difinalisasi                            │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │ 🔒 Penilaian ini sudah difinalisasi oleh HR/Admin   │  │
+│  │    dan tidak dapat diubah lagi.    [⬇ Download PDF] │  │
+│  └────────────────────────────────────────────────────┘  │
 │                                                            │
-│  ─── Komponen Nilai ───                                  │
+│         ╭─────────╮                                       │
+│        │  88.5    │        PREDIKAT KINERJA               │
+│        │ SKOR AKHIR│       Sangat Baik                    │
+│         ╰─────────╯                                       │
+│                       [TERVALIDASI HR] [DOKUMEN TERSEDIA] │
 │                                                            │
-│  Disiplin & Kehadiran   20%    75    ★★★★☆               │
-│  Kualitas Kerja         20%    60    ★★★☆☆               │
-│  Inisiatif & Proaktif   20%    80    ★★★★☆               │
-│  Kerjasama Tim          20%    70    ★★★★☆               │
-│  Penguasaan Tugas       20%    55    ★★★☆☆               │
+│  ── KOMPONEN PENILAIAN (READ-ONLY) ──────── BOBOT & SKOR ─│
 │                                                            │
-│  ───────────────────────────────────────                  │
-│  Nilai Akhir: 68.0                          C (Cukup)     │
-│  ───────────────────────────────────────                  │
+│  Disiplin & Kehadiran                                     │
+│  ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬░░  92/100     │
+│  "Budi sangat disiplin, hampir tidak pernah terlambat     │
+│   selama masa magang."                                    │
 │                                                            │
-│  Catatan Supervisor:                                       │
-│  - Disiplin & Kehadiran: Hadir tepat waktu               │
-│  - Kualitas Kerja: Perlu perbaikan dalam ketelitian      │
-│  - Inisiatif & Proaktif: Aktif bertanya                  │
-│  - Kerjasama Tim: Cukup komunikatif dengan tim           │
-│  - Penguasaan Tugas: Perlu lebih banyak praktik          │
+│  Kualitas Hasil Kerja                                     │
+│  ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬░░░░░░  85/100      │
+│  "Input data sangat rapi, hanya sedikit kesalahan minor    │
+│   pada entri awal."                                        │
 │                                                            │
-│  Difinalisasi oleh: Lutfi Fajar Salladin                  │
-│  Tanggal Finalisasi: 20 Jul 2026                          │
+│  ( ... komponen lain mengikuti pola yang sama ... )        │
 │                                                            │
-│  [ ← Kembali ]                                            │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │ ✅ Difinalisasi oleh: HR Admin BPS, 25 Sep 2026      │  │
+│  │ ✅ Dokumen Penilaian: Tersedia untuk pengarsipan     │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                            │
+│  [ ← Kembali ]                                             │
 └──────────────────────────────────────────────────────────┘
 ```
 
-### Representasi Visual
+### Elemen Baru vs Desain Sebelumnya
+
+| Elemen | Deskripsi |
+|---|---|
+| Badge status header | Menampilkan status finalisasi + ikon gembok di sebelah nama intern (mis. "DIFINALISASI · TERKUNCI") |
+| Banner terkunci | Kotak peringatan bahwa data sudah final dan tidak bisa diubah, dilengkapi tombol **Download PDF** |
+| Gauge skor melingkar | Nilai Akhir ditampilkan sebagai skor lingkaran (circular progress), bukan angka polos |
+| Predikat Kinerja | Label kualitatif besar (mis. "Sangat Baik") mendampingi skor akhir, menggantikan huruf grade (C/B/A) pada desain lama |
+| Badge validasi | "Tervalidasi HR" dan "Dokumen Tersedia" sebagai indikator status tambahan |
+| Progress bar per komponen | Menggantikan representasi bintang (★), skor ditampilkan sebagai pecahan `X/100` di ujung bar |
+| Catatan per komponen | Catatan supervisor kini melekat langsung di bawah progress bar masing-masing komponen (italic/quote style), **bukan** daftar "Catatan Supervisor" terpisah di akhir halaman seperti desain sebelumnya |
+| Footer info finalisasi | Menggabungkan info "Difinalisasi oleh + tanggal" dan status ketersediaan dokumen dalam satu kotak info di bagian bawah |
+
+### Representasi Visual Komponen
 
 Setiap komponen menampilkan:
 - Nama komponen
-- Bobot (read-only)
-- Score numerik
-- Representasi visual: progress bar atau bintang (1-5)
-  - 0–20: ★☆☆☆☆
-  - 21–40: ★★☆☆☆
-  - 41–60: ★★★☆☆
-  - 61–80: ★★★★☆
-  - 81–100: ★★★★★
+- Progress bar horizontal (panjang bar proporsional terhadap skor, skala 0–100)
+- Skor numerik dalam format `X/100` di ujung kanan bar
+- Catatan/komentar supervisor untuk komponen tsb (italic, di bawah bar) — opsional, tampil jika ada catatan
+- Bobot komponen tetap disimpan di data model dan ditampilkan pada header kolom ("Bobot & Skor"); tampilkan bobot per baris (mis. superscript/tooltip kecil di samping nama komponen) agar tetap terlihat *read-only* tanpa mengganggu visual bar
+
+> Catatan: representasi bintang (★) pada desain lama **dihapus** dan digantikan progress bar + skor pecahan.
+
+### Predikat Kinerja (asumsi mapping — mohon konfirmasi)
+
+| Rentang Nilai Akhir | Predikat |
+|---|---|
+| 81 – 100 | Sangat Baik |
+| 61 – 80 | Baik |
+| 41 – 60 | Cukup |
+| 21 – 40 | Kurang |
+| 0 – 20 | Sangat Kurang |
 
 ## Behavior per Status
 
@@ -74,13 +97,13 @@ Setiap komponen menampilkan:
 |---|---|
 | `draft` | Hanya supervisor bisa lihat (form edit) |
 | `submitted` | Supervisor & HR bisa lihat (read-only untuk supervisor, detail+finalisasi untuk HR) |
-| `finalized` | Semua role: Intern, Supervisor, HR bisa lihat |
+| `finalized` | Semua role: Intern, Supervisor, HR bisa lihat. Tampilkan banner terkunci + tombol Download PDF (lihat di atas) |
 
 ## Server Action
 
 ### `getAssessmentForView(assessmentId)`
 - Input: `assessmentId`
-- Output: assessment + components + intern + supervisor info
+- Output: assessment + components (termasuk catatan per komponen) + intern + supervisor info + predikat kinerja (dihitung dari Nilai Akhir)
 - Permission check:
   - Intern: hanya miliknya sendiri, hanya jika `finalized`
   - Supervisor: hanya intern bimbingannya
@@ -89,6 +112,12 @@ Setiap komponen menampilkan:
 ### `getInternAssessments(internProfileId)`
 - Untuk halaman intern: daftar assessment milik intern tersebut
 - Output: list assessment dengan status
+
+### `generateAssessmentPDF(assessmentId)` *(baru)*
+- Dipicu oleh tombol "Download PDF" pada banner terkunci
+- Hanya aktif jika status `finalized`
+- Permission check: sama seperti `getAssessmentForView`
+- Output: file PDF berisi ringkasan penilaian (skor akhir, predikat, komponen, catatan, info finalisasi)
 
 ## Empty State
 
@@ -100,3 +129,4 @@ Setiap komponen menampilkan:
 - Intern hanya bisa melihat nilai yang sudah difinalisasi.
 - Tidak ada fitur banding/respons di fase ini (bisa ditambahkan kemudian).
 - Informasi yang ditampilkan bersifat read-only.
+- Fitur Download PDF adalah penambahan baru dari desain ini; perlu didefinisikan lebih lanjut format/template PDF-nya pada iterasi berikutnya.
