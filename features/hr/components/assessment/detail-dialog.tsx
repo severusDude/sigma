@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon, CheckCircle2Icon, AlertCircleIcon } from "lucide-react";
+import {
+  Loader2Icon,
+  CheckCircle2Icon,
+  AlertCircleIcon,
+  AlertTriangleIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -16,6 +21,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent as AlertDialogContent2,
+  AlertDialogDescription as AlertDialogDescription2,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle as AlertDialogTitle2,
+} from "@/components/ui/alert-dialog";
 
 import { getAssessmentDetail, finalizeAssessment } from "../../actions/assessment-actions";
 import type { HrAssessmentDetail } from "../../types/assessment-types";
@@ -88,6 +104,7 @@ export function DetailDialog({ assessmentId, onClose }: DetailDialogProps) {
   const [detail, setDetail] = useState<HrAssessmentDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadedId, setLoadedId] = useState<string | null>(null);
+  const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
 
   useEffect(() => {
     if (assessmentId && assessmentId !== loadedId) {
@@ -113,13 +130,14 @@ export function DetailDialog({ assessmentId, onClose }: DetailDialogProps) {
     },
   });
 
-  async function handleFinalize() {
+  function handleFinalizeClick() {
     if (!assessmentId) return;
+    setShowFinalizeDialog(true);
+  }
 
-    const confirmed = window.confirm(
-      "Setelah difinalisasi, nilai tidak bisa diubah. Lanjutkan?",
-    );
-    if (!confirmed) return;
+  async function handleConfirmFinalize() {
+    setShowFinalizeDialog(false);
+    if (!assessmentId) return;
 
     const promise = finalizeAsync(assessmentId);
 
@@ -344,7 +362,7 @@ export function DetailDialog({ assessmentId, onClose }: DetailDialogProps) {
                       Kembali
                     </Button>
                     <Button
-                      onClick={handleFinalize}
+                      onClick={handleFinalizeClick}
                       disabled={isFinalizing}
                       className="gap-2"
                     >
@@ -362,6 +380,29 @@ export function DetailDialog({ assessmentId, onClose }: DetailDialogProps) {
           </div>
         </ScrollArea>
       </DialogContent>
+
+      <AlertDialog
+        open={showFinalizeDialog}
+        onOpenChange={setShowFinalizeDialog}
+      >
+        <AlertDialogContent2>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <AlertTriangleIcon className="text-amber-500" />
+            </AlertDialogMedia>
+            <AlertDialogTitle2>Finalisasi Penilaian</AlertDialogTitle2>
+            <AlertDialogDescription2>
+              Setelah difinalisasi, nilai tidak bisa diubah. Lanjutkan?
+            </AlertDialogDescription2>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmFinalize}>
+              Ya, Finalisasi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent2>
+      </AlertDialog>
     </Dialog>
   );
 }

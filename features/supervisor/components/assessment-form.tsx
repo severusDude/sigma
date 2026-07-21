@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
+  AlertTriangleIcon,
   ArrowLeftIcon,
   SaveIcon,
   SendHorizontalIcon,
@@ -18,6 +19,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
   createOrUpdateAssessment,
@@ -142,6 +154,7 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
   const [components, setComponents] = useState<ComponentFormValue[]>(
     data.components,
   );
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
 
   const isReadOnly = data.status !== null && data.status !== "draft";
 
@@ -188,16 +201,16 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
     if (res.success) router.refresh();
   }
 
-  async function handleSubmit() {
+  async function handleSubmitClick() {
     if (!allFilled) {
       toast.error("Semua komponen wajib diisi sebelum submit");
       return;
     }
+    setShowSubmitDialog(true);
+  }
 
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin submit? Nilai tidak bisa diubah setelah disubmit.",
-    );
-    if (!confirmed) return;
+  async function handleConfirmSubmit() {
+    setShowSubmitDialog(false);
 
     const saved = await createOrUpdateAssessment({
       internProfileId: data.internProfileId,
@@ -360,7 +373,7 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
                 Simpan Draft
               </Button>
               <Button
-                onClick={handleSubmit}
+                onClick={handleSubmitClick}
                 disabled={!allFilled}
                 className="w-full gap-2"
               >
@@ -371,6 +384,27 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
           )}
         </div>
       </div>
+
+      <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <AlertTriangleIcon className="text-amber-500" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Submit Penilaian</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin submit? Nilai tidak bisa diubah setelah
+              disubmit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSubmit}>
+              Ya, Submit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
