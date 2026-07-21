@@ -6,8 +6,8 @@ export const issueFormSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
   description: z.string().optional(),
   internProfileId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
   status: z
     .enum(Object.values(IssueStatus) as [string, ...string[]])
     .optional(),

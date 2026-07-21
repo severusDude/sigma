@@ -1,22 +1,16 @@
 "use client";
 
+import { useState } from "react";
+
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { DateRange } from "react-day-picker";
 
-import { SelectItemType } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IssueStatus } from "@/generated/prisma/enums";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { IssueFormFields } from "./form-fields";
 import type { Issue } from "../../types/issue-types";
@@ -37,23 +31,16 @@ interface UpdateIssueFormProps {
   onSuccess: () => void;
 }
 
-const statusOptions: SelectItemType<IssueStatus>[] = [
-  { value: IssueStatus.active, label: "Aktif" },
-  { value: IssueStatus.completed, label: "Selesai" },
-  { value: IssueStatus.cancelled, label: "Dibatalkan" },
-];
-
-function toDateString(date: Date | string | null | undefined): string {
-  if (!date) return "";
-  return new Date(date).toISOString().split("T")[0];
-}
-
 export function UpdateIssueForm({
   issue,
   internOptions,
   onSuccess,
 }: UpdateIssueFormProps) {
   const queryClient = useQueryClient();
+  const [period, setPeriod] = useState<DateRange | undefined>({
+    from: issue.startDate ?? undefined,
+    to: issue.endDate ?? undefined,
+  });
 
   const form = useForm<IssueFormInput>({
     resolver: zodResolver(issueFormSchema),
@@ -62,11 +49,18 @@ export function UpdateIssueForm({
       title: issue.title,
       description: issue.description ?? "",
       internProfileId: issue.internProfile?.id ?? "",
-      startDate: toDateString(issue.startDate),
-      endDate: toDateString(issue.endDate),
+      startDate: issue.startDate ?? undefined,
+      endDate: issue.endDate ?? undefined,
       status: issue.status,
     },
   });
+
+  const startDate = form.watch("startDate");
+  const endDate = form.watch("endDate");
+  const periodValue: DateRange = {
+    from: startDate ? new Date(startDate) : undefined,
+    to: endDate ? new Date(endDate) : undefined,
+  };
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["update-issue", issue.id],
@@ -75,8 +69,8 @@ export function UpdateIssueForm({
         title: values.title,
         description: values.description || undefined,
         internProfileId: values.internProfileId || undefined,
-        startDate: values.startDate ? new Date(values.startDate) : undefined,
-        endDate: values.endDate ? new Date(values.endDate) : undefined,
+        startDate: values.startDate || undefined,
+        endDate: values.endDate || undefined,
         status: values.status as IssueStatus | undefined,
       });
       if (!res.success) throw new Error(res.error);
@@ -93,7 +87,10 @@ export function UpdateIssueForm({
 
   async function onSubmit() {
     const values = form.getValues();
-    const mutationPromise = mutateAsync(values).then(() => onSuccess());
+    if (period?.from) values.startDate = period.from;
+    if (period?.to) values.endDate = period.to;
+
+    const mutationPromise = mutateAsync(values);
     toast.promise(mutationPromise, {
       loading: "Memperbarui rencana kegiatan...",
       success: "Rencana kegiatan berhasil diperbarui",
@@ -104,32 +101,25 @@ export function UpdateIssueForm({
     });
     try {
       await mutationPromise;
+      queryClient.invalidateQueries({ queryKey: ["issues"] });
+      onSuccess();
     } catch {}
   }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <Field>
-        <FieldLabel htmlFor="edit-status">Status</FieldLabel>
-        <Select
-          items={statusOptions}
-          value={form.watch("status")}
-          onValueChange={(val) => form.setValue("status", val ?? "")}
-        >
-          <SelectTrigger id="edit-status" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent alignItemWithTrigger={false}>
-            {statusOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
-
-      <IssueFormFields control={form.control} internOptions={internOptions} />
+      <IssueFormFields
+        control={form.control}
+        internOptions={internOptions}
+        periodValue={periodValue}
+        onPeriodChange={(range) => {
+          setPeriod(range);
+          if (range?.from)
+            form.setValue("startDate", range.from, { shouldValidate: true });
+          if (range?.to)
+            form.setValue("endDate", range.to, { shouldValidate: true });
+        }}
+      />
 
       <footer className="flex items-center justify-end w-full gap-2 pt-4">
         <Button

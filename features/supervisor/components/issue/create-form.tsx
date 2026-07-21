@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
+
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -31,6 +34,10 @@ export function CreateIssueForm({
   onSuccess,
 }: CreateIssueFormProps) {
   const queryClient = useQueryClient();
+  const [period, setPeriod] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
 
   const form = useForm<IssueFormInput>({
     resolver: zodResolver(issueFormSchema),
@@ -39,8 +46,8 @@ export function CreateIssueForm({
       title: "",
       description: "",
       internProfileId: "",
-      startDate: "",
-      endDate: "",
+      startDate: undefined,
+      endDate: undefined,
     },
   });
 
@@ -51,8 +58,8 @@ export function CreateIssueForm({
         title: values.title,
         description: values.description || undefined,
         internProfileId: values.internProfileId || undefined,
-        startDate: values.startDate ? new Date(values.startDate) : undefined,
-        endDate: values.endDate ? new Date(values.endDate) : undefined,
+        startDate: values.startDate || undefined,
+        endDate: values.endDate || undefined,
       });
       if (!res.success) throw new Error(res.error);
       return res.data!;
@@ -68,7 +75,10 @@ export function CreateIssueForm({
 
   async function onSubmit() {
     const values = form.getValues();
-    const mutationPromise = mutateAsync(values).then(() => onSuccess());
+    if (period?.from) values.startDate = period.from;
+    if (period?.to) values.endDate = period.to;
+
+    const mutationPromise = mutateAsync(values as IssueFormInput);
     toast.promise(mutationPromise, {
       loading: "Menyimpan rencana kegiatan...",
       success: "Rencana kegiatan berhasil dibuat",
@@ -79,12 +89,24 @@ export function CreateIssueForm({
     });
     try {
       await mutationPromise;
+      onSuccess();
     } catch {}
   }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <IssueFormFields control={form.control} internOptions={internOptions} />
+      <IssueFormFields
+        control={form.control}
+        internOptions={internOptions}
+        periodValue={period}
+        onPeriodChange={(range) => {
+          setPeriod(range);
+          if (range?.from)
+            form.setValue("startDate", range.from, { shouldValidate: true });
+          if (range?.to)
+            form.setValue("endDate", range.to, { shouldValidate: true });
+        }}
+      />
       <footer className="flex items-center justify-end w-full gap-2 pt-4">
         <Button
           type="reset"
