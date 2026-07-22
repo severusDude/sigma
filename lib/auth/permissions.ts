@@ -36,12 +36,13 @@ export const supervisor = ac.newRole({
 
 export const hr = ac.newRole({
   ...supervisor.statements,
-  intern:     ["create", "read", "update", "delete"],
+  assessment: ["create", "read", "update", "finalize"],
+  intern: ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
   assignment: ["create", "read", "update", "delete"],
-  document:   ["create", "read"],
-  report:     ["create", "read"],
-  dashboard:  ["view-operational"],
+  document: ["create", "read"],
+  report: ["create", "read"],
+  dashboard: ["view-operational"],
 });
 
 export const admin = ac.newRole({

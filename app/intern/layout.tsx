@@ -10,6 +10,7 @@ import {
   Clock,
   MessageSquare,
   FileText,
+  ClipboardCheck,
   Sigma,
 } from "lucide-react"
 
@@ -54,6 +55,11 @@ async function InternSidebar({ children }: { children: React.ReactNode }) {
         title: "Dokumen",
         url: "/intern/dokumen",
         icon: <FileText className="size-4" />,
+      },
+      {
+        title: "Penilaian",
+        url: "/intern/penilaian",
+        icon: <ClipboardCheck className="size-4" />,
       },
     ],
   }

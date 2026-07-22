@@ -10,6 +10,7 @@ import {
   UserCog,
   FileText,
   BarChart3,
+  ClipboardCheck,
   Sigma,
 } from "lucide-react"
 
@@ -45,6 +46,11 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
         title: "Manajemen Supervisor",
         url: "/hr/supervisor",
         icon: <UserCog className="size-4" />,
+      },
+      {
+        title: "Penilaian & Evaluasi",
+        url: "/hr/penilaian",
+        icon: <ClipboardCheck className="size-4" />,
       },
       {
         title: "Generate Documents",
