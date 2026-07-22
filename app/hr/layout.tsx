@@ -12,6 +12,7 @@ import {
   BarChart3,
   ClipboardCheck,
   Sigma,
+  FileSpreadsheet,
 } from "lucide-react"
 
 async function HrSidebar({ children }: { children: React.ReactNode }) {
@@ -56,6 +57,11 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
         title: "Generate Documents",
         url: "/hr/documents",
         icon: <FileText className="size-4" />,
+      },
+      {
+        title: "Template Dokumen",
+        url: "/hr/templates",
+        icon: <FileSpreadsheet className="size-4" />,
       },
       {
         title: "Pelaporan",

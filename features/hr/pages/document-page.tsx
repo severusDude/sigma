@@ -11,10 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentType } from "@/generated/prisma/enums";
 import { FileText, Send } from "lucide-react";
 
-import type { DocumentRow } from "../types/document-types";
+import type { DocumentRow, GenerateDocResult } from "../types/document-types";
 import { createColumns } from "../components/document/columns";
 import { ActionCard } from "../components/document/action-card";
-import { generateCertificates } from "../actions/document-actions";
+import {
+  generateCertificates,
+  generateAssignmentLetter,
+  generateAssessmentReport,
+  generateAttendanceReport,
+  generateCompletionLetter,
+} from "../actions/document-actions";
 import { PreviewDialog } from "@/components/shared/document";
 
 interface DocumentPageProps {
@@ -49,44 +55,94 @@ const sortOptions: SortOption[] = [
   { id: "period", label: "Periode" },
 ];
 
+type GenerateFn = (ids: string[]) => Promise<{ success: boolean; data?: GenerateDocResult[]; error?: string }>;
+
+const generateActions: Record<string, GenerateFn> = {
+  [DocumentType.certificate]: generateCertificates as GenerateFn,
+  [DocumentType.assignment_letter]: generateAssignmentLetter as GenerateFn,
+  [DocumentType.assessment_report]: generateAssessmentReport as GenerateFn,
+  [DocumentType.attendance_report]: generateAttendanceReport as GenerateFn,
+  [DocumentType.completion_letter]: generateCompletionLetter as GenerateFn,
+};
+
+const documentLabels: Record<string, string> = {
+  [DocumentType.certificate]: "sertifikat",
+  [DocumentType.assignment_letter]: "surat tugas",
+  [DocumentType.assessment_report]: "laporan penilaian",
+  [DocumentType.attendance_report]: "rekap absensi",
+  [DocumentType.completion_letter]: "surat keterangan selesai",
+};
+
 export default function DocumentPage({ interns }: DocumentPageProps) {
   const [tab, setTab] = useState<DocumentType>(DocumentType.certificate);
   const router = useRouter();
   const [previewDocId, setPreviewDocId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleGenerate = async (rows: DocumentRow | DocumentRow[]) => {
+    const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
+    const generateFn = generateActions[tab];
+    const label = documentLabels[tab] ?? "dokumen";
+
+    setGenerating(true);
+    const result = await generateFn(internIds);
+    setGenerating(false);
+
+    if (!result.success) {
+      toast.error(result.error || `Gagal generate ${label}`);
+      return;
+    }
+
+    const genData = result.data!;
+    const docSuccess = genData.filter((r) => !r.error);
+
+    if (docSuccess.length > 0) {
+      toast.success(
+        `${docSuccess.length} ${label} berhasil dibuat dan siap dikirim ke TTE`,
+      );
+    }
+
+    router.refresh();
+  };
+
+  const handleGenerateAndSend = async (rows: DocumentRow | DocumentRow[]) => {
+    const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
+    const generateFn = generateActions[tab];
+    const label = documentLabels[tab] ?? "dokumen";
+
+    setSending(true);
+    const result = await generateFn(internIds);
+    setSending(false);
+
+    if (!result.success) {
+      toast.error(result.error || `Gagal generate ${label}`);
+      return;
+    }
+
+    const genData = result.data!;
+    const docSuccess = genData.filter((r) => !r.error);
+
+    if (docSuccess.length > 0) {
+      toast.success(
+        `${docSuccess.length} ${label} berhasil dibuat dan siap dikirim ke TTE`,
+      );
+      router.refresh();
+    }
+  };
 
   const batchActions = [
     {
-      label: "Generate Document",
+      label: generating ? "Memproses..." : "Generate Document",
       icon: <FileText className="size-4" />,
-      onClick: async (rows: DocumentRow | DocumentRow[]) => {
-        const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
-        const result = await generateCertificates(internIds);
-
-        if (!result.success) {
-          toast.error(result.error || "Gagal generate sertifikat");
-          return;
-        }
-
-        const data = result.data!;
-        const success = data.filter((r) => !r.error);
-        const failed = data.filter((r) => r.error);
-
-        if (failed.length === 0) {
-          toast.success(`Berhasil membuat ${success.length} sertifikat`);
-        } else {
-          toast.warning(`${success.length} berhasil, ${failed.length} gagal`);
-          failed.forEach((f) =>
-            console.warn(`[cert-gen] ${f.internName}: ${f.error}`),
-          );
-        }
-
-        router.refresh();
-      },
+      onClick: handleGenerate,
     },
     {
-      label: "Generate & Kirim ke TTE",
+      label: sending
+        ? "Memproses..."
+        : "Generate & Kirim ke TTE",
       icon: <Send className="size-4" />,
-      onClick: () => {},
+      onClick: handleGenerateAndSend,
     },
   ];
 
@@ -116,25 +172,19 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
 
         {tabConfig.map((t) => (
           <TabsContent key={t.value} value={t.value}>
-            {t.value === DocumentType.certificate ? (
-              <div className="flex gap-4 items-start">
-                <div className="flex-1 min-w-0">
-                  <DataTable
-                    columns={columns}
-                    data={interns}
-                    filterCategories={filterOptions}
-                    sortOptions={sortOptions}
-                    batchActions={batchActions}
-                  />
-                </div>
+            <div className="flex gap-4 items-start">
+              <div className="flex-1 min-w-0">
+                <DataTable
+                  columns={columns}
+                  data={interns}
+                  filterCategories={filterOptions}
+                  sortOptions={sortOptions}
+                  batchActions={batchActions}
+                />
+              </div>
 
-                <ActionCard />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground">
-                <p>Tab {t.label} — belum diimplementasikan</p>
-              </div>
-            )}
+              <ActionCard />
+            </div>
           </TabsContent>
         ))}
       </Tabs>

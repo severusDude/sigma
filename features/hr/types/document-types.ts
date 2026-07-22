@@ -10,4 +10,12 @@ const documentInclude = {
 
 export type DocumentRow = UserGetPayload<{ include: typeof documentInclude }>;
 
+export type GenerateDocResult = {
+  internId: string;
+  internName: string;
+  docNumber: string | null;
+  filePath: string | null;
+  error?: string;
+};
+
 export { documentInclude };
