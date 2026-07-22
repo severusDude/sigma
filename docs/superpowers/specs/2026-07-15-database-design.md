@@ -153,7 +153,7 @@ These models are managed by Better-Auth and must not be modified except to add r
 
 ### 4.5 Operations
 
-**Issue** — "Rencana Kegiatan" created by Supervisor (renamed from Task per PRD update).
+**Issue** — "Rencana Kegiatan" created by Supervisor.
 - Linked to `supervisorProfileId` (creator) and optionally `internProfileId` (assignee)
 - `title`, `description`, `startDate`, `endDate`, `status`
 - Soft-deletable

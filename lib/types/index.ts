@@ -3,3 +3,8 @@ export type ActionResponse<T> = {
   data?: T;
   error?: string;
 };
+
+export interface SelectItemType<T> {
+  value: T | string;
+  label: string;
+}
