@@ -12,6 +12,7 @@ import {
   UsersIcon,
 } from "lucide-react";
 
+import Link from "next/link";
 import { id } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,10 +63,8 @@ function formatDateRange(
   end: Date | string | null | undefined,
 ) {
   if (!start && !end) return "—";
-  if (!end)
-    return format(new Date(start!), "d MMM yyyy", { locale: id });
-  if (!start)
-    return format(new Date(end), "d MMM yyyy", { locale: id });
+  if (!end) return format(new Date(start!), "d MMM yyyy", { locale: id });
+  if (!start) return format(new Date(end), "d MMM yyyy", { locale: id });
   if (new Date(start).toDateString() === new Date(end).toDateString())
     return format(new Date(start), "d MMM yyyy", { locale: id });
   return `${format(new Date(start), "d MMM", { locale: id })} — ${format(new Date(end), "d MMM yyyy", { locale: id })}`;
@@ -143,14 +142,14 @@ export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
           <span>{issue._count.logbooks} logbook</span>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full mt-4"
-          onClick={() => onView(issue)}
-        >
-          <EyeIcon className="mr-2 size-3.5" />
-          Lihat Detail
+        <Button variant="outline" size="sm" className="w-full mt-4">
+          <Link
+            href={`/supervisor/issues/${issue.id}`}
+            className="flex items-center"
+          >
+            <EyeIcon className="mr-2 size-3.5" />
+            Lihat Detail
+          </Link>
         </Button>
       </CardContent>
     </Card>
