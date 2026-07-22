@@ -50,7 +50,7 @@ export async function uploadTemplate(
     const buffer = Buffer.from(await file.arrayBuffer());
 
     try {
-      const zip = new PizZip(buffer.toString("binary"));
+      const zip = new PizZip(buffer);
       const doc = new Docxtemplater(zip, {
         paragraphLoop: true,
         linebreaks: true,

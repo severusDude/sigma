@@ -10,6 +10,15 @@ import { DataTable } from "@/components/shared/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentType } from "@/generated/prisma/enums";
 import { FileText, Send } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import type { DocumentRow, GenerateDocResult } from "../types/document-types";
 import { createColumns } from "../components/document/columns";
@@ -79,6 +88,19 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
   const [previewDocId, setPreviewDocId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
+  const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  function checkTemplateError(genData: GenerateDocResult[]): string | null {
+    const firstError = genData[0]?.error;
+    if (
+      genData.length > 0 &&
+      genData.every((r) => r.error?.startsWith("TEMPLATE_NOT_FOUND:")) &&
+      firstError?.startsWith("TEMPLATE_NOT_FOUND:")
+    ) {
+      return firstError.replace("TEMPLATE_NOT_FOUND:", "");
+    }
+    return null;
+  }
 
   const handleGenerate = async (rows: DocumentRow | DocumentRow[]) => {
     const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
@@ -95,6 +117,12 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
     }
 
     const genData = result.data!;
+    const templateMsg = checkTemplateError(genData);
+    if (templateMsg) {
+      setTemplateAlert({ open: true, message: templateMsg });
+      return;
+    }
+
     const docSuccess = genData.filter((r) => !r.error);
 
     if (docSuccess.length > 0) {
@@ -121,6 +149,12 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
     }
 
     const genData = result.data!;
+    const templateMsg = checkTemplateError(genData);
+    if (templateMsg) {
+      setTemplateAlert({ open: true, message: templateMsg });
+      return;
+    }
+
     const docSuccess = genData.filter((r) => !r.error);
 
     if (docSuccess.length > 0) {
@@ -189,6 +223,20 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
         ))}
       </Tabs>
       <PreviewDialog docId={previewDocId} onClose={() => setPreviewDocId(null)} />
+
+      <AlertDialog open={templateAlert.open} onOpenChange={(open) => setTemplateAlert((prev) => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Template Belum Tersedia</AlertDialogTitle>
+            <AlertDialogDescription>{templateAlert.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setTemplateAlert({ open: false, message: "" })}>
+              Mengerti
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

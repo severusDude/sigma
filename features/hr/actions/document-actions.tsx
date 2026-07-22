@@ -584,41 +584,35 @@ export async function generateCompletionLetter(
   }
 }
 
+const DOCUMENT_LABELS: Record<string, string> = {
+  assignment_letter: "Surat Tugas",
+  assessment_report: "Laporan Penilaian",
+  attendance_report: "Rekap Absensi",
+  completion_letter: "Surat Keterangan Selesai",
+};
+
 async function getActiveTemplate(documentType: string): Promise<Buffer> {
   const active = await prisma.documentTemplate.findFirst({
     where: { documentType: documentType as DocumentType, isActive: true },
-    select: { content: true, variables: true },
+    select: { content: true },
   });
 
-  if (active) {
-    const uploadedPath = path.join(process.cwd(), active.content);
-    if (fs.existsSync(uploadedPath)) {
-      return fs.readFileSync(uploadedPath);
-    }
+  if (!active) {
+    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
+    throw new Error(`TEMPLATE_NOT_FOUND:Template ${label} belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.`);
   }
 
-  const defaultPath = path.join(
-    process.cwd(),
-    "templates",
-    "hr",
-    `${documentTypeToFileName(documentType)}.docx`,
-  );
-  return fs.readFileSync(defaultPath);
-}
-
-function documentTypeToFileName(docType: string): string {
-  switch (docType) {
-    case "assignment_letter":
-      return "assignment-letter";
-    case "assessment_report":
-      return "assessment-report";
-    case "attendance_report":
-      return "attendance-report";
-    case "completion_letter":
-      return "completion-letter";
-    default:
-      return docType;
+  const uploadedPath = path.resolve(active.content);
+  if (!fs.existsSync(uploadedPath)) {
+    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
+    throw new Error(
+      `TEMPLATE_NOT_FOUND:File template ${label} tidak ditemukan di "${uploadedPath}". ` +
+      `Path di database: "${active.content}". ` +
+      `Silahkan upload ulang template di menu Kelola Template.`
+    );
   }
+
+  return fs.readFileSync(uploadedPath);
 }
 
 function attendanceStatusLabel(status: string): string {
