@@ -19,7 +19,7 @@ import {
     AlertTitle
 } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { AssessmentViewData } from "../types/assessment-view-types";
+import type { AssessmentViewData } from "@/features/supervisor/types/assessment-view-types";
 import { AssessementRadarChart } from "./assessment-radar-chart";
 
 function formatDate(date: Date | string) {
@@ -113,7 +113,7 @@ interface AssessmentViewProps {
   backUrl?: string;
 }
 
-export default function AssessmentView({ data, backUrl = "/supervisor/penilaian" }: AssessmentViewProps) {
+export default function AssessmentView({ data, backUrl = "/intern" }: AssessmentViewProps) {
   const router = useRouter();
 
   const isFinalized = data.status === "finalized";
