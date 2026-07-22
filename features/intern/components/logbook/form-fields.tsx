@@ -37,7 +37,7 @@ import {
 
 interface LogbookFormFieldsProps<T extends FieldValues> {
   control: Control<T>;
-  issueOptions?: { id: string; title: string }[];
+  issueOptions: { id: string; title: string }[];
 }
 
 export function LogbookFormFields<T extends FieldValues>({
@@ -79,7 +79,13 @@ export function LogbookFormFields<T extends FieldValues>({
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
                     disabled={[
-                      { after: (() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; })() },
+                      {
+                        after: (() => {
+                          const d = new Date();
+                          d.setHours(23, 59, 59, 999);
+                          return d;
+                        })(),
+                      },
                       { dayOfWeek: [0, 6] },
                     ]}
                     onSelect={(date) => {
@@ -181,13 +187,13 @@ export function LogbookFormFields<T extends FieldValues>({
       />
 
       {/* Issue (searchable combobox) */}
-      {issueOptions.length > 0 && (
-        <ComboBoxField
-          control={control}
-          name={"issueId" as FieldPath<T>}
-          options={issueOptions}
-        />
-      )}
+      <ComboBoxField
+        control={control}
+        name={"issueId" as FieldPath<T>}
+        options={issueOptions}
+      />
+      {/* {issueOptions.length > 0 && (
+      )} */}
     </div>
   );
 }

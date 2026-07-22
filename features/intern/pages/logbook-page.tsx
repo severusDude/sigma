@@ -66,6 +66,7 @@ import { CreateLogbookForm } from "../components/logbook/create-form";
 import { UpdateLogbookForm } from "../components/logbook/update-form";
 
 interface LogbookPageProps {
+  issueOptions: { id: string; title: string }[];
   periodStart?: Date;
   periodEnd?: Date;
   internName?: string;
@@ -140,6 +141,7 @@ function groupByWeek(logbooks: Logbook[]) {
 }
 
 export default function LogbookPage({
+  issueOptions,
   periodStart,
   periodEnd,
   internName,
@@ -450,7 +452,10 @@ export default function LogbookPage({
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
               <div className="pt-6">
-                <CreateLogbookForm onSuccess={() => setCreateOpen(false)} />
+                <CreateLogbookForm
+                  issueOptions={issueOptions}
+                  onSuccess={() => setCreateOpen(false)}
+                />
               </div>
             </ScrollArea>
           </DialogContent>
@@ -476,6 +481,7 @@ export default function LogbookPage({
                 {updateLogbook && (
                   <UpdateLogbookForm
                     logbook={updateLogbook}
+                    issueOptions={issueOptions}
                     onSuccess={() => setUpdateLogbook(null)}
                   />
                 )}

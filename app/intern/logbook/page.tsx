@@ -8,14 +8,31 @@ export default async function Page() {
 
   const internProfile = await prisma.internProfile.findUnique({
     where: { userId: user.id },
+    include: {
+      supervisorAssignments: {
+        where: { endedAt: null },
+        select: {
+          supervisorProfileId: true,
+        },
+      },
+    },
+  });
+
+  const supervisorIssues = await prisma.issue.findMany({
+    where: {
+      supervisorProfileId:
+        internProfile?.supervisorAssignments[0]?.supervisorProfileId,
+      status: "active",
+    },
     select: {
-      periodStart: true,
-      periodEnd: true,
+      id: true,
+      title: true,
     },
   });
 
   return (
     <LogbookPage
+      issueOptions={supervisorIssues}
       periodStart={internProfile?.periodStart ?? undefined}
       periodEnd={internProfile?.periodEnd ?? undefined}
       internName={user.name}

@@ -138,6 +138,7 @@ export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
           <span>{formatDateRange(issue.startDate, issue.endDate)}</span>
         </div>
 
+        {/* FIXME: logbook still count soft-deleted logbooks */}
         <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <BookOpenIcon className="size-4 shrink-0" />
           <span>{issue._count.logbooks} logbook</span>
