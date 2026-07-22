@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import IssueView from "@/features/supervisor/pages/issue-view";
-import { issueInclude } from "@/features/supervisor/types/issue-types";
+import { issueDetailInclude } from "@/features/supervisor/types/issue-types";
+
 import Loading from "./loading";
 
 async function IssueViewFetcher({ id }: { id: string }) {
@@ -23,7 +24,7 @@ async function IssueViewFetcher({ id }: { id: string }) {
       deletedAt: null,
     },
     include: {
-      ...issueInclude,
+      ...issueDetailInclude,
       logbooks: {
         where: { deletedAt: null },
         include: {
@@ -36,6 +37,7 @@ async function IssueViewFetcher({ id }: { id: string }) {
           },
         },
         orderBy: { date: "desc" },
+        take: 100,
       },
     },
   });

@@ -18,14 +18,15 @@ import {
   ThumbsUpIcon,
 } from "lucide-react";
 
+import Link from "next/link";
 import { id } from "date-fns/locale";
 import { initials } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IssueStatus, LogbookStatus } from "@/generated/prisma/enums";
 import {
@@ -60,15 +61,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import type { Issue } from "../types/issue-types";
 import { updateIssue } from "../actions/issue-actions";
+import type { IssueDetail } from "../types/issue-types";
 import {
   approveLogbook,
   requestRevision,
 } from "../actions/logbook-review-actions";
-import Link from "next/link";
 
-type IssueWithLogbooks = Issue & {
+type IssueWithLogbooks = IssueDetail & {
   logbooks: Array<{
     id: string;
     internProfileId: string;
