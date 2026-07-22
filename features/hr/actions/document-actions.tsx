@@ -7,6 +7,7 @@ import { generateDocumentNumber } from "../utils/document-number";
 import { InternshipCertificate } from "../components/document/templates/certificates";
 import { generateFromTemplate } from "@/lib/docxtemplater";
 import type { ActionResponse } from "@/lib/types";
+import { DocumentType } from "@/generated/prisma/client";
 import path from "path";
 import fs from "fs";
 
@@ -78,7 +79,7 @@ async function saveDocumentRecord(
   return prisma.document.create({
     data: {
       internProfileId,
-      documentType: documentType as "certificate" | "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter",
+      documentType: documentType as DocumentType,
       documentNumber: docNumber,
       title,
       fileUrl,
@@ -210,7 +211,7 @@ export async function generateAssignmentLetter(
         const supervisor = intern.supervisorAssignments[0]?.supervisorProfile;
         const docNumber = await generateDocumentNumber("ST");
 
-        const templateBuffer = getActiveTemplate("assignment_letter");
+        const templateBuffer = await getActiveTemplate("assignment_letter");
 
         const data = {
           nomor_surat: docNumber,
@@ -304,7 +305,7 @@ export async function generateAssessmentReport(
         const assessment = intern.assessments[0];
         const docNumber = await generateDocumentNumber("NILAI");
 
-        const templateBuffer = getActiveTemplate("assessment_report");
+        const templateBuffer = await getActiveTemplate("assessment_report");
 
         const data = {
           nama_peserta: user.name,
@@ -407,7 +408,7 @@ export async function generateAttendanceReport(
           orderBy: { date: "asc" },
         });
 
-        const templateBuffer = getActiveTemplate("attendance_report");
+        const templateBuffer = await getActiveTemplate("attendance_report");
 
         const totalHadir = attendanceRecords.filter(
           (a) => a.status === "present",
@@ -521,7 +522,7 @@ export async function generateCompletionLetter(
         const supervisor = intern.supervisorAssignments[0]?.supervisorProfile;
         const docNumber = await generateDocumentNumber("SK");
 
-        const templateBuffer = getActiveTemplate("completion_letter");
+        const templateBuffer = await getActiveTemplate("completion_letter");
 
         const data = {
           nomor_surat: docNumber,
@@ -583,7 +584,19 @@ export async function generateCompletionLetter(
   }
 }
 
-function getActiveTemplate(documentType: string): Buffer {
+async function getActiveTemplate(documentType: string): Promise<Buffer> {
+  const active = await prisma.documentTemplate.findFirst({
+    where: { documentType: documentType as DocumentType, isActive: true },
+    select: { content: true, variables: true },
+  });
+
+  if (active) {
+    const uploadedPath = path.join(process.cwd(), active.content);
+    if (fs.existsSync(uploadedPath)) {
+      return fs.readFileSync(uploadedPath);
+    }
+  }
+
   const defaultPath = path.join(
     process.cwd(),
     "templates",
