@@ -17,7 +17,7 @@ import {
 } from "../../schemas/logbook-schemas";
 
 interface CreateLogbookFormProps {
-  issueOptions?: { id: string; title: string }[];
+  issueOptions: { id: string; title: string }[];
   onSuccess: () => void;
 }
 
@@ -31,7 +31,10 @@ export function CreateLogbookForm({
     resolver: zodResolver(logbookFormSchema),
     mode: "onChange",
     defaultValues: {
-      date: (() => { const d = new Date(); return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); })(),
+      date: (() => {
+        const d = new Date();
+        return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      })(),
       activity: "",
       startTime: "08:00",
       endTime: "16:00",

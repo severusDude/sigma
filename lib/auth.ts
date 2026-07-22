@@ -1,15 +1,22 @@
 import { betterAuth } from "better-auth";
 
 import { prisma } from "@/lib/prisma";
+import { Role } from "@/generated/prisma/enums";
+import { nextCookies } from "better-auth/next-js";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin as adminPlugin, username } from "better-auth/plugins";
-import { Role } from "@/generated/prisma/enums";
-import { ac, intern, supervisor, hr, admin } from "@/lib/auth/permissions";
+import { ac, admin, hr, intern, supervisor } from "@/lib/auth/permissions";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   baseURL: "http://localhost:3000/",
   emailAndPassword: { enabled: true },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   plugins: [
     username(),
     adminPlugin({
@@ -23,6 +30,7 @@ export const auth = betterAuth({
       defaultRole: Role.intern,
       adminRoles: [Role.admin],
     }),
+    nextCookies(),
   ],
 });
 

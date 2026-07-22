@@ -18,7 +18,7 @@ import {
 
 interface UpdateLogbookFormProps {
   logbook: Logbook;
-  issueOptions?: { id: string; title: string }[];
+  issueOptions: { id: string; title: string }[];
   onSuccess: () => void;
 }
 

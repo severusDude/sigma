@@ -236,7 +236,7 @@ model InternProfile {
   assessments           Assessment[]
   documents             Document[]
 
-  @@index([status])
+  @@index([status, deletedAt])
   @@index([periodStart, periodEnd])
   @@map("intern_profile")
 }
@@ -261,8 +261,8 @@ model SupervisorProfile {
   guidedSessions    GuidanceSession[]  @relation("SupervisorGuidance")
   givenAssessments  Assessment[]
 
-  @@index([nip])
-  @@index([isActive])
+  @@index([nip, deletedAt])
+  @@index([isActive, deletedAt])
   @@map("supervisor_profile")
 }
 
@@ -308,9 +308,9 @@ model Issue {
 
   logbooks Logbook[]
 
-  @@index([supervisorProfileId])
-  @@index([internProfileId])
-  @@index([status])
+  @@index([supervisorProfileId, deletedAt])
+  @@index([internProfileId, deletedAt])
+  @@index([status, deletedAt])
   @@map("issue")
 }
 
@@ -330,10 +330,10 @@ model Logbook {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([internProfileId])
-  @@index([issueId])
-  @@index([date])
-  @@index([status])
+  @@index([internProfileId, deletedAt])
+  @@index([issueId, deletedAt, date(sort: Desc)])
+  @@index([date, deletedAt])
+  @@index([status, deletedAt])
   @@map("logbook")
 }
 
@@ -354,9 +354,9 @@ model Attendance {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([internProfileId])
-  @@index([date])
-  @@index([status])
+  @@index([internProfileId, deletedAt])
+  @@index([date, deletedAt])
+  @@index([status, deletedAt])
   @@map("attendance")
 }
 
@@ -378,9 +378,9 @@ model GuidanceSession {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([internProfileId])
-  @@index([supervisorProfileId])
-  @@index([status])
+  @@index([internProfileId, deletedAt])
+  @@index([supervisorProfileId, deletedAt])
+  @@index([status, deletedAt])
   @@map("guidance_session")
 }
 
@@ -404,9 +404,9 @@ model Assessment {
 
   components AssessmentComponent[]
 
-  @@index([internProfileId])
-  @@index([supervisorProfileId])
-  @@index([status])
+  @@index([internProfileId, deletedAt])
+  @@index([supervisorProfileId, deletedAt])
+  @@index([status, deletedAt])
   @@map("assessment")
 }
 
@@ -446,8 +446,8 @@ model Document {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([internProfileId])
-  @@index([documentType])
+  @@index([internProfileId, deletedAt])
+  @@index([documentType, deletedAt])
   @@index([documentNumber])
   @@map("document")
 }
@@ -477,7 +477,7 @@ model Guide {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([isPublished])
+  @@index([isPublished, deletedAt])
   @@map("guide")
 }
 

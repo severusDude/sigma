@@ -1,9 +1,9 @@
-import { Suspense } from "react"
+import { Suspense } from "react";
 
-import SidebarLayout from "@/components/layout/sidebar-layout"
-import { requireAuth } from "@/helpers/guard"
-import { Role } from "@/generated/prisma/enums"
-import type { SidebarData } from "@/components/layout/sidebar-types"
+import SidebarLayout from "@/components/layout/sidebar-layout";
+import { requireAuth } from "@/helpers/guard";
+import { Role } from "@/generated/prisma/enums";
+import type { SidebarData } from "@/components/layout/sidebar-types";
 import {
   LayoutDashboard,
   Users,
@@ -11,10 +11,10 @@ import {
   BookOpen,
   MessageSquare,
   Sigma,
-} from "lucide-react"
+} from "lucide-react";
 
 async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.supervisor])
+  const { user } = await requireAuth([Role.admin, Role.supervisor]);
 
   const sidebar: SidebarData = {
     user: {
@@ -46,8 +46,8 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
         icon: <ClipboardCheck className="size-4" />,
       },
       {
-        title: "Logbook",
-        url: "/supervisor/logbook",
+        title: "Issues",
+        url: "/supervisor/issues",
         icon: <BookOpen className="size-4" />,
       },
       {
@@ -56,9 +56,9 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
         icon: <MessageSquare className="size-4" />,
       },
     ],
-  }
+  };
 
-  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>;
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -66,5 +66,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <Suspense>
       <SupervisorSidebar>{children}</SupervisorSidebar>
     </Suspense>
-  )
+  );
 }
