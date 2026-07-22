@@ -22,7 +22,7 @@ import { id } from "date-fns/locale";
 import { initials } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -281,15 +281,18 @@ export default function IssueView({ issue }: IssueViewProps) {
   return (
     <ScrollArea className="max-w-[100vw] h-[calc(100vh-5rem)] pr-2">
       <div className="w-full pb-8 space-y-8">
-        <Button variant="link" className="pl-0">
-          <Link
-            href="/supervisor/issues"
-            className="inline-flex items-center gap-1 text-xs font-medium transition-all text-primary hover:underline group"
-          >
-            <ArrowLeftIcon className="size-4 group-hover:-translate-x-0.5 transition-transform" />
-            Kembali ke Rencana Kegiatan
-          </Link>
-        </Button>
+        <Link
+          href="/supervisor/issues"
+          className={buttonVariants({
+            variant: "link",
+            size: "sm",
+            className:
+              "pl-0 inline-flex items-center gap-1 text-xs font-medium transition-all text-primary hover:underline group",
+          })}
+        >
+          <ArrowLeftIcon className="size-4 group-hover:-translate-x-0.5 transition-transform" />
+          Kembali ke Rencana Kegiatan
+        </Link>
 
         <Card size="sm" className="p-8">
           <CardContent className="px-0 py-0">

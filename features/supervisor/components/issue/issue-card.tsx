@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { id } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { IssueStatus } from "@/generated/prisma/enums";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { Issue } from "../../types/issue-types";
+import { cn } from "@/lib/utils";
 
 interface IssueCardProps {
   issue: Issue;
@@ -142,15 +143,17 @@ export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
           <span>{issue._count.logbooks} logbook</span>
         </div>
 
-        <Button variant="outline" size="sm" className="w-full mt-4">
-          <Link
-            href={`/supervisor/issues/${issue.id}`}
-            className="flex items-center"
-          >
-            <EyeIcon className="mr-2 size-3.5" />
-            Lihat Detail
-          </Link>
-        </Button>
+        <Link
+          href={`/supervisor/issues/${issue.id}`}
+          className={buttonVariants({
+            variant: "outline",
+            size: "sm",
+            className: "flex w-full items-center",
+          })}
+        >
+          <EyeIcon className="mr-2 size-3.5" />
+          Lihat Detail
+        </Link>
       </CardContent>
     </Card>
   );
