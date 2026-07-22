@@ -127,7 +127,13 @@ export function UpdateIssueForm({
           variant="outline"
           disabled={isPending}
           className="px-4"
-          onClick={() => form.reset()}
+          onClick={() => {
+            form.reset();
+            setPeriod({
+              from: issue.startDate ?? undefined,
+              to: issue.endDate ?? undefined,
+            });
+          }}
         >
           Reset
         </Button>

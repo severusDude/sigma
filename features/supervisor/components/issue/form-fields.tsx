@@ -1,8 +1,8 @@
 "use client";
 
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { format, isBefore, startOfDay } from "date-fns";
 import {
   Controller,
   type Control,
@@ -152,6 +152,12 @@ export function IssueFormFields<T extends FieldValues>({
             />
           </PopoverContent>
         </Popover>
+        {periodValue?.from &&
+          isBefore(periodValue.from, startOfDay(new Date())) && (
+            <p className="text-xs text-amber-600 mt-1">
+              Tanggal mulai sebelum hari ini
+            </p>
+          )}
       </Field>
 
       <Controller

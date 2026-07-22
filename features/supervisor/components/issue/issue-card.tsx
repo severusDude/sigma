@@ -62,12 +62,13 @@ function formatDateRange(
   end: Date | string | null | undefined,
 ) {
   if (!start && !end) return "—";
-  if (start && end) {
-    return `${format(new Date(start), "d MMM", { locale: id })} — ${format(new Date(end), "d MMM yyyy", { locale: id })}`;
-  }
-  if (start)
-    return `${format(new Date(start), "d MMM yyyy", { locale: id })} — ...`;
-  return `... — ${format(new Date(end!), "d MMM yyyy", { locale: id })}`;
+  if (!end)
+    return format(new Date(start!), "d MMM yyyy", { locale: id });
+  if (!start)
+    return format(new Date(end), "d MMM yyyy", { locale: id });
+  if (new Date(start).toDateString() === new Date(end).toDateString())
+    return format(new Date(start), "d MMM yyyy", { locale: id });
+  return `${format(new Date(start), "d MMM", { locale: id })} — ${format(new Date(end), "d MMM yyyy", { locale: id })}`;
 }
 
 export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
@@ -131,6 +132,7 @@ export function IssueCard({ issue, onView, onEdit, onDelete }: IssueCardProps) {
           <span>{issue.internProfile?.user.name ?? "Semua Intern"}</span>
         </div>
 
+        {/* TODO: handle single date issue (not date range) */}
         <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <CalendarDaysIcon className="size-4 shrink-0" />
           <span>{formatDateRange(issue.startDate, issue.endDate)}</span>
