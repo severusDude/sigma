@@ -101,10 +101,11 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  username        String?
-  displayUsername String?
-  role            Role?
-  banned          Boolean?  @default(false)
+  username           String?
+  displayUsername    String?
+  role               Role?
+  banned             Boolean?  @default(false)
+  hasChangedPassword Boolean   @default(false)
   banReason       String?
   banExpires      DateTime?
 

@@ -11,6 +11,16 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   emailAndPassword: { enabled: true },
+  user: {
+    additionalFields: {
+      hasChangedPassword: {
+        type: "boolean",
+        required: true,
+        defaultValue: false,
+        input: false,
+      },
+    },
+  },
   session: {
     cookieCache: {
       enabled: true,
