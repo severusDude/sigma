@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
 const protectedRoutes = [
   // "/dashboard",
@@ -13,27 +14,26 @@ const protectedRoutes = [
   "/reports",
 ];
 
-const authRoutes = ["/login", "/register"];
+const authRoutes = ["/sign-in"];
 
-export default async function proxy(req: NextRequest) {
-  const path = req.nextUrl.pathname;
+export default async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname;
   const isProtectedRoute = protectedRoutes.some((route) =>
     path.startsWith(route),
   );
   const isAuthRoute = authRoutes.some((route) => path.startsWith(route));
 
-  const sessionCookie =
-    req.cookies.get("better-auth.session_token")?.value ||
-    req.cookies.get("__Secure-better-auth.session_token")?.value;
+  const sessionCookie = getSessionCookie(request);
 
   if (isProtectedRoute && !sessionCookie) {
-    const loginUrl = new URL("/login", req.nextUrl.origin);
-    loginUrl.searchParams.set("redirect", path);
-    return NextResponse.redirect(loginUrl);
+    const signInUrl = new URL("/sign-in", request.nextUrl.origin);
+    signInUrl.searchParams.set("redirect", path);
+
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   if (isAuthRoute && sessionCookie) {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
   }
 
   return NextResponse.next();

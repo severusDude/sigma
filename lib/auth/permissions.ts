@@ -12,7 +12,7 @@ const statement = {
   report:     ["create", "read"],
   logbook:    ["review", "approve", "read"],
   assessment: ["create", "read", "update", "finalize"],
-  journal:    ["create", "read", "update"],
+  journal:    ["create", "read", "update", "delete"],
   attendance: ["create", "read"],
   info:       ["read"],
   download:   ["read"],
@@ -21,7 +21,7 @@ const statement = {
 export const ac = createAccessControl(statement);
 
 export const intern = ac.newRole({
-  journal:    ["create", "read", "update"],
+  journal:    ["create", "read", "update", "delete"],
   attendance: ["create", "read"],
   info:       ["read"],
   download:   ["read"],
