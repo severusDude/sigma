@@ -9,7 +9,7 @@ import { ac, admin, hr, intern, supervisor } from "@/lib/auth/permissions";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
-  baseURL: "http://localhost:3000/",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   emailAndPassword: { enabled: true },
   session: {
     cookieCache: {
