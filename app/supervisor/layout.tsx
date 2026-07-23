@@ -29,6 +29,7 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
         role: "BPS Kota Tasikmalaya",
       },
     ],
+    profileUrl: "/supervisor/profile",
     navMain: [
       {
         title: "Dashboard",
