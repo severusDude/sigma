@@ -9,7 +9,7 @@ import { FilterCategory } from "@/lib/types/filter";
 import { DataTable } from "@/components/shared/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentType } from "@/generated/prisma/enums";
-import { FileText, Send } from "lucide-react";
+import { FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -98,7 +98,6 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
   const router = useRouter();
   const [previewDocId, setPreviewDocId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [sending, setSending] = useState(false);
   const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const [completenessAlert, setCompletenessAlert] = useState<{ open: boolean; errors: CompletenessError[] }>({ open: false, errors: [] });
 
@@ -145,48 +144,11 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
 
     if (docSuccess.length > 0) {
       toast.success(
-        `${docSuccess.length} ${label} berhasil dibuat dan siap dikirim ke TTE`,
+        `${docSuccess.length} ${label} berhasil dibuat`,
       );
     }
 
     router.refresh();
-  };
-
-  const handleGenerateAndSend = async (rows: DocumentRow | DocumentRow[]) => {
-    const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
-    const generateFn = generateActions[tab];
-    const label = documentLabels[tab] ?? "dokumen";
-
-    const validationErrors = await validateInternsCompleteness(internIds, tab);
-    if (validationErrors.length > 0) {
-      setCompletenessAlert({ open: true, errors: validationErrors });
-      return;
-    }
-
-    setSending(true);
-    const result = await generateFn(internIds);
-    setSending(false);
-
-    if (!result.success) {
-      toast.error(result.error || `Gagal generate ${label}`);
-      return;
-    }
-
-    const genData = result.data!;
-    const templateMsg = checkTemplateError(genData);
-    if (templateMsg) {
-      setTemplateAlert({ open: true, message: templateMsg });
-      return;
-    }
-
-    const docSuccess = genData.filter((r) => !r.error);
-
-    if (docSuccess.length > 0) {
-      toast.success(
-        `${docSuccess.length} ${label} berhasil dibuat dan siap dikirim ke TTE`,
-      );
-      router.refresh();
-    }
   };
 
   const batchActions = [
@@ -194,13 +156,6 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
       label: generating ? "Memproses..." : "Generate Document",
       icon: <FileText className="size-4" />,
       onClick: handleGenerate,
-    },
-    {
-      label: sending
-        ? "Memproses..."
-        : "Generate & Kirim ke TTE",
-      icon: <Send className="size-4" />,
-      onClick: handleGenerateAndSend,
     },
   ];
 
