@@ -64,6 +64,18 @@ export async function uploadTemplate(
       };
     }
 
+    const existing = await prisma.documentTemplate.findFirst({
+      where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter" },
+      select: { name: true, id: true },
+    });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Template untuk kategori ini sudah ada ("${existing.name}"). Hapus template yang ada terlebih dahulu jika ingin menggantinya.`,
+      };
+    }
+
     const fileName = `${documentType}-${Date.now()}.docx`;
     if (!fs.existsSync(UPLOAD_DIR)) {
       fs.mkdirSync(UPLOAD_DIR, { recursive: true });
