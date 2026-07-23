@@ -2,13 +2,16 @@ import z from "zod";
 import type { Supervisor } from "../types/supervisor-types";
 
 const baseFields = {
-  name: z.string().min(1, "Nama wajib diisi").max(250),
+  name: z
+    .string()
+    .min(1, "Nama wajib diisi")
+    .max(250, "Nama maksimal 250 karakter"),
   nip: z
     .string()
     .trim()
     .length(18, { message: "NIP harus tepat 18 karakter" })
     .regex(/^\d+$/, { message: "NIP hanya boleh berisi angka" }),
-  field: z.string().min(1, "Bidang wajib diisi"),
+  field: z.string().default("Staff"),
   phone: z
     .string()
     .trim()

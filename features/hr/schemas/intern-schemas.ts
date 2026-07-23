@@ -4,7 +4,10 @@ import { InternStatus } from "@/generated/prisma/enums";
 import type { Intern } from "../types/intern-types";
 
 const baseFields = {
-  name: z.string().min(1, "Nama wajib diisi"),
+  name: z
+    .string()
+    .min(1, "Nama wajib diisi")
+    .max(250, "Nama maksimal 250 karakter"),
   institution: z.string().min(1, "Institusi wajib diisi"),
   phone: z
     .string()

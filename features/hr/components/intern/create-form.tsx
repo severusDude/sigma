@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Loader2Icon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InternStatus } from "@/generated/prisma/enums";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -94,10 +94,21 @@ export function CreateInternForm({
             form.setValue("periodEnd", range.to, { shouldValidate: true });
         }}
       />
-      <Button type="submit" disabled={isPending} className="gap-2 w-full">
-        {isPending && <Loader2Icon className="h-4 w-4 animate-spin" />}
-        {isPending ? "Menyimpan..." : "Simpan"}
-      </Button>
+      <footer className="flex gap-2 w-full justify-end">
+        <Button
+          type="reset"
+          variant="outline"
+          disabled={isPending}
+          onClick={() => form.reset()}
+          className="gap-2 px-6 py-4"
+        >
+          Reset
+        </Button>
+        <Button type="submit" disabled={isPending} className="gap-2 px-8 py-4">
+          {isPending && <Spinner />}
+          {isPending ? "Menyimpan..." : "Simpan"}
+        </Button>
+      </footer>
     </form>
   );
 }

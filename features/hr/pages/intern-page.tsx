@@ -90,7 +90,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-          <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
             <div className="px-6">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                 Tambah Intern Baru
@@ -117,7 +117,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
         onOpenChange={(open) => !open && setUpdateIntern(null)}
       >
         <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-          <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
             <div className="px-6">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                 Update Intern
