@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma migrate deploy && prisma generate",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
     "db:seed:dev": "npx cross-env SEED_ENV=development prisma db seed",
