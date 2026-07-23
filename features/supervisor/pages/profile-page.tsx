@@ -7,7 +7,18 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,9 +29,13 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import type { SupervisorProfile } from "@/generated/prisma/client";
 
-import { changePassword } from "../actions/profile-actions";
+import {
+  changePassword,
+  toggleSupervisorStatus,
+} from "../actions/profile-actions";
 
 const passwordSchema = z
   .object({
@@ -45,7 +60,11 @@ export default function ProfilePage({
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingState, setPendingState] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isActive, setIsActive] = useState(profile?.isActive ?? true);
+  const [toggling, setToggling] = useState(false);
 
   const {
     register,
@@ -66,6 +85,27 @@ export default function ProfilePage({
 
     toast.success("Password berhasil diubah");
     reset();
+  }
+
+  async function handleToggle() {
+    setPendingState(!isActive);
+    setConfirmOpen(true);
+  }
+
+  async function confirmToggle() {
+    setConfirmOpen(false);
+    setToggling(true);
+    const result = await toggleSupervisorStatus(user.id, pendingState);
+
+    if (!result.success) {
+      toast.error(result.error);
+      setToggling(false);
+      return;
+    }
+
+    setIsActive(pendingState);
+    setToggling(false);
+    toast.success(pendingState ? "Status aktif" : "Status nonaktif");
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -116,9 +156,14 @@ export default function ProfilePage({
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Data Diri</CardTitle>
-          <CardDescription>Informasi data diri Anda (tidak dapat diubah)</CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle>Data Diri</CardTitle>
+            <CardDescription>Informasi data diri Anda (tidak dapat diubah)</CardDescription>
+          </div>
+          <Badge variant={isActive ? "default" : "secondary"}>
+            {isActive ? "Aktif" : "Tidak Aktif"}
+          </Badge>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -156,13 +201,52 @@ export default function ProfilePage({
               <FieldLabel>Max Intern Bimbingan</FieldLabel>
               <Input value={profile?.maxInterns != null ? String(profile.maxInterns) : "-"} disabled />
             </Field>
-            <Field>
-              <FieldLabel>Status</FieldLabel>
-              <Input value={profile?.isActive ? "Aktif" : "Tidak Aktif"} disabled />
-            </Field>
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ketersediaan</CardTitle>
+          <CardDescription>Atur ketersediaan Anda untuk menerima intern bimbingan</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Terima Intern Baru</p>
+              <p className="text-sm text-muted-foreground">
+                {isActive
+                  ? "Anda tersedia untuk menerima intern bimbingan"
+                  : "Anda tidak tersedia untuk menerima intern bimbingan"}
+              </p>
+            </div>
+            <Switch
+              checked={isActive}
+              onCheckedChange={handleToggle}
+              disabled={toggling}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Perubahan Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingState
+                ? "Anda akan mengaktifkan ketersediaan untuk menerima intern bimbingan."
+                : "Anda akan menonaktifkan ketersediaan untuk menerima intern bimbingan."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggle}>
+              Ya, {pendingState ? "Aktifkan" : "Nonaktifkan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card>
         <CardHeader>
