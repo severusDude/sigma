@@ -9,6 +9,7 @@ import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { InternStatus } from "@/generated/prisma/enums";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { InternFormFields } from "./form-fields";
@@ -17,7 +18,6 @@ import {
   createInternSchema,
   type CreateInternInput,
 } from "../../schemas/intern-schemas";
-import { InternStatus } from "@/generated/prisma/enums";
 
 interface CreateInternFormProps {
   departmentOptions: { id: string; name: string }[];
@@ -54,7 +54,7 @@ export function CreateInternForm({
     mutationFn: async (values: CreateInternInput) => {
       const res = await createIntern(values);
       if (!res.success) throw new Error(res.error);
-      return res.data;
+      return res.data!;
     },
   });
 
@@ -72,6 +72,7 @@ export function CreateInternForm({
     });
     try {
       await mutationPromise;
+
       queryClient.invalidateQueries({ queryKey: ["interns"] });
       onSuccess();
     } catch {}
@@ -86,7 +87,9 @@ export function CreateInternForm({
         onPeriodChange={(range) => {
           setPeriod(range);
           if (range?.from)
-            form.setValue("periodStart", range.from, { shouldValidate: true });
+            form.setValue("periodStart", range.from, {
+              shouldValidate: true,
+            });
           if (range?.to)
             form.setValue("periodEnd", range.to, { shouldValidate: true });
         }}

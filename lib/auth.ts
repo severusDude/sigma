@@ -12,6 +12,9 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   emailAndPassword: { enabled: true },
   user: {
+    deleteUser: {
+      enabled: true,
+    },
     additionalFields: {
       hasChangedPassword: {
         type: "boolean",

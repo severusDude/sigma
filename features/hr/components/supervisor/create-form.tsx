@@ -19,9 +19,7 @@ interface CreateSupervisorFormProps {
   onSuccess: () => void;
 }
 
-export function CreateSupervisorForm({
-  onSuccess,
-}: CreateSupervisorFormProps) {
+export function CreateSupervisorForm({ onSuccess }: CreateSupervisorFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm({
@@ -42,7 +40,7 @@ export function CreateSupervisorForm({
     mutationFn: async (values: CreateSupervisorInput) => {
       const res = await createSupervisor(values);
       if (!res.success) throw new Error(res.error);
-      return res.data;
+      return res.data!;
     },
   });
 
@@ -58,6 +56,7 @@ export function CreateSupervisorForm({
     });
     try {
       await mutationPromise;
+
       queryClient.invalidateQueries({ queryKey: ["supervisors"] });
       onSuccess();
     } catch {}
@@ -65,9 +64,7 @@ export function CreateSupervisorForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <SupervisorFormFields
-        control={form.control}
-      />
+      <SupervisorFormFields control={form.control} />
       <Button type="submit" disabled={isPending} className="gap-2 w-full">
         {isPending && <Loader2Icon className="h-4 w-4 animate-spin" />}
         {isPending ? "Menyimpan..." : "Simpan"}

@@ -6,6 +6,7 @@ import type { ActionResponse } from "@/lib/types";
 import type { Intern } from "../types/intern-types";
 import type {
   CreateInternInput,
+  CreateInternResult,
   UpdateInternInput,
 } from "../schemas/intern-schemas";
 import {
@@ -59,7 +60,7 @@ export async function getInternById(
 
 export async function createIntern(
   input: CreateInternInput,
-): Promise<ActionResponse<Intern>> {
+): Promise<ActionResponse<CreateInternResult>> {
   try {
     await requirePermission({ intern: ["create"] });
 
@@ -77,7 +78,7 @@ export async function createIntern(
         .replace(/[^a-z0-9.]/g, "")
         .slice(0, 20) + Math.random().toString(36).slice(2, 6);
 
-    const password = Math.random().toString(36).slice(2, 10);
+    const password = parsed.nik;
 
     const created = await auth.api.createUser({
       body: {
@@ -91,28 +92,43 @@ export async function createIntern(
 
     const userId = created.user.id;
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        internProfile: {
-          create: {
-            nik: parsed.nik,
-            institution: parsed.institution,
-            phone: parsed.phone || null,
-            email: parsed.email || null,
-            periodStart: parsed.periodStart,
-            periodEnd: parsed.periodEnd,
-            status: parsed.status as "active" | "completed" | "withdrawn",
-            departmentId: parsed.departmentId || null,
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          internProfile: {
+            create: {
+              nik: parsed.nik,
+              institution: parsed.institution,
+              phone: parsed.phone || null,
+              email: parsed.email || null,
+              periodStart: parsed.periodStart,
+              periodEnd: parsed.periodEnd,
+              status: parsed.status as "active" | "completed" | "withdrawn",
+              departmentId: parsed.departmentId || null,
+            },
           },
         },
-      },
-      include: { internProfile: true },
-    });
+        include: { internProfile: true },
+      });
 
-    updateTag("interns");
+      updateTag("interns");
 
-    return { success: true, data: user as Intern };
+      return {
+        success: true,
+        data: { user: user as Intern, generatedPassword: password },
+      };
+    } catch (profileError) {
+      await auth.api.removeUser({ body: { userId: userId } });
+      updateTag("interns");
+      return {
+        success: false,
+        error:
+          profileError instanceof Error
+            ? profileError.message
+            : "Gagal membuat profil intern",
+      };
+    }
   } catch (error) {
     return {
       success: false,

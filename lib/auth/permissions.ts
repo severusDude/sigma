@@ -1,41 +1,42 @@
 import { createAccessControl } from "better-auth/plugins/access";
 
 const statement = {
-  user:       ["create", "list", "set-role", "impersonate"],
-  system:     ["manage"],
-  audit_log:  ["read"],
-  intern:     ["create", "read", "update", "delete"],
+  user: ["create", "list", "set-role", "impersonate", "delete"],
+  system: ["manage"],
+  audit_log: ["read"],
+  intern: ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
   assignment: ["create", "read", "update", "delete"],
-  dashboard:  ["view-full", "view-operational", "view-limited"],
-  document:   ["create", "read", "delete"],
-  report:     ["create", "read"],
-  logbook:    ["review", "approve", "read"],
+  dashboard: ["view-full", "view-operational", "view-limited"],
+  document: ["create", "read", "delete"],
+  report: ["create", "read"],
+  logbook: ["review", "approve", "read"],
   assessment: ["create", "read", "update", "finalize"],
-  journal:    ["create", "read", "update", "delete"],
+  journal: ["create", "read", "update", "delete"],
   attendance: ["create", "read"],
-  info:       ["read"],
-  download:   ["read"],
+  info: ["read"],
+  download: ["read"],
 } as const;
 
 export const ac = createAccessControl(statement);
 
 export const intern = ac.newRole({
-  journal:    ["create", "read", "update", "delete"],
+  journal: ["create", "read", "update", "delete"],
   attendance: ["create", "read"],
-  info:       ["read"],
-  download:   ["read"],
+  info: ["read"],
+  download: ["read"],
 });
 
 export const supervisor = ac.newRole({
   ...intern.statements,
-  logbook:    ["review", "approve", "read"],
+  logbook: ["review", "approve", "read"],
   assessment: ["create", "read", "update"],
-  dashboard:  ["view-limited"],
+  dashboard: ["view-limited"],
 });
 
 export const hr = ac.newRole({
   ...supervisor.statements,
+  user: ["delete"],
   assessment: ["create", "read", "update", "finalize"],
   intern: ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
@@ -47,8 +48,8 @@ export const hr = ac.newRole({
 
 export const admin = ac.newRole({
   ...hr.statements,
-  user:       ["create", "list", "set-role", "impersonate"],
-  system:     ["manage"],
-  audit_log:  ["read"],
-  dashboard:  ["view-full"],
+  user: ["create", "list", "set-role", "impersonate", "delete"],
+  system: ["manage"],
+  audit_log: ["read"],
+  dashboard: ["view-full"],
 });
