@@ -19,6 +19,106 @@ export type GenerateDocResult = {
   error?: string;
 };
 
+export type CompletenessError = {
+  internName: string;
+  missingFields: string[];
+};
+
+export async function validateInternsCompleteness(
+  internIds: string[],
+  documentType: DocumentType,
+): Promise<CompletenessError[]> {
+  if (internIds.length === 0) return [];
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: internIds } },
+    include: {
+      internProfile: {
+        include: {
+          department: { select: { name: true } },
+          supervisorAssignments: {
+            where: { endedAt: null },
+            take: 1,
+            include: {
+              supervisorProfile: {
+                select: {
+                  nip: true,
+                  user: { select: { name: true } },
+                },
+              },
+            },
+          },
+          assessments: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  const errors: CompletenessError[] = [];
+
+  for (const user of users) {
+    const intern = user.internProfile;
+    const missingFields: string[] = [];
+
+    if (!intern) {
+      errors.push({
+        internName: user.name,
+        missingFields: ["Profil intern tidak ditemukan"],
+      });
+      continue;
+    }
+
+    const supervisor = intern.supervisorAssignments[0]?.supervisorProfile;
+
+    if (!user.name) missingFields.push("Nama peserta");
+    if (!intern.nik) missingFields.push("NIK");
+    if (!intern.institution) missingFields.push("Institusi");
+    if (!intern.department?.name) missingFields.push("Bidang penempatan");
+    if (!intern.periodStart) missingFields.push("Tanggal mulai");
+    if (!intern.periodEnd) missingFields.push("Tanggal selesai");
+
+    switch (documentType) {
+      case DocumentType.certificate:
+      case DocumentType.assignment_letter:
+      case DocumentType.completion_letter:
+        if (!supervisor) {
+          missingFields.push("Pembimbing lapangan belum ditetapkan");
+        } else {
+          if (!supervisor.user?.name) missingFields.push("Nama pembimbing");
+          if (!supervisor.nip) missingFields.push("NIP pembimbing");
+        }
+        break;
+
+      case DocumentType.assessment_report:
+        if (!supervisor) {
+          missingFields.push("Pembimbing lapangan belum ditetapkan");
+        } else {
+          if (!supervisor.user?.name) missingFields.push("Nama pembimbing");
+          if (!supervisor.nip) missingFields.push("NIP pembimbing");
+        }
+        if (!intern.assessments?.[0]) {
+          missingFields.push("Data penilaian (nilai akhir, nilai huruf) belum diisi oleh pembimbing");
+        } else {
+          if (intern.assessments[0].finalScore == null) missingFields.push("Skor akhir penilaian");
+          if (!intern.assessments[0].finalGrade) missingFields.push("Nilai huruf akhir");
+        }
+        break;
+
+      case DocumentType.attendance_report:
+        break;
+    }
+
+    if (missingFields.length > 0) {
+      errors.push({ internName: user.name, missingFields });
+    }
+  }
+
+  return errors;
+}
+
 async function getInternData(internId: string) {
   return prisma.user.findUnique({
     where: { id: internId },
@@ -225,8 +325,8 @@ export async function generateAssignmentLetter(
           nama_pembimbing: supervisor?.user?.name ?? "-",
           nip_pembimbing: supervisor?.nip ?? "-",
           tanggal_surat: formatDate(new Date()),
-          ttd_nama: supervisor?.user?.name ?? "Kepala BPS",
-          ttd_nip: supervisor?.nip ?? "-",
+          ttd_nama: "",
+          ttd_nip: "",
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
@@ -444,8 +544,8 @@ export async function generateAttendanceReport(
           total_hadir: String(totalHadir),
           total_izin: String(totalIzin),
           total_alpha: String(totalAlpha),
-          ttd_nama: supervisor?.user?.name ?? "Kepala BPS",
-          ttd_nip: supervisor?.nip ?? "-",
+          ttd_nama: "",
+          ttd_nip: "",
           tanggal_surat: formatDate(new Date()),
         };
 
@@ -534,8 +634,8 @@ export async function generateCompletionLetter(
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           tanggal_surat: formatDate(new Date()),
-          ttd_nama: supervisor?.user?.name ?? "Kepala BPS",
-          ttd_nip: supervisor?.nip ?? "-",
+          ttd_nama: "",
+          ttd_nip: "",
         };
 
         const buf = generateFromTemplate(templateBuffer, data);

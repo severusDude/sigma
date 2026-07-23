@@ -4,6 +4,20 @@ const documentInclude = {
   internProfile: {
     include: {
       department: true,
+      supervisorAssignments: {
+        where: { endedAt: null },
+        take: 1,
+        include: {
+          supervisorProfile: {
+            select: {
+              nip: true,
+              user: {
+                select: { name: true },
+              },
+            },
+          },
+        },
+      },
     },
   },
 } as const;

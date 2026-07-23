@@ -29,7 +29,9 @@ import {
   generateAssessmentReport,
   generateAttendanceReport,
   generateCompletionLetter,
+  validateInternsCompleteness,
 } from "../actions/document-actions";
+import type { CompletenessError } from "../actions/document-actions";
 import { PreviewDialog } from "@/components/shared/document";
 
 export type ActiveTemplateInfo = {
@@ -98,6 +100,7 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const [completenessAlert, setCompletenessAlert] = useState<{ open: boolean; errors: CompletenessError[] }>({ open: false, errors: [] });
 
   function checkTemplateError(genData: GenerateDocResult[]): string | null {
     const firstError = genData[0]?.error;
@@ -115,6 +118,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
     const generateFn = generateActions[tab];
     const label = documentLabels[tab] ?? "dokumen";
+
+    const validationErrors = await validateInternsCompleteness(internIds, tab);
+    if (validationErrors.length > 0) {
+      setCompletenessAlert({ open: true, errors: validationErrors });
+      return;
+    }
 
     setGenerating(true);
     const result = await generateFn(internIds);
@@ -147,6 +156,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     const internIds = (Array.isArray(rows) ? rows : [rows]).map((r) => r.id);
     const generateFn = generateActions[tab];
     const label = documentLabels[tab] ?? "dokumen";
+
+    const validationErrors = await validateInternsCompleteness(internIds, tab);
+    if (validationErrors.length > 0) {
+      setCompletenessAlert({ open: true, errors: validationErrors });
+      return;
+    }
 
     setSending(true);
     const result = await generateFn(internIds);
@@ -189,9 +204,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     },
   ];
 
-  const columns = createColumns({
-    onView: (row) => setPreviewDocId(row.id),
-  });
+  const columns = createColumns(
+    {
+      onView: (row) => setPreviewDocId(row.id),
+    },
+    tab,
+  );
 
   return (
     <div className="space-y-6">
@@ -226,12 +244,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
                 />
               </div>
 
-              <ActionCard tab={t.value} activeTemplates={activeTemplates} />
+              {/*<ActionCard tab={t.value} activeTemplates={activeTemplates} />*/}
             </div>
           </TabsContent>
         ))}
       </Tabs>
-      <PreviewDialog docId={previewDocId} onClose={() => setPreviewDocId(null)} />
+      {/*<PreviewDialog docId={previewDocId} onClose={() => setPreviewDocId(null)} />*/}
 
       <AlertDialog open={templateAlert.open} onOpenChange={(open) => setTemplateAlert((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
@@ -241,6 +259,34 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setTemplateAlert({ open: false, message: "" })}>
+              Mengerti
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={completenessAlert.open} onOpenChange={(open) => setCompletenessAlert((prev) => ({ ...prev, open }))}>
+        <AlertDialogContent className="max-h-[60vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Data Intern Tidak Lengkap</AlertDialogTitle>
+            <AlertDialogDescription>
+              Berikut data yang tidak lengkap sebelum generate dokumen:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3 py-2">
+            {completenessAlert.errors.map((err, i) => (
+              <div key={i} className="rounded-lg border p-3 text-sm">
+                <p className="font-semibold">{err.internName}</p>
+                <ul className="mt-1 list-inside list-disc text-muted-foreground">
+                  {err.missingFields.map((field, j) => (
+                    <li key={j}>{field}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setCompletenessAlert({ open: false, errors: [] })}>
               Mengerti
             </AlertDialogAction>
           </AlertDialogFooter>
