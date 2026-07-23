@@ -2,7 +2,7 @@
 
 import { useState, useActionState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
-import { Upload, Trash2, CheckCircle2, FileText } from "lucide-react";
+import { Upload, Trash2, CheckCircle2, FileText, Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,8 +26,14 @@ import {
   setActiveTemplate,
   type TemplateRow,
 } from "../actions/template-actions";
+import { VARIABLE_INFO } from "../data/variable-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   certificate: "Sertifikat",
@@ -47,6 +53,7 @@ export default function TemplatePage({
   initialTemplates: TemplateRow[];
 }) {
   const [templates, setTemplates] = useState<TemplateRow[]>(initialTemplates);
+  const [selectedType, setSelectedType] = useState("");
   const [state, formAction, pending] = useActionState(uploadTemplate, null);
   const [, startTransition] = useTransition();
 
@@ -119,7 +126,12 @@ export default function TemplatePage({
               </div>
               <div className="space-y-2 ">
                 <Label className="text-sm font-medium">Tipe Dokumen</Label>
-                <Select name="documentType" required items={DOCUMENT_TYPE_OPTIONS}>
+                <Select
+                  name="documentType"
+                  onValueChange={(v) => { if (v) setSelectedType(v as string); }}
+                  required
+                  items={DOCUMENT_TYPE_OPTIONS}
+                >
                   <SelectTrigger className={'w-full'}>
                     <SelectValue placeholder="Pilih tipe" />
                   </SelectTrigger>
@@ -133,6 +145,36 @@ export default function TemplatePage({
                 </Select>
               </div>
             </div>
+
+            {selectedType && VARIABLE_INFO[selectedType] && (
+              <Alert>
+                <Info className="size-4 mt-0.5" />
+                <AlertTitle>Placeholder yang tersedia</AlertTitle>
+                <AlertDescription>
+                  <p className="mb-2">
+                    Template {DOCUMENT_TYPE_LABELS[selectedType]?.toLowerCase() ?? selectedType} mendukung placeholder berikut:
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    {VARIABLE_INFO[selectedType].map((v) => (
+                      <div key={v.name} className="flex items-baseline gap-1.5">
+                        <code className="text-[11px] font-mono font-medium text-foreground whitespace-nowrap">
+                          {"{" + v.name + "}"}
+                        </code>
+                        <span className="text-[11px] text-muted-foreground">
+                          {v.isLoop ? "Looping: " : ""}{v.description}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {VARIABLE_INFO[selectedType].some((v) => v.isLoop) && (
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Untuk looping, gunakan <code>{`{#nama_var}`}</code> ... <code>{`{/nama_var}`}</code> di template
+                    </p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="space-y-2">
               <Label className="text-sm font-medium">File Template (.docx)</Label>
               <Input

@@ -289,3 +289,5 @@ function getVariablesForType(documentType: string): string[] {
       return [];
   }
 }
+
+
