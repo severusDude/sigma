@@ -1,8 +1,22 @@
 import DocumentPage from "@/features/hr/pages/document-page";
 import { fetchInternsForDocuments } from "@/features/hr/data/document-data";
+import { fetchTemplates } from "@/features/hr/data/template-data";
 
 export default async function Page() {
-  const interns = await fetchInternsForDocuments();
+  const [interns, templates] = await Promise.all([
+    fetchInternsForDocuments(),
+    fetchTemplates(),
+  ]);
 
-  return <DocumentPage interns={interns} />;
+  const activeTemplates = templates
+    .filter((t) => t.isActive)
+    .map((t) => ({
+      documentType: t.documentType,
+      name: t.name,
+      content: t.content,
+      variables: t.variables as string[],
+      createdAt: t.createdAt,
+    }));
+
+  return <DocumentPage interns={interns} activeTemplates={activeTemplates} />;
 }

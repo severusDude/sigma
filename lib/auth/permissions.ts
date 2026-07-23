@@ -8,7 +8,7 @@ const statement = {
   supervisor: ["create", "read", "update", "delete"],
   assignment: ["create", "read", "update", "delete"],
   dashboard:  ["view-full", "view-operational", "view-limited"],
-  document:   ["create", "read"],
+  document:   ["create", "read", "delete"],
   report:     ["create", "read"],
   logbook:    ["review", "approve", "read"],
   assessment: ["create", "read", "update", "finalize"],
@@ -40,7 +40,7 @@ export const hr = ac.newRole({
   intern: ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
   assignment: ["create", "read", "update", "delete"],
-  document: ["create", "read"],
+  document: ["create", "read", "delete"],
   report: ["create", "read"],
   dashboard: ["view-operational"],
 });
