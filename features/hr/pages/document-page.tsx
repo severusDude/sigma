@@ -32,8 +32,17 @@ import {
 } from "../actions/document-actions";
 import { PreviewDialog } from "@/components/shared/document";
 
+export type ActiveTemplateInfo = {
+  documentType: string;
+  name: string;
+  content: string;
+  variables: string[];
+  createdAt: Date;
+};
+
 interface DocumentPageProps {
   interns: DocumentRow[];
+  activeTemplates: ActiveTemplateInfo[];
 }
 
 const tabConfig: { value: DocumentType; label: string }[] = [
@@ -82,7 +91,7 @@ const documentLabels: Record<string, string> = {
   [DocumentType.completion_letter]: "surat keterangan selesai",
 };
 
-export default function DocumentPage({ interns }: DocumentPageProps) {
+export default function DocumentPage({ interns, activeTemplates }: DocumentPageProps) {
   const [tab, setTab] = useState<DocumentType>(DocumentType.certificate);
   const router = useRouter();
   const [previewDocId, setPreviewDocId] = useState<string | null>(null);
@@ -217,7 +226,7 @@ export default function DocumentPage({ interns }: DocumentPageProps) {
                 />
               </div>
 
-              <ActionCard />
+              <ActionCard tab={t.value} activeTemplates={activeTemplates} />
             </div>
           </TabsContent>
         ))}

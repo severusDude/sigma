@@ -26,6 +26,8 @@ import {
   setActiveTemplate,
   type TemplateRow,
 } from "../actions/template-actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   certificate: "Sertifikat",
@@ -107,21 +109,21 @@ export default function TemplatePage({
           <form action={formAction} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Nama Template</label>
-                <input
+                <Label className="text-sm font-medium">Nama Template</Label>
+                <Input
                   name="name"
                   placeholder="Surat Tugas Magang v2"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipe Dokumen</label>
-                <Select name="documentType" required>
-                  <SelectTrigger>
+              <div className="space-y-2 ">
+                <Label className="text-sm font-medium">Tipe Dokumen</Label>
+                <Select name="documentType" required items={DOCUMENT_TYPE_OPTIONS}>
+                  <SelectTrigger className={'w-full'}>
                     <SelectValue placeholder="Pilih tipe" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent alignItemWithTrigger={false}>
                     {DOCUMENT_TYPE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -132,8 +134,8 @@ export default function TemplatePage({
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">File Template (.docx)</label>
-              <input
+              <Label className="text-sm font-medium">File Template (.docx)</Label>
+              <Input
                 type="file"
                 name="file"
                 accept=".docx"
