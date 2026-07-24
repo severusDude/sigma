@@ -182,6 +182,7 @@ export async function updateIntern(
     });
 
     updateTag("interns");
+    updateTag("hr-assessments");
 
     return { success: true, data: user as Intern };
   } catch (error) {
@@ -245,6 +246,7 @@ export async function deactivateIntern(
     });
 
     updateTag("interns");
+    updateTag("hr-assessments");
     for (const s of affectedSupervisors) {
       updateTag(`assessment-list-${s.supervisorProfileId}`);
       updateTag(`assessment-period-${s.supervisorProfileId}`);

@@ -71,6 +71,14 @@ export default function AssessmentPage({
         data={initialData}
         filterCategories={filterCategories}
         sortOptions={sortOptions}
+        defaultFilters={[
+          {
+            categoryId: "internProfileStatus",
+            categoryLabel: "Status Intern",
+            value: "active",
+            valueLabel: "Aktif",
+          },
+        ]}
       />
 
       <DetailDialog

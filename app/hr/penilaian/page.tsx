@@ -6,7 +6,7 @@ import AssessmentPage from "@/features/hr/pages/assessment-page"
 export default async function Page() {
   await requireAuth([Role.admin, Role.hr])
 
-  const initialData = await fetchAssessmentsForHR({ internStatus: "active" })
+  const initialData = await fetchAssessmentsForHR({})
 
   return (
     <AssessmentPage

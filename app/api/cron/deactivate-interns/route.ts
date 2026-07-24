@@ -88,6 +88,7 @@ export async function GET(request: Request) {
         updateTag(`assessment-list-${sid}`);
         updateTag(`assessment-period-${sid}`);
       }
+      updateTag("hr-assessments");
 
       batchCount++;
       totalDeactivated += expiredInterns.length;

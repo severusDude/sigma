@@ -2,9 +2,17 @@ import { useState } from "react";
 import type { ColumnFiltersState } from "@tanstack/react-table";
 import type { ActiveFilter } from "@/lib/types/filter";
 
-export function useFilterState<TData>() {
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter<TData>[]>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+export function useFilterState<TData>(defaultFilters?: ActiveFilter<TData>[]) {
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter<TData>[]>(
+    defaultFilters ?? [],
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+    () =>
+      (defaultFilters ?? []).map((f) => ({
+        id: f.categoryId as string,
+        value: f.value,
+      })),
+  );
 
   const sync = (filters: ActiveFilter<TData>[]) => {
     setColumnFilters(
