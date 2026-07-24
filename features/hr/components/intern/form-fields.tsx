@@ -22,6 +22,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -65,18 +70,20 @@ export function InternFormFields<T extends FieldValues>({
   onPeriodChange,
 }: InternFormFieldsProps<T>) {
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-2 gap-4">
       <Controller
         name={"name" as FieldPath<T>}
         control={control}
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
+          <Field data-invalid={fieldState.invalid} className="col-span-2">
             <FieldLabel htmlFor="name">Nama Lengkap</FieldLabel>
             <Input
               {...field}
+              autoFocus
               id="name"
               placeholder="Masukkan nama lengkap"
               autoComplete="off"
+              maxLength={100}
               aria-invalid={fieldState.invalid}
             />
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
@@ -90,13 +97,19 @@ export function InternFormFields<T extends FieldValues>({
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor="nik">NIK</FieldLabel>
-            <Input
-              {...field}
-              id="nik"
-              placeholder="Masukkan NIK"
-              autoComplete="off"
-              aria-invalid={fieldState.invalid}
-            />
+            <InputGroup>
+              <InputGroupInput
+                {...field}
+                id="nik"
+                placeholder="Masukkan NIK"
+                autoComplete="off"
+                maxLength={16}
+                aria-invalid={fieldState.invalid}
+              />
+              <InputGroupAddon align="inline-end">
+                {field.value.length}/16
+              </InputGroupAddon>
+            </InputGroup>
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}
@@ -120,43 +133,43 @@ export function InternFormFields<T extends FieldValues>({
         )}
       />
 
-      <div className="grid grid-cols-2 gap-4">
-        <Controller
-          name={"phone" as FieldPath<T>}
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="phone">No. HP</FieldLabel>
-              <Input
-                {...field}
-                id="phone"
-                placeholder="085xxxxx"
-                autoComplete="off"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.error && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+      {/* Email */}
+      <Controller
+        name={"email" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              {...field}
+              id="email"
+              type="email"
+              placeholder="email@example.com"
+              aria-invalid={fieldState.invalid}
+            />
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
-        <Controller
-          name={"email" as FieldPath<T>}
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input
-                {...field}
-                id="email"
-                type="email"
-                placeholder="email@example.com"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.error && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </div>
+      {/* Phone */}
+      <Controller
+        name={"phone" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="phone">No. HP</FieldLabel>
+            <Input
+              {...field}
+              id="phone"
+              placeholder="085xxxxx"
+              autoComplete="off"
+              aria-invalid={fieldState.invalid}
+            />
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
       <Controller
         name={"departmentId" as FieldPath<T>}
@@ -244,13 +257,14 @@ export function InternFormFields<T extends FieldValues>({
               </Button>
             }
           />
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0" align="end">
             <Calendar
               mode="range"
               selected={periodValue}
               onSelect={onPeriodChange}
               locale={id}
               numberOfMonths={2}
+              min={2}
             />
           </PopoverContent>
         </Popover>

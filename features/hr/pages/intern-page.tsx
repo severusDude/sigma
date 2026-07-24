@@ -27,6 +27,7 @@ import { DetailDialog } from "../components/intern/detail-dialog";
 import { DeleteDialog } from "../components/intern/delete-dialog";
 import { CreateInternForm } from "../components/intern/create-form";
 import { UpdateInternForm } from "../components/intern/update-form";
+import { ChangePasswordDialog } from "../components/shared/change-password-dialog";
 
 interface InternPageProps {
   interns: Intern[];
@@ -59,6 +60,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
   const [updateIntern, setUpdateIntern] = useState<Intern | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleteIntern, setDeleteIntern] = useState<Intern | null>(null);
+  const [changePasswordUser, setChangePasswordUser] = useState<Intern | null>(null);
 
   const { mutateAsync: doDeactivate } = useMutation({
     mutationKey: ["deactivate-intern"],
@@ -96,6 +98,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
     onUpdate: (row) => setUpdateIntern(row),
     onDelete: (row) => setDeleteIntern(row),
     onDeactivate: handleDeactivate,
+    onChangePassword: (row) => setChangePasswordUser(row),
   });
 
   return (
@@ -125,7 +128,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-          <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
             <div className="px-6">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                 Tambah Intern Baru
@@ -152,7 +155,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
         onOpenChange={(open) => !open && setUpdateIntern(null)}
       >
         <DialogContent className="h-screen max-w-screen md:min-w-[calc(100%-52rem)] md:h-fit gap-0">
-          <DialogHeader className="sticky pb-4 -mx-6 space-y-4 border-b">
+          <DialogHeader className="sticky pb-4 -mx-4 space-y-4 border-b">
             <div className="px-6">
               <DialogTitle className="text-2xl font-semibold tracking-tight text-primary">
                 Update Intern
@@ -183,6 +186,14 @@ export default function InternPage({ interns, departments }: InternPageProps) {
       <DeleteDialog
         intern={deleteIntern}
         onClose={() => setDeleteIntern(null)}
+      />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        userId={changePasswordUser?.id ?? ""}
+        userName={changePasswordUser?.name ?? ""}
+        open={!!changePasswordUser}
+        onOpenChange={(open) => { if (!open) setChangePasswordUser(null); }}
       />
     </div>
   );

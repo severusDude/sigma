@@ -4,28 +4,26 @@ import { useState } from "react";
 
 import z from "zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { EyeClosedIcon, EyeIcon, Loader2Icon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { getRoleHome } from "@/helpers/role-home";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getRoleHome } from "@/helpers/role-home";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 
-import { signInSchema, SignInSchema } from "../schemas";
+import { signInSchema } from "../schemas";
 
 export function SignInForm({
   className,
@@ -37,6 +35,10 @@ export function SignInForm({
   const form = useForm({
     resolver: zodResolver(signInSchema),
     mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const { mutateAsync, isPending: isSubmitting } = useMutation({

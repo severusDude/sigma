@@ -6,6 +6,7 @@ import type { ActionResponse } from "@/lib/types";
 import type { Supervisor } from "../types/supervisor-types";
 import type {
   CreateSupervisorInput,
+  CreateSupervisorResult,
   UpdateSupervisorInput,
 } from "../schemas/supervisor-schemas";
 import {
@@ -14,9 +15,16 @@ import {
 } from "../schemas/supervisor-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
-import { fetchSupervisors, fetchSupervisorInterns } from "../data/supervisor-data";
+import {
+  fetchSupervisors,
+  fetchSupervisorInterns,
+} from "../data/supervisor-data";
 import { supervisorInclude } from "../types/supervisor-types";
-import type { AssignResult, AssignedIntern, ReassignAllResult } from "../types/supervisor-types";
+import type {
+  AssignResult,
+  AssignedIntern,
+  ReassignAllResult,
+} from "../types/supervisor-types";
 import type { AssignMultipleInput } from "../schemas/supervisor-schemas";
 import { assignMultipleSchema } from "../schemas/supervisor-schemas";
 
@@ -33,7 +41,9 @@ export async function getSupervisors(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Gagal mengambil data supervisor",
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data supervisor",
     };
   }
 }
@@ -56,14 +66,16 @@ export async function getSupervisorById(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Gagal mengambil data supervisor",
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data supervisor",
     };
   }
 }
 
 export async function createSupervisor(
   input: CreateSupervisorInput,
-): Promise<ActionResponse<Supervisor>> {
+): Promise<ActionResponse<CreateSupervisorResult>> {
   try {
     await requirePermission({ supervisor: ["create"] });
 
@@ -81,7 +93,7 @@ export async function createSupervisor(
         .replace(/[^a-z0-9.]/g, "")
         .slice(0, 20) + Math.random().toString(36).slice(2, 6);
 
-    const password = Math.random().toString(36).slice(2, 10);
+    const password = parsed.nip;
 
     const created = await auth.api.createUser({
       body: {
@@ -95,29 +107,45 @@ export async function createSupervisor(
 
     const userId = created.user.id;
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        supervisorProfile: {
-          create: {
-            nip: parsed.nip,
-            field: parsed.field,
-            phone: parsed.phone || null,
-            email: parsed.email || null,
-            maxInterns: parsed.maxInterns ?? 5,
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          supervisorProfile: {
+            create: {
+              nip: parsed.nip,
+              field: parsed.field,
+              phone: parsed.phone || null,
+              email: parsed.email || null,
+              maxInterns: parsed.maxInterns ?? 5,
+            },
           },
         },
-      },
-      include: { supervisorProfile: true },
-    });
+        include: { supervisorProfile: true },
+      });
 
-    updateTag("supervisors");
+      updateTag("supervisors");
 
-    return { success: true, data: user as Supervisor };
+      return {
+        success: true,
+        data: { user: user as Supervisor, generatedPassword: password },
+      };
+    } catch (profileError) {
+      await auth.api.removeUser({ body: { userId: userId } });
+      updateTag("supervisors");
+      return {
+        success: false,
+        error:
+          profileError instanceof Error
+            ? profileError.message
+            : "Gagal membuat profil supervisor",
+      };
+    }
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal membuat supervisor",
+      error:
+        error instanceof Error ? error.message : "Gagal membuat supervisor",
     };
   }
 }
@@ -177,7 +205,9 @@ export async function updateSupervisor(
   }
 }
 
-export async function deleteSupervisor(id: string): Promise<ActionResponse<void>> {
+export async function deleteSupervisor(
+  id: string,
+): Promise<ActionResponse<void>> {
   try {
     await requirePermission({ supervisor: ["delete"] });
 
@@ -198,7 +228,8 @@ export async function deleteSupervisor(id: string): Promise<ActionResponse<void>
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal menghapus supervisor",
+      error:
+        error instanceof Error ? error.message : "Gagal menghapus supervisor",
     };
   }
 }
@@ -219,7 +250,10 @@ export async function assignSupervisor(
     });
 
     if (!supervisor || !supervisor.isActive) {
-      return { success: false, error: "Supervisor tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        error: "Supervisor tidak ditemukan atau tidak aktif",
+      };
     }
 
     const intern = await prisma.internProfile.findUnique({
@@ -227,7 +261,10 @@ export async function assignSupervisor(
     });
 
     if (!intern || intern.status !== "active") {
-      return { success: false, error: "Intern tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        error: "Intern tidak ditemukan atau tidak aktif",
+      };
     }
 
     const currentCount = supervisor.internAssignments.length;
@@ -254,7 +291,8 @@ export async function assignSupervisor(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal meng-assign supervisor",
+      error:
+        error instanceof Error ? error.message : "Gagal meng-assign supervisor",
     };
   }
 }
@@ -267,7 +305,9 @@ export async function assignMultipleInterns(
 
     const parsed = assignMultipleSchema.parse(input);
 
-    const internProfileIds = [...new Set(parsed.interns.map((i) => i.internProfileId))];
+    const internProfileIds = [
+      ...new Set(parsed.interns.map((i) => i.internProfileId)),
+    ];
 
     const supervisor = await prisma.supervisorProfile.findUnique({
       where: { id: parsed.supervisorProfileId },
@@ -278,7 +318,10 @@ export async function assignMultipleInterns(
     });
 
     if (!supervisor || !supervisor.isActive) {
-      return { success: false, error: "Supervisor tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        error: "Supervisor tidak ditemukan atau tidak aktif",
+      };
     }
 
     const validInterns = await prisma.internProfile.findMany({
@@ -290,7 +333,10 @@ export async function assignMultipleInterns(
     });
 
     if (validInterns.length !== internProfileIds.length) {
-      return { success: false, error: "Beberapa intern tidak valid atau tidak aktif" };
+      return {
+        success: false,
+        error: "Beberapa intern tidak valid atau tidak aktif",
+      };
     }
 
     const existingAssignments = await prisma.internSupervisor.findMany({
@@ -336,7 +382,10 @@ export async function assignMultipleInterns(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal meng-assign multiple intern",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Gagal meng-assign multiple intern",
     };
   }
 }
@@ -362,7 +411,10 @@ export async function getSupervisorInterns(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal mengambil data intern bimbingan",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil data intern bimbingan",
     };
   }
 }
@@ -383,7 +435,10 @@ export async function reassignIntern(
     });
 
     if (!newSupervisor || !newSupervisor.isActive) {
-      return { success: false, error: "Supervisor tujuan tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        error: "Supervisor tujuan tidak ditemukan atau tidak aktif",
+      };
     }
 
     const intern = await prisma.internProfile.findUnique({
@@ -391,7 +446,10 @@ export async function reassignIntern(
     });
 
     if (!intern || intern.status !== "active") {
-      return { success: false, error: "Intern tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        error: "Intern tidak ditemukan atau tidak aktif",
+      };
     }
 
     const currentAssignment = await prisma.internSupervisor.findFirst({
@@ -399,11 +457,17 @@ export async function reassignIntern(
     });
 
     if (!currentAssignment) {
-      return { success: false, error: "Intern tidak memiliki supervisor aktif" };
+      return {
+        success: false,
+        error: "Intern tidak memiliki supervisor aktif",
+      };
     }
 
     if (currentAssignment.supervisorProfileId === newSupervisorProfileId) {
-      return { success: false, error: "Intern sudah di-assign ke supervisor tersebut" };
+      return {
+        success: false,
+        error: "Intern sudah di-assign ke supervisor tersebut",
+      };
     }
 
     const currentCount = newSupervisor.internAssignments.length;
@@ -433,7 +497,8 @@ export async function reassignIntern(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal me-reassign intern",
+      error:
+        error instanceof Error ? error.message : "Gagal me-reassign intern",
     };
   }
 }
@@ -459,15 +524,27 @@ export async function reassignAllInterns(
     ]);
 
     if (!fromSupervisor) {
-      return { success: false, count: 0, error: "Supervisor asal tidak ditemukan" };
+      return {
+        success: false,
+        count: 0,
+        error: "Supervisor asal tidak ditemukan",
+      };
     }
 
     if (!toSupervisor || !toSupervisor.isActive) {
-      return { success: false, count: 0, error: "Supervisor tujuan tidak ditemukan atau tidak aktif" };
+      return {
+        success: false,
+        count: 0,
+        error: "Supervisor tujuan tidak ditemukan atau tidak aktif",
+      };
     }
 
     if (fromSupervisorProfileId === toSupervisorProfileId) {
-      return { success: false, count: 0, error: "Supervisor asal dan tujuan tidak boleh sama" };
+      return {
+        success: false,
+        count: 0,
+        error: "Supervisor asal dan tujuan tidak boleh sama",
+      };
     }
 
     const activeAssignments = await prisma.internSupervisor.findMany({
@@ -475,7 +552,11 @@ export async function reassignAllInterns(
     });
 
     if (activeAssignments.length === 0) {
-      return { success: false, count: 0, error: "Tidak ada intern yang perlu dipindahkan" };
+      return {
+        success: false,
+        count: 0,
+        error: "Tidak ada intern yang perlu dipindahkan",
+      };
     }
 
     const operations = activeAssignments.flatMap((assignment) => [
@@ -503,7 +584,10 @@ export async function reassignAllInterns(
     return {
       success: false,
       count: 0,
-      error: error instanceof Error ? error.message : "Gagal me-reassign semua intern",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Gagal me-reassign semua intern",
     };
   }
 }
