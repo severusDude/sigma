@@ -94,6 +94,12 @@ const baseColumns: ColumnDef<HrAssessmentListItem>[] = [
       </span>
     ),
   },
+  {
+    id: "internProfileStatus",
+    accessorFn: (row) => row.internProfileStatus,
+    enableHiding: true,
+    enableSorting: false,
+  },
 ];
 
 export function createColumns(actions: {
