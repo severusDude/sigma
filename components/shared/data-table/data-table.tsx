@@ -67,6 +67,8 @@ export interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
   /** Default filters applied on mount */
   defaultFilters?: ActiveFilter<TData>[];
+  /** Default column visibility — set false to hide columns on mount */
+  defaultColumnVisibility?: VisibilityState;
 }
 
 // ─── DataTable ────────────────────────────────────────────────────────────────
@@ -78,9 +80,12 @@ export function DataTable<TData, TValue>({
   batchActions = [],
   onRowClick,
   defaultFilters,
+  defaultColumnVisibility,
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    defaultColumnVisibility ?? {},
+  );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Filter and sort hooks

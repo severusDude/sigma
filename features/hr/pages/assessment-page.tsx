@@ -79,6 +79,7 @@ export default function AssessmentPage({
             valueLabel: "Aktif",
           },
         ]}
+        defaultColumnVisibility={{ internProfileStatus: false }}
       />
 
       <DetailDialog
