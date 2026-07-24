@@ -279,6 +279,8 @@ export async function assignSupervisor(
 
     updateTag("supervisors");
     updateTag("interns");
+    updateTag(`assessment-list-${supervisorProfileId}`);
+    updateTag(`assessment-period-${supervisorProfileId}`);
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -368,6 +370,8 @@ export async function assignMultipleInterns(
 
     updateTag("supervisors");
     updateTag("interns");
+    updateTag(`assessment-list-${parsed.supervisorProfileId}`);
+    updateTag(`assessment-period-${parsed.supervisorProfileId}`);
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -481,6 +485,8 @@ export async function reassignIntern(
 
     updateTag("supervisors");
     updateTag("interns");
+    updateTag(`assessment-list-${newSupervisorProfileId}`);
+    updateTag(`assessment-period-${newSupervisorProfileId}`);
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -570,6 +576,8 @@ export async function reassignAllInterns(
 
     updateTag("supervisors");
     updateTag("interns");
+    updateTag(`assessment-list-${toSupervisorProfileId}`);
+    updateTag(`assessment-period-${toSupervisorProfileId}`);
 
     return { success: true, count: activeAssignments.length };
   } catch (error) {
