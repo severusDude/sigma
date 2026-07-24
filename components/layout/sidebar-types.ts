@@ -23,4 +23,5 @@ export interface SidebarData {
   user: SidebarUserData;
   teams: SidebarTeamData[];
   navMain: SidebarNavItem[];
+  profileUrl?: string;
 }

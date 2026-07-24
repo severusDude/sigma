@@ -17,18 +17,20 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
 export function NavUser({
   user,
+  profileUrl,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  profileUrl?: string;
 }) {
   const router = useRouter();
   const { isMobile } = useSidebar();
@@ -90,7 +92,15 @@ export function NavUser({
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            {profileUrl && (
+              <>
+                <DropdownMenuItem onClick={() => router.push(profileUrl)}>
+                  <UserIcon />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon />
               Log out
