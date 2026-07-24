@@ -43,8 +43,7 @@ const baseColumns: ColumnDef<Supervisor>[] = [
   {
     id: "internCount",
     header: "Jumlah Intern",
-    accessorFn: (row) =>
-      row.supervisorProfile?.internAssignments?.length ?? 0,
+    accessorFn: (row) => row.supervisorProfile?.internAssignments?.length ?? 0,
     cell: ({ row }) => {
       const count =
         row.original.supervisorProfile?.internAssignments?.length ?? 0;
@@ -69,8 +68,7 @@ const baseColumns: ColumnDef<Supervisor>[] = [
         labelColor = "text-red-600";
       }
 
-      const barWidth =
-        count === 0 ? 0 : Math.max(percentage, 4);
+      const barWidth = count === 0 ? 0 : Math.max(percentage, 4);
 
       return (
         <div className="flex min-w-28 flex-col gap-1">
@@ -93,10 +91,12 @@ const baseColumns: ColumnDef<Supervisor>[] = [
   {
     id: "isActive",
     header: "Status",
-    accessorFn: (row) => row.supervisorProfile?.isActive,
+    accessorFn: (row) => row.supervisorProfile?.isActive.toString(),
     cell: ({ row }) => (
       <Badge
-        variant={row.original.supervisorProfile!.isActive ? "default" : "outline"}
+        variant={
+          row.original.supervisorProfile!.isActive ? "default" : "outline"
+        }
       >
         {row.original.supervisorProfile!.isActive ? "Aktif" : "Nonaktif"}
       </Badge>

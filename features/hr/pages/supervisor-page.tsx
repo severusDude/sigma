@@ -42,8 +42,8 @@ const filterOptions: FilterCategory[] = [
     id: "isActive",
     label: "Status",
     options: [
-      { label: "Aktif", value: true },
-      { label: "Nonaktif", value: false },
+      { label: "Aktif", value: "true" },
+      { label: "Nonaktif", value: "false" },
     ],
   },
 ];

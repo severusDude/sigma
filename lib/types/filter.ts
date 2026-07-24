@@ -1,6 +1,6 @@
 export interface FilterOption {
   label: string;
-  value: string | boolean;
+  value: string;
   icon?: React.ReactNode;
 }
 
