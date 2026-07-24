@@ -25,6 +25,7 @@ import { DetailDialog } from "../components/intern/detail-dialog";
 import { DeleteDialog } from "../components/intern/delete-dialog";
 import { CreateInternForm } from "../components/intern/create-form";
 import { UpdateInternForm } from "../components/intern/update-form";
+import { ChangePasswordDialog } from "../components/shared/change-password-dialog";
 
 interface InternPageProps {
   interns: Intern[];
@@ -56,11 +57,13 @@ export default function InternPage({ interns, departments }: InternPageProps) {
   const [updateIntern, setUpdateIntern] = useState<Intern | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleteIntern, setDeleteIntern] = useState<Intern | null>(null);
+  const [changePasswordUser, setChangePasswordUser] = useState<Intern | null>(null);
 
   const columns = createColumns({
     onView: (row) => setDetailId(row.id),
     onUpdate: (row) => setUpdateIntern(row),
     onDelete: (row) => setDeleteIntern(row),
+    onChangePassword: (row) => setChangePasswordUser(row),
   });
 
   return (
@@ -148,6 +151,14 @@ export default function InternPage({ interns, departments }: InternPageProps) {
       <DeleteDialog
         intern={deleteIntern}
         onClose={() => setDeleteIntern(null)}
+      />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        userId={changePasswordUser?.id ?? ""}
+        userName={changePasswordUser?.name ?? ""}
+        open={!!changePasswordUser}
+        onOpenChange={(open) => { if (!open) setChangePasswordUser(null); }}
       />
     </div>
   );
