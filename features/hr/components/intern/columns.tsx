@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { EyeIcon, PencilIcon, Trash2Icon, KeyRoundIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +111,7 @@ export function createColumns(actions: {
   onView: (row: Intern) => void;
   onUpdate: (row: Intern) => void;
   onDelete: (row: Intern) => void;
+  onChangePassword: (row: Intern) => void;
 }) {
   const actionOptions: ActionOption<Intern>[] = [
     {
@@ -122,6 +123,11 @@ export function createColumns(actions: {
       label: "Update",
       icon: <PencilIcon className="size-4" />,
       onClick: (row) => actions.onUpdate(row as Intern),
+    },
+    {
+      label: "Ubah Password",
+      icon: <KeyRoundIcon className="size-4" />,
+      onClick: (row) => actions.onChangePassword(row as Intern),
     },
     {
       label: "Hapus",

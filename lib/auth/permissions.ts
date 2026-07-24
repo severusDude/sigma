@@ -1,7 +1,7 @@
 import { createAccessControl } from "better-auth/plugins/access";
 
 const statement = {
-  user: ["create", "list", "set-role", "impersonate", "delete"],
+  user: ["create", "list", "set-role", "impersonate", "delete", "set-password"],
   system: ["manage"],
   audit_log: ["read"],
   intern: ["create", "read", "update", "delete"],
@@ -36,7 +36,7 @@ export const supervisor = ac.newRole({
 
 export const hr = ac.newRole({
   ...supervisor.statements,
-  user: ["delete"],
+  user: ["delete", "set-password"],
   assessment: ["create", "read", "update", "finalize"],
   intern: ["create", "read", "update", "delete"],
   supervisor: ["create", "read", "update", "delete"],
