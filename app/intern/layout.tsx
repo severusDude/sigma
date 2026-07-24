@@ -30,6 +30,7 @@ async function InternSidebar({ children }: { children: React.ReactNode }) {
         role: "BPS Kota Tasikmalaya",
       },
     ],
+    profileUrl: "/intern/profile",
     navMain: [
       {
         title: "Dashboard",
