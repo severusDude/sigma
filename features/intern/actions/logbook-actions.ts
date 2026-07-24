@@ -103,40 +103,42 @@ export async function createLogbook(
       };
     }
 
-    const logbook = await prisma.logbook.create({
-      data: {
-        internProfileId: internProfile.id,
-        date: parsed.date,
-        activity: parsed.activity,
-        duration: parsed.duration,
-        issueId: parsed.issueId || null,
-        notes: parsed.notes || null,
-        status: "pending_review",
-      },
-      include: logbookInclude,
-    });
-
-    if (parsed.attachments?.length) {
-      await prisma.attachment.createMany({
-        data: parsed.attachments.map((att) => ({
-          attachableType: "logbook",
-          attachableId: logbook.id,
-          fileName: att.name,
-          fileUrl: att.key,
-          mimeType: att.mimeType,
-          fileSize: att.size,
-        })),
+    const { logbook, attachments } = await prisma.$transaction(async (tx) => {
+      const lb = await tx.logbook.create({
+        data: {
+          internProfileId: internProfile.id,
+          date: parsed.date,
+          activity: parsed.activity,
+          duration: parsed.duration,
+          issueId: parsed.issueId || null,
+          notes: parsed.notes || null,
+          status: "pending_review",
+        },
+        include: logbookInclude,
       })
-    }
 
-    const logbookWithAttachments = parsed.attachments?.length
-      ? await prisma.logbook.findUnique({
-          where: { id: logbook.id },
-          include: logbookInclude,
+      let atts: { id: string }[] = []
+      if (parsed.attachments?.length) {
+        await tx.attachment.createMany({
+          data: parsed.attachments.map((a) => ({
+            attachableType: "logbook",
+            attachableId: lb.id,
+            fileName: a.name,
+            fileUrl: a.key,
+            mimeType: a.mimeType,
+            fileSize: a.size,
+          })),
         })
-      : logbook
+        atts = await tx.attachment.findMany({
+          where: { attachableType: "logbook", attachableId: lb.id },
+          select: { id: true },
+        })
+      }
 
-    return { success: true, data: (logbookWithAttachments ?? logbook) as Logbook };
+      return { logbook: lb, attachments: atts }
+    })
+
+    return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
       success: false,

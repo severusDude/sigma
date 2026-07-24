@@ -86,12 +86,6 @@ export async function uploadTemplate(
     validateFileSize(buffer.length, "template")
 
     const r2Key = buildTemplateKey(documentType, fileName)
-    await uploadFromBuffer(
-      r2Key,
-      buffer,
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "template",
-    )
 
     await prisma.documentTemplate.updateMany({
       where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter", isActive: true },
@@ -107,6 +101,13 @@ export async function uploadTemplate(
         isActive: true,
       },
     });
+
+    await uploadFromBuffer(
+      r2Key,
+      buffer,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "template",
+    )
 
     updateTag("document-templates");
 
@@ -178,14 +179,14 @@ export async function deleteTemplate(id: string): Promise<ActionResponse<void>> 
       return { success: false, error: "Template tidak ditemukan" };
     }
 
-    if (template.content) {
-      await deleteObject(template.content).catch(() => {
-        // ignore — may not exist in R2 yet (pre-migration)
-      })
-    }
-
     await prisma.documentTemplate.delete({ where: { id } });
     updateTag("document-templates");
+
+    if (template.content) {
+      await deleteObject(template.content).catch(() => {
+        // ignore — stale R2 orphan acceptable
+      })
+    }
 
     return { success: true };
   } catch (error) {

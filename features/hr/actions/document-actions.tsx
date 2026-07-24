@@ -238,7 +238,6 @@ export async function generateCertificates(
         const pdfBuffer = Buffer.concat(chunks);
 
         const r2Key = buildDocumentKey("certificates", docNumber, ".pdf");
-        await uploadFromBuffer(r2Key, pdfBuffer, "application/pdf");
 
         await saveDocumentRecord(
           intern.id,
@@ -247,6 +246,8 @@ export async function generateCertificates(
           "Sertifikat Magang",
           r2Key,
         );
+
+        await uploadFromBuffer(r2Key, pdfBuffer, "application/pdf");
 
         results.push({
           internId,
@@ -331,11 +332,6 @@ export async function generateAssignmentLetter(
 
         const buf = generateFromTemplate(templateBuffer, data);
         const r2Key = buildDocumentKey("assignment-letters", docNumber, ".docx");
-        await uploadFromBuffer(
-          r2Key,
-          buf,
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        );
 
         await saveDocumentRecord(
           intern.id,
@@ -343,6 +339,12 @@ export async function generateAssignmentLetter(
           docNumber,
           "Surat Tugas Magang",
           r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
@@ -436,11 +438,6 @@ export async function generateAssessmentReport(
 
         const buf = generateFromTemplate(templateBuffer, data);
         const r2Key = buildDocumentKey("assessment-reports", docNumber, ".docx");
-        await uploadFromBuffer(
-          r2Key,
-          buf,
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        );
 
         await saveDocumentRecord(
           intern.id,
@@ -448,6 +445,12 @@ export async function generateAssessmentReport(
           docNumber,
           "Laporan Penilaian Magang",
           r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
@@ -559,11 +562,6 @@ export async function generateAttendanceReport(
 
         const buf = generateFromTemplate(templateBuffer, data);
         const r2Key = buildDocumentKey("attendance-reports", docNumber, ".docx");
-        await uploadFromBuffer(
-          r2Key,
-          buf,
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        );
 
         await saveDocumentRecord(
           intern.id,
@@ -571,6 +569,12 @@ export async function generateAttendanceReport(
           docNumber,
           "Rekap Absensi Magang",
           r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
@@ -652,11 +656,6 @@ export async function generateCompletionLetter(
 
         const buf = generateFromTemplate(templateBuffer, data);
         const r2Key = buildDocumentKey("completion-letters", docNumber, ".docx");
-        await uploadFromBuffer(
-          r2Key,
-          buf,
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        );
 
         await saveDocumentRecord(
           intern.id,
@@ -664,6 +663,12 @@ export async function generateCompletionLetter(
           docNumber,
           "Surat Keterangan Selesai Magang",
           r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
