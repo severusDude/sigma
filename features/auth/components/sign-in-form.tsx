@@ -80,8 +80,8 @@ export function SignInForm({
     try {
       const data = await mutationPromise;
       router.push(getRoleHome(data.user.role ?? ""));
-    } catch (error) {
-      console.error(error);
+    } catch {
+      // Toast sudah handle error untuk user
     }
   }
 
