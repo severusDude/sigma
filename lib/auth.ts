@@ -29,6 +29,7 @@ export const auth = betterAuth({
       },
       defaultRole: Role.intern,
       adminRoles: [Role.admin],
+      bannedUserMessage: "Masa magang telah berakhir. Silakan hubungi HR.",
     }),
     nextCookies(),
   ],

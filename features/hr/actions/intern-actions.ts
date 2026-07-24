@@ -164,6 +164,18 @@ export async function updateIntern(
       });
     }
 
+    const currentStatus = existing.internProfile.status;
+    if (parsed.status === "active" && currentStatus !== "active") {
+      await prisma.user.update({
+        where: { id },
+        data: { banned: false, banReason: null },
+      });
+      await prisma.internProfile.update({
+        where: { userId: id },
+        data: { deactivatedAt: null },
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id },
       include: { internProfile: true },
@@ -177,6 +189,73 @@ export async function updateIntern(
       success: false,
       error:
         error instanceof Error ? error.message : "Gagal memperbarui intern",
+    };
+  }
+}
+
+export async function deactivateIntern(
+  id: string,
+): Promise<ActionResponse<void>> {
+  try {
+    await requirePermission({ intern: ["update"] });
+
+    const existing = await prisma.user.findUnique({
+      where: { id },
+      include: { internProfile: true },
+    });
+    if (!existing?.internProfile)
+      return { success: false, error: "Intern tidak ditemukan" };
+    if (existing.internProfile.status !== "active")
+      return { success: false, error: "Intern sudah tidak aktif" };
+
+    const affectedSupervisors = await prisma.internSupervisor.findMany({
+      where: { internProfileId: existing.internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: { banned: true, banReason: "Dinonaktifkan oleh HR" },
+      });
+
+      await tx.internProfile.update({
+        where: { userId: id },
+        data: { status: "withdrawn", deactivatedAt: new Date() },
+      });
+
+      await tx.internSupervisor.updateMany({
+        where: { internProfileId: existing.internProfile!.id, endedAt: null },
+        data: { endedAt: new Date() },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: "deactivate_intern_manual",
+          actorId: existing.id,
+          targetId: id,
+          targetType: "user",
+          metadata: {
+            reason: "manual_hr",
+            internName: existing.name,
+            previousStatus: existing.internProfile!.status,
+          },
+        },
+      });
+    });
+
+    updateTag("interns");
+    for (const s of affectedSupervisors) {
+      updateTag(`assessment-list-${s.supervisorProfileId}`);
+      updateTag(`assessment-period-${s.supervisorProfileId}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Gagal menonaktifkan intern",
     };
   }
 }

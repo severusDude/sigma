@@ -211,9 +211,9 @@ model Department {
 }
 
 model InternProfile {
-  id          String       @id @default(cuid())
-  userId      String       @unique
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   nik            String       @unique
   institution    String
   phone          String?
@@ -223,6 +223,7 @@ model InternProfile {
   status         InternStatus @default(active)
   departmentId   String?
   department     Department?  @relation(fields: [departmentId], references: [id])
+  deactivatedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -188,6 +188,34 @@ export function InternFormFields<T extends FieldValues>({
         )}
       />
 
+      <Controller
+        name={"status" as FieldPath<T>}
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="status">Status Intern</FieldLabel>
+            <Select
+              value={field.value || ""}
+              onValueChange={field.onChange}
+            >
+              <SelectTrigger
+                id="status"
+                value={field.value}
+                aria-invalid={fieldState.invalid}
+              >
+                <SelectValue placeholder="Pilih status" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                <SelectItem value="active">Aktif</SelectItem>
+                <SelectItem value="completed">Selesai</SelectItem>
+                <SelectItem value="withdrawn">Ditarik</SelectItem>
+              </SelectContent>
+            </Select>
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+
       <Field>
         <FieldLabel>Periode Magang</FieldLabel>
         <Popover>

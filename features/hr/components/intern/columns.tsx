@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { EyeIcon, PencilIcon, Trash2Icon, UserXIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +111,7 @@ export function createColumns(actions: {
   onView: (row: Intern) => void;
   onUpdate: (row: Intern) => void;
   onDelete: (row: Intern) => void;
+  onDeactivate?: (row: Intern) => void;
 }) {
   const actionOptions: ActionOption<Intern>[] = [
     {
@@ -123,6 +124,15 @@ export function createColumns(actions: {
       icon: <PencilIcon className="size-4" />,
       onClick: (row) => actions.onUpdate(row as Intern),
     },
+    ...(actions.onDeactivate
+      ? [
+          {
+            label: "Nonaktifkan",
+            icon: <UserXIcon className="size-4" />,
+            onClick: (row) => actions.onDeactivate!(row as Intern),
+          } as ActionOption<Intern>,
+        ]
+      : []),
     {
       label: "Hapus",
       icon: <Trash2Icon className="size-4" />,
