@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { getObjectStream } from "@/services/storage";
 
 export async function GET(
   _request: Request,
@@ -24,14 +23,9 @@ export async function GET(
   }
 
   try {
-    const fileBuffer = fs.readFileSync(document.fileUrl);
-    const ext = path.extname(document.fileUrl).toLowerCase();
-    const contentType =
-      ext === ".pdf"
-        ? "application/pdf"
-        : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    const { stream, contentType } = await getObjectStream(document.fileUrl);
 
-    return new Response(new Uint8Array(fileBuffer), {
+    return new Response(stream, {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": "inline",
@@ -39,6 +33,6 @@ export async function GET(
       },
     });
   } catch {
-    return NextResponse.json({ error: "File not found on disk" }, { status: 404 });
+    return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 }

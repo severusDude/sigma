@@ -7,6 +7,17 @@ const logbookInclude = {
       title: true,
     },
   },
+  attachments: {
+    where: { attachableType: "logbook" },
+    select: {
+      id: true,
+      fileName: true,
+      fileUrl: true,
+      mimeType: true,
+      fileSize: true,
+      createdAt: true,
+    },
+  },
 } as const;
 
 export type Logbook = LogbookGetPayload<{

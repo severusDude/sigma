@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorize";
-import { renderToFile } from "@react-pdf/renderer";
+import { renderToStream } from "@react-pdf/renderer";
 import { generateDocumentNumber } from "../utils/document-number";
 import { InternshipCertificate } from "../components/document/templates/certificates";
 import { generateFromTemplate } from "@/lib/docxtemplater";
@@ -10,6 +10,12 @@ import type { ActionResponse } from "@/lib/types";
 import { DocumentType } from "@/generated/prisma/client";
 import path from "path";
 import fs from "fs";
+import {
+  uploadFromBuffer,
+  buildDocumentKey,
+  fetchTemplateFromR2,
+  buildTemplateKey,
+} from "@/services/storage";
 
 export type GenerateDocResult = {
   internId: string;
@@ -163,12 +169,6 @@ function formatDateShort(d: Date) {
   }).format(new Date(d));
 }
 
-function buildOutputPath(docNumber: string, subDir: string): string {
-  const fullPath = path.join(process.cwd(), "generated", subDir, `${docNumber}.docx`);
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  return fullPath;
-}
-
 async function saveDocumentRecord(
   internProfileId: string,
   documentType: string,
@@ -217,15 +217,7 @@ export async function generateCertificates(
 
         const docNumber = await generateDocumentNumber("CERT");
 
-        const outputPath = path.join(
-          process.cwd(),
-          "generated",
-          "certificates",
-          `${docNumber}.pdf`,
-        );
-        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-
-        await renderToFile(
+        const pdfStream = await renderToStream(
           <InternshipCertificate
             recipientName={user.name}
             organization="Badan Pusat Statistik Kota Tasikmalaya"
@@ -237,22 +229,30 @@ export async function generateCertificates(
             }
             signerName={supervisor?.user?.name ?? "Dr. Ir. Zulkipli, M.Si."}
           />,
-          outputPath,
         );
+
+        const chunks: Buffer[] = [];
+        for await (const chunk of pdfStream) {
+          chunks.push(Buffer.from(chunk));
+        }
+        const pdfBuffer = Buffer.concat(chunks);
+
+        const r2Key = buildDocumentKey("certificates", docNumber, ".pdf");
+        await uploadFromBuffer(r2Key, pdfBuffer, "application/pdf");
 
         await saveDocumentRecord(
           intern.id,
           "certificate",
           docNumber,
           "Sertifikat Magang",
-          outputPath,
+          r2Key,
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -330,22 +330,26 @@ export async function generateAssignmentLetter(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "assignment-letters");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("assignment-letters", docNumber, ".docx");
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
 
         await saveDocumentRecord(
           intern.id,
           "assignment_letter",
           docNumber,
           "Surat Tugas Magang",
-          outputPath,
+          r2Key,
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         console.log("ini error bang", e)
@@ -431,22 +435,26 @@ export async function generateAssessmentReport(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "assessment-reports");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("assessment-reports", docNumber, ".docx");
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
 
         await saveDocumentRecord(
           intern.id,
           "assessment_report",
           docNumber,
           "Laporan Penilaian Magang",
-          outputPath,
+          r2Key,
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -550,22 +558,26 @@ export async function generateAttendanceReport(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "attendance-reports");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("attendance-reports", docNumber, ".docx");
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
 
         await saveDocumentRecord(
           intern.id,
           "attendance_report",
           docNumber,
           "Rekap Absensi Magang",
-          outputPath,
+          r2Key,
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -639,22 +651,26 @@ export async function generateCompletionLetter(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "completion-letters");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("completion-letters", docNumber, ".docx");
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
 
         await saveDocumentRecord(
           intern.id,
           "completion_letter",
           docNumber,
           "Surat Keterangan Selesai Magang",
-          outputPath,
+          r2Key,
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -695,24 +711,25 @@ async function getActiveTemplate(documentType: string): Promise<Buffer> {
   const active = await prisma.documentTemplate.findFirst({
     where: { documentType: documentType as DocumentType, isActive: true },
     select: { content: true },
-  });
+  })
 
-  if (!active) {
-    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
-    throw new Error(`TEMPLATE_NOT_FOUND:Template ${label} belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.`);
+  if (active) {
+    try {
+      return await fetchTemplateFromR2(active.content)
+    } catch {
+      // R2 unavailable — fall through to local built-in
+    }
   }
 
-  const uploadedPath = path.resolve(active.content);
-  if (!fs.existsSync(uploadedPath)) {
-    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
-    throw new Error(
-      `TEMPLATE_NOT_FOUND:File template ${label} tidak ditemukan di "${uploadedPath}". ` +
-      `Path di database: "${active.content}". ` +
-      `Silahkan upload ulang template di menu Kelola Template.`
-    );
+  const localPath = path.join(process.cwd(), "templates", "hr", `${documentType}.docx`)
+  if (fs.existsSync(localPath)) {
+    return fs.readFileSync(localPath)
   }
 
-  return fs.readFileSync(uploadedPath);
+  const label = DOCUMENT_LABELS[documentType] ?? "Dokumen"
+  throw new Error(
+    `TEMPLATE_NOT_FOUND:Template ${label} belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.`,
+  )
 }
 
 function attendanceStatusLabel(status: string): string {

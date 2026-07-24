@@ -21,6 +21,13 @@ export const logbookFormSchema = z
     { message: "Durasi maksimal 480 menit (8 jam)", path: ["endTime"] },
   );
 
+export const attachmentInputSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  mimeType: z.string().min(1),
+  size: z.number().int().positive(),
+})
+
 export const createLogbookSchema = z.object({
   date: z.date({ message: "Tanggal wajib diisi" }),
   activity: z.string().min(1, "Kegiatan wajib diisi"),
@@ -31,6 +38,7 @@ export const createLogbookSchema = z.object({
     .max(480, "Durasi maksimal 480 menit (8 jam)"),
   issueId: z.string().optional().or(z.literal("")),
   notes: z.string().optional(),
+  attachments: z.array(attachmentInputSchema).optional(),
 });
 
 export const updateLogbookSchema = createLogbookSchema.partial();
@@ -38,3 +46,4 @@ export const updateLogbookSchema = createLogbookSchema.partial();
 export type LogbookFormInput = z.infer<typeof logbookFormSchema>;
 export type CreateLogbookInput = z.infer<typeof createLogbookSchema>;
 export type UpdateLogbookInput = z.infer<typeof updateLogbookSchema>;
+export type AttachmentInput = z.infer<typeof attachmentInputSchema>;

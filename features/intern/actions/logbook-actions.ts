@@ -116,7 +116,27 @@ export async function createLogbook(
       include: logbookInclude,
     });
 
-    return { success: true, data: logbook as Logbook };
+    if (parsed.attachments?.length) {
+      await prisma.attachment.createMany({
+        data: parsed.attachments.map((att) => ({
+          attachableType: "logbook",
+          attachableId: logbook.id,
+          fileName: att.name,
+          fileUrl: att.key,
+          mimeType: att.mimeType,
+          fileSize: att.size,
+        })),
+      })
+    }
+
+    const logbookWithAttachments = parsed.attachments?.length
+      ? await prisma.logbook.findUnique({
+          where: { id: logbook.id },
+          include: logbookInclude,
+        })
+      : logbook
+
+    return { success: true, data: (logbookWithAttachments ?? logbook) as Logbook };
   } catch (error) {
     return {
       success: false,

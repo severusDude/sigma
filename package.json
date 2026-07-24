@@ -18,6 +18,8 @@
     "db:reset": "prisma migrate reset"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1093.0",
+    "@aws-sdk/s3-request-presigner": "^3.1093.0",
     "@base-ui/react": "^1.6.0",
     "@better-auth/prisma-adapter": "^1.6.23",
     "@candoimage/prisma-extension-soft-delete": "^2.1.2",

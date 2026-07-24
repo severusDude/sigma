@@ -2,14 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorize";
-import fs from "fs";
-import path from "path";
 import { updateTag } from "next/cache";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import type { ActionResponse } from "@/lib/types";
-
-const UPLOAD_DIR = path.join(process.cwd(), "templates", "hr", "uploaded");
+import {
+  uploadFromBuffer,
+  deleteObject,
+  buildTemplateKey,
+  validateFileType,
+  validateFileSize,
+  ALLOWED_TEMPLATE_MIME_TYPES,
+} from "@/services/storage";
 
 export type TemplateRow = {
   id: string;
@@ -76,12 +80,18 @@ export async function uploadTemplate(
       };
     }
 
-    const fileName = `${documentType}-${Date.now()}.docx`;
-    if (!fs.existsSync(UPLOAD_DIR)) {
-      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-    }
-    const filePath = path.join(UPLOAD_DIR, fileName);
-    fs.writeFileSync(filePath, buffer);
+    const fileName = `${documentType}-${Date.now()}.docx`
+
+    validateFileType(fileName, ALLOWED_TEMPLATE_MIME_TYPES)
+    validateFileSize(buffer.length, "template")
+
+    const r2Key = buildTemplateKey(documentType, fileName)
+    await uploadFromBuffer(
+      r2Key,
+      buffer,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "template",
+    )
 
     await prisma.documentTemplate.updateMany({
       where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter", isActive: true },
@@ -92,7 +102,7 @@ export async function uploadTemplate(
       data: {
         documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter",
         name,
-        content: filePath,
+        content: r2Key,
         variables: getVariablesForType(documentType),
         isActive: true,
       },
@@ -168,8 +178,10 @@ export async function deleteTemplate(id: string): Promise<ActionResponse<void>> 
       return { success: false, error: "Template tidak ditemukan" };
     }
 
-    if (fs.existsSync(template.content)) {
-      fs.unlinkSync(template.content);
+    if (template.content) {
+      await deleteObject(template.content).catch(() => {
+        // ignore — may not exist in R2 yet (pre-migration)
+      })
     }
 
     await prisma.documentTemplate.delete({ where: { id } });
