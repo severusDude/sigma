@@ -364,7 +364,6 @@ export async function generateAssignmentLetter(
           filePath: r2Key,
         });
       } catch (e) {
-        console.log("ini error bang", e)
         const name =
           (
             await prisma.user.findUnique({
@@ -388,7 +387,6 @@ export async function generateAssignmentLetter(
 
     return { success: true, data: results };
   } catch (error) {
-    console.log("ini error", error)
     return {
       success: false,
       error:

@@ -20,7 +20,7 @@ function useStorageToast() {
         ? toast.loading(options.loading)
         : undefined;
 
-      const run = async (): Promise<boolean> => {
+      const run = async (attempt: number = 1): Promise<boolean> => {
         let res: ActionResponse<T>;
 
         try {
@@ -42,14 +42,14 @@ function useStorageToast() {
         }
 
         if (!res.success) {
-          if (res.retryable) {
+          if (res.retryable && attempt < 2) {
             if (toastId) toast.dismiss(toastId);
             return new Promise<boolean>((resolve) => {
               toast.error(res.error, {
                 action: {
                   label: "Coba Lagi",
                   onClick: async () => {
-                    const ok = await run();
+                    const ok = await run(attempt + 1);
                     resolve(ok);
                   },
                 },
