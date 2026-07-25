@@ -8,6 +8,7 @@ import {
   validateFileSize,
   ALLOWED_UPLOAD_MIME_TYPES,
 } from "@/services/storage"
+import { assertStorageHealthy, StorageError } from "@/services/storage-health"
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -29,12 +30,19 @@ export async function POST(request: Request) {
     const mimeType = validateFileType(fileName, ALLOWED_UPLOAD_MIME_TYPES)
     validateFileSize(fileSize, "attachment")
 
+    await assertStorageHealthy()
+
     const key = buildAttachmentKey(attachableType, attachableId, fileName)
     const uploadUrl = await getSignedUploadUrl(key, mimeType, 900)
 
     return NextResponse.json({ uploadUrl, key, requiredContentType: mimeType })
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Validation failed"
-    return NextResponse.json({ error: message }, { status: 400 })
+    const message = e instanceof StorageError
+      ? e.userMessage
+      : e instanceof Error
+        ? e.message
+        : "Validation failed"
+    const status = e instanceof StorageError ? 503 : 400
+    return NextResponse.json({ error: message }, { status })
   }
 }
