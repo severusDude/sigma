@@ -12,6 +12,7 @@ import {
   type UpdateLogbookInput,
 } from "../schemas/logbook-schemas";
 import { fetchLogbooks } from "../data/logbook-data";
+import { assertStorageHealthy, StorageError } from "@/services/storage-health";
 
 export async function getLogbooks(
   query?: Parameters<typeof fetchLogbooks>[1],
@@ -103,6 +104,8 @@ export async function createLogbook(
       };
     }
 
+    await assertStorageHealthy()
+
     const { logbook, attachments } = await prisma.$transaction(async (tx) => {
       const lb = await tx.logbook.create({
         data: {
@@ -142,7 +145,11 @@ export async function createLogbook(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal membuat logbook",
+      error: error instanceof StorageError
+        ? error.userMessage
+        : error instanceof Error
+          ? error.message
+          : "Gagal membuat logbook",
     };
   }
 }
