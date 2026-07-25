@@ -284,9 +284,11 @@ export async function generateCertificates(
     return {
       success: false,
       error:
-        error instanceof Error
-          ? error.message
-          : "Failed to generate certificates",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate certificates",
     };
   }
 }
@@ -389,7 +391,11 @@ export async function generateAssignmentLetter(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate letters",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate letters",
     };
   }
 }
@@ -498,7 +504,11 @@ export async function generateAssessmentReport(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate reports",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate reports",
     };
   }
 }
@@ -627,7 +637,11 @@ export async function generateAttendanceReport(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate reports",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate reports",
     };
   }
 }
@@ -726,7 +740,11 @@ export async function generateCompletionLetter(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate letters",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate letters",
     };
   }
 }

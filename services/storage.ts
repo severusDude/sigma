@@ -6,7 +6,7 @@ import {
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import { getR2Client, getR2Bucket } from "@/lib/r2"
-import { assertStorageHealthy } from "@/services/storage-health"
+import { assertStorageHealthy, StorageCorruptError } from "@/services/storage-health"
 
 // ── Allowed types ────────────────────────────────────
 
@@ -138,7 +138,7 @@ export async function getObjectStream(key: string) {
     new GetObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
 
-  if (!Body) throw new Error(`Object not found: ${key}`)
+  if (!Body) throw new StorageCorruptError(`Object not found: ${key}`)
 
   return {
     stream: Body.transformToWebStream(),
@@ -152,7 +152,7 @@ export async function getObjectBuffer(key: string): Promise<Buffer> {
     new GetObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
 
-  if (!Body) throw new Error(`Object not found: ${key}`)
+  if (!Body) throw new StorageCorruptError(`Object not found: ${key}`)
 
   return Buffer.from(await Body.transformToByteArray())
 }
@@ -185,6 +185,7 @@ function setCachedTemplate(key: string, buffer: Buffer): void {
 }
 
 export async function fetchTemplateFromR2(key: string): Promise<Buffer> {
+  await assertStorageHealthy()
   const cached = getCachedTemplate(key)
   if (cached) return cached.buffer
 
