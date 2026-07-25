@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const BATCH_SIZE = 100;
@@ -10,8 +9,13 @@ const BATCH_SIZE = 100;
 export async function GET(request: Request) {
   const isVercelCron = request.headers.get("x-vercel-cron-schedule") !== null;
   const authHeader = request.headers.get("authorization");
+  const querySecret = new URL(request.url).searchParams.get("secret");
 
-  if (!isVercelCron && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (
+    !isVercelCron &&
+    authHeader !== `Bearer ${process.env.CRON_SECRET}` &&
+    querySecret !== process.env.CRON_SECRET
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -66,8 +70,10 @@ export async function GET(request: Request) {
           },
           data: { endedAt: new Date() },
         });
+      });
 
-        await tx.auditLog.create({
+      try {
+        await prisma.auditLog.create({
           data: {
             action: "deactivate_interns",
             actorId: "system",
@@ -79,16 +85,21 @@ export async function GET(request: Request) {
             },
           },
         });
-      });
+      } catch {
+        console.error("[cron] Failed to log audit trail:", {
+          count: expiredInterns.length,
+          batch: batchCount + 1,
+        });
+      }
 
       const uniqueSupervisorIds = [
         ...new Set(affectedSupervisors.map((s) => s.supervisorProfileId)),
       ];
       for (const sid of uniqueSupervisorIds) {
-        updateTag(`assessment-list-${sid}`);
-        updateTag(`assessment-period-${sid}`);
+        revalidateTag(`assessment-list-${sid}`, 'max');
+        revalidateTag(`assessment-period-${sid}`, 'max');
       }
-      updateTag("hr-assessments");
+      revalidateTag("hr-assessments", 'max');
 
       batchCount++;
       totalDeactivated += expiredInterns.length;
@@ -102,16 +113,7 @@ export async function GET(request: Request) {
       batches: batchCount,
     });
   } catch (error) {
-    await prisma.auditLog.create({
-      data: {
-        action: "deactivate_interns_error",
-        actorId: "system",
-        metadata: {
-          error: error instanceof Error ? error.message : "Unknown error",
-          timestamp: new Date().toISOString(),
-        },
-      },
-    });
+    console.error("[cron] deactivate-interns failed:", error);
 
     return NextResponse.json(
       {
