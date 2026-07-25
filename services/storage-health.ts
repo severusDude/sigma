@@ -1,4 +1,5 @@
 import { HeadBucketCommand, S3ServiceException } from "@aws-sdk/client-s3"
+import { cacheLife } from "next/cache"
 import { getR2Client, getR2Bucket } from "@/lib/r2"
 
 // ── Error classes ─────────────────────────────────────
@@ -87,56 +88,27 @@ export function classifyStorageError(cause: unknown): StorageError {
   }
 }
 
-// ── Health check ──────────────────────────────────────
+// ── Health check (shared across serverless instances via remote cache) ──
 
-let healthCache: {
-  healthy: boolean
-  checkedAt: number
-  healthyError: StorageError | null
-} | null = null
+export async function checkStorageHealth(): Promise<{ healthy: boolean }> {
+  "use cache: remote"
+  cacheLife({ revalidate: 60 })
 
-let inflight: Promise<{
-  healthy: boolean
-  error: StorageError | null
-}> | null = null
-
-const HEALTH_CACHE_TTL = 60_000
-
-export async function checkStorageHealth(): Promise<{
-  healthy: boolean
-  error: StorageError | null
-}> {
-  const now = Date.now()
-  if (healthCache && now - healthCache.checkedAt < HEALTH_CACHE_TTL) {
-    return { healthy: healthCache.healthy, error: healthCache.healthyError }
+  try {
+    await getR2Client().send(
+      new HeadBucketCommand({ Bucket: getR2Bucket() }),
+    )
+    return { healthy: true }
+  } catch (e) {
+    const error = classifyStorageError(e)
+    console.error("R2 health check failed", error.userMessage)
+    return { healthy: false }
   }
-
-  if (inflight) return inflight
-
-  inflight = (async () => {
-    try {
-      await getR2Client().send(
-        new HeadBucketCommand({ Bucket: getR2Bucket() }),
-      )
-      healthCache = { healthy: true, checkedAt: Date.now(), healthyError: null }
-      return { healthy: true, error: null }
-    } catch (e) {
-      const error = classifyStorageError(e)
-      healthCache = { healthy: false, checkedAt: Date.now(), healthyError: error }
-      return { healthy: false, error }
-    } finally {
-      inflight = null
-    }
-  })()
-
-  return inflight
 }
 
 export async function assertStorageHealthy(): Promise<void> {
-  const { healthy, error } = await checkStorageHealth()
-  if (!healthy && error) throw error
-}
-
-export function invalidateHealthCache(): void {
-  healthCache = null
+  const { healthy } = await checkStorageHealth()
+  if (!healthy) {
+    throw new StorageUnavailableError("R2 health check failed")
+  }
 }
