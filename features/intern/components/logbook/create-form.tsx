@@ -1,12 +1,13 @@
 "use client";
 
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useStorageToast } from "@/hooks/use-storage-toast";
 
 import { LogbookFormFields } from "./form-fields";
 import type { Logbook } from "../../types/logbook-types";
@@ -50,7 +51,7 @@ export function CreateLogbookForm({
       const [eh, em] = values.endTime.split(":").map(Number);
       const duration = eh * 60 + em - (sh * 60 + sm);
       const res = await createLogbook({ ...values, duration });
-      if (!res.success) throw new Error(res.error);
+      if (!res.success) throw res;
       return res.data!;
     },
     onSuccess: (data) => {
@@ -62,18 +63,21 @@ export function CreateLogbookForm({
     },
   });
 
+  const { execute } = useStorageToast();
+
   async function onSubmit() {
     const values = form.getValues();
-    const mutationPromise = mutateAsync(values).then(() => onSuccess());
-    toast.promise(mutationPromise, {
-      loading: "Menyimpan logbook...",
-      success: "Logbook berhasil ditambahkan",
-      error: (error) =>
-        error instanceof Error ? error.message : "Gagal menambahkan logbook",
-    });
-    try {
-      await mutationPromise;
-    } catch {}
+    await execute(
+      async () => {
+        const data = await mutateAsync(values);
+        return { success: true, data } as const;
+      },
+      {
+        loading: "Menyimpan logbook...",
+        success: "Logbook berhasil ditambahkan",
+        onSuccess: () => onSuccess(),
+      },
+    );
   }
 
   return (
