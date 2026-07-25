@@ -14,6 +14,7 @@ import {
   validateFileSize,
   ALLOWED_TEMPLATE_MIME_TYPES,
 } from "@/services/storage";
+import { assertStorageHealthy, StorageError } from "@/services/storage-health";
 
 export type TemplateRow = {
   id: string;
@@ -84,6 +85,7 @@ export async function uploadTemplate(
 
     validateFileType(fileName, ALLOWED_TEMPLATE_MIME_TYPES)
     validateFileSize(buffer.length, "template")
+    await assertStorageHealthy()
 
     const r2Key = buildTemplateKey(documentType, fileName)
 
@@ -128,9 +130,11 @@ export async function uploadTemplate(
     return {
       success: false,
       error:
-        error instanceof Error
-          ? error.message
-          : "Gagal mengunggah template",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Gagal mengunggah template",
     };
   }
 }
@@ -170,6 +174,7 @@ export async function listTemplates(): Promise<
 export async function deleteTemplate(id: string): Promise<ActionResponse<void>> {
   try {
     await requirePermission({ document: ["delete"] });
+    await assertStorageHealthy();
 
     const template = await prisma.documentTemplate.findUnique({
       where: { id },
@@ -193,7 +198,11 @@ export async function deleteTemplate(id: string): Promise<ActionResponse<void>> 
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Gagal menghapus template",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Gagal menghapus template",
     };
   }
 }
