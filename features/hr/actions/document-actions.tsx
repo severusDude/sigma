@@ -15,7 +15,8 @@ import {
   buildDocumentKey,
   fetchTemplateFromR2,
   buildTemplateKey,
-} from "@/services/storage";
+} from "@/services/storage"
+import { assertStorageHealthy, StorageError } from "@/services/storage-health"
 
 export type GenerateDocResult = {
   internId: string;
@@ -194,6 +195,7 @@ export async function generateCertificates(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -268,7 +270,11 @@ export async function generateCertificates(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -290,6 +296,7 @@ export async function generateAssignmentLetter(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -367,7 +374,11 @@ export async function generateAssignmentLetter(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -388,6 +399,7 @@ export async function generateAssessmentReport(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -472,7 +484,11 @@ export async function generateAssessmentReport(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -492,6 +508,7 @@ export async function generateAttendanceReport(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -596,7 +613,11 @@ export async function generateAttendanceReport(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -616,6 +637,7 @@ export async function generateCompletionLetter(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -690,7 +712,11 @@ export async function generateCompletionLetter(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
