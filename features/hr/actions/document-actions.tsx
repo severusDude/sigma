@@ -289,6 +289,7 @@ export async function generateCertificates(
           : error instanceof Error
             ? error.message
             : "Failed to generate certificates",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -396,6 +397,7 @@ export async function generateAssignmentLetter(
           : error instanceof Error
             ? error.message
             : "Failed to generate letters",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -509,6 +511,7 @@ export async function generateAssessmentReport(
           : error instanceof Error
             ? error.message
             : "Failed to generate reports",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -642,6 +645,7 @@ export async function generateAttendanceReport(
           : error instanceof Error
             ? error.message
             : "Failed to generate reports",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -745,6 +749,7 @@ export async function generateCompletionLetter(
           : error instanceof Error
             ? error.message
             : "Failed to generate letters",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }

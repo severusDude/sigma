@@ -150,6 +150,7 @@ export async function createLogbook(
         : error instanceof Error
           ? error.message
           : "Gagal membuat logbook",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }

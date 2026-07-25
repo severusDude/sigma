@@ -135,6 +135,7 @@ export async function uploadTemplate(
           : error instanceof Error
             ? error.message
             : "Gagal mengunggah template",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -203,6 +204,7 @@ export async function deleteTemplate(id: string): Promise<ActionResponse<void>> 
           : error instanceof Error
             ? error.message
             : "Gagal menghapus template",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
