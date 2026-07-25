@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getObjectStream } from "@/services/storage";
+import { assertStorageHealthy, StorageError } from "@/services/storage-health";
 
 export async function GET(
   _request: Request,
@@ -22,6 +23,8 @@ export async function GET(
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
+  await assertStorageHealthy();
+
   try {
     const { stream, contentType } = await getObjectStream(document.fileUrl);
 
@@ -32,7 +35,10 @@ export async function GET(
         "Cache-Control": "private, max-age=3600",
       },
     });
-  } catch {
+  } catch (e) {
+    if (e instanceof StorageError) {
+      return NextResponse.json({ error: e.userMessage }, { status: 503 });
+    }
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 }
