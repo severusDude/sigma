@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import { getR2Client, getR2Bucket } from "@/lib/r2"
+import { assertStorageHealthy } from "@/services/storage-health"
 
 // ── Allowed types ────────────────────────────────────
 
@@ -117,6 +118,7 @@ export async function uploadFromBuffer(
   category: FileCategory = "generatedDocument",
 ): Promise<void> {
   validateFileSize(buffer.length, category)
+  await assertStorageHealthy()
 
   await getR2Client().send(
     new PutObjectCommand({
@@ -131,6 +133,7 @@ export async function uploadFromBuffer(
 // ── Read ─────────────────────────────────────────────
 
 export async function getObjectStream(key: string) {
+  await assertStorageHealthy()
   const { Body, ContentType } = await getR2Client().send(
     new GetObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
@@ -144,6 +147,7 @@ export async function getObjectStream(key: string) {
 }
 
 export async function getObjectBuffer(key: string): Promise<Buffer> {
+  await assertStorageHealthy()
   const { Body } = await getR2Client().send(
     new GetObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
@@ -195,6 +199,7 @@ export async function getSignedDownloadUrl(
   key: string,
   expiresIn = 3600,
 ): Promise<string> {
+  await assertStorageHealthy()
   return getSignedUrl(
     getR2Client(),
     new GetObjectCommand({ Bucket: getR2Bucket(), Key: key }),
@@ -207,6 +212,7 @@ export async function getSignedUploadUrl(
   contentType: string,
   expiresIn = 900,
 ): Promise<string> {
+  await assertStorageHealthy()
   return getSignedUrl(
     getR2Client(),
     new PutObjectCommand({
@@ -221,12 +227,14 @@ export async function getSignedUploadUrl(
 // ── Delete & metadata ───────────────────────────────
 
 export async function deleteObject(key: string): Promise<void> {
+  await assertStorageHealthy()
   await getR2Client().send(
     new DeleteObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
 }
 
 export async function objectExists(key: string): Promise<boolean> {
+  await assertStorageHealthy()
   try {
     await getR2Client().send(
       new HeadObjectCommand({ Bucket: getR2Bucket(), Key: key }),
@@ -238,6 +246,7 @@ export async function objectExists(key: string): Promise<boolean> {
 }
 
 export async function getObjectMetadata(key: string) {
+  await assertStorageHealthy()
   const { ContentLength, ContentType } = await getR2Client().send(
     new HeadObjectCommand({ Bucket: getR2Bucket(), Key: key }),
   )
