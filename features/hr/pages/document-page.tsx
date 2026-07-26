@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useStorageToast } from "@/hooks/use-storage-toast";
 
 import { SortOption } from "@/lib/types/sort";
 import { FilterCategory } from "@/lib/types/filter";
@@ -100,6 +101,7 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
   const [generating, setGenerating] = useState(false);
   const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const [completenessAlert, setCompletenessAlert] = useState<{ open: boolean; errors: CompletenessError[] }>({ open: false, errors: [] });
+  const { execute } = useStorageToast();
 
   function checkTemplateError(genData: GenerateDocResult[]): string | null {
     const firstError = genData[0]?.error;
@@ -129,7 +131,10 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     setGenerating(false);
 
     if (!result.success) {
-      toast.error(result.error || `Gagal generate ${label}`);
+      await execute(
+        () => generateFn(internIds),
+        { fallbackError: `Gagal generate ${label}` },
+      );
       return;
     }
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useActionState, useEffect, useTransition } from "react";
-import { toast } from "sonner";
+import { useState, useRef } from "react";
 import { Upload, Trash2, CheckCircle2, FileText, Info } from "lucide-react";
+
+import { useStorageToast } from "@/hooks/use-storage-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,43 +55,57 @@ export default function TemplatePage({
 }) {
   const [templates, setTemplates] = useState<TemplateRow[]>(initialTemplates);
   const [selectedType, setSelectedType] = useState("");
-  const [state, formAction, pending] = useActionState(uploadTemplate, null);
-  const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (state?.success && state.data) {
-      toast.success("Template berhasil diunggah");
-      startTransition(() => {
-        setTemplates((prev) => [state.data!, ...prev]);
-      });
-    } else if (state?.error) {
-      toast.error(state.error);
-    }
-  }, [state, startTransition]);
+  const [uploadPending, setUploadPending] = useState(false);
+  const { execute } = useStorageToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleDelete = async (id: string) => {
-    const result = await deleteTemplate(id);
-    if (result.success) {
-      toast.success("Template berhasil dihapus");
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
-    } else {
-      toast.error(result.error || "Gagal menghapus template");
-    }
+    await execute(
+      () => deleteTemplate(id),
+      {
+        loading: "Menghapus template...",
+        success: "Template berhasil dihapus",
+        onSuccess: () => {
+          setTemplates((prev) => prev.filter((t) => t.id !== id));
+        },
+      },
+    );
   };
 
   const handleSetActive = async (id: string) => {
-    const result = await setActiveTemplate(id);
-    if (result.success) {
-      toast.success("Template aktif telah diubah");
-      setTemplates((prev) =>
-        prev.map((t) => ({
-          ...t,
-          isActive: t.id === id,
-        })),
-      );
-    } else {
-      toast.error(result.error || "Gagal mengaktifkan template");
-    }
+    await execute(
+      () => setActiveTemplate(id),
+      {
+        loading: "Mengaktifkan template...",
+        success: "Template aktif telah diubah",
+        onSuccess: () => {
+          setTemplates((prev) =>
+            prev.map((t) => ({
+              ...t,
+              isActive: t.id === id,
+            })),
+          );
+        },
+      },
+    );
+  };
+
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    setUploadPending(true);
+    await execute(
+      () => uploadTemplate(null, formData),
+      {
+        loading: "Mengupload template...",
+        success: "Template berhasil diunggah",
+        onSuccess: (data) => {
+          formRef.current?.reset();
+          setTemplates((prev) => [data, ...prev]);
+        },
+      },
+    );
+    setUploadPending(false);
   };
 
   return (
@@ -113,7 +128,7 @@ export default function TemplatePage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form ref={formRef} onSubmit={handleUpload} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Nama Template</Label>
@@ -185,9 +200,9 @@ export default function TemplatePage({
                 required
               />
             </div>
-            <Button type="submit" disabled={pending} className="gap-2">
+            <Button type="submit" disabled={uploadPending} className="gap-2">
               <Upload className="size-4" />
-              {pending ? "Mengupload..." : "Upload Template"}
+              {uploadPending ? "Mengupload..." : "Upload Template"}
             </Button>
           </form>
         </CardContent>

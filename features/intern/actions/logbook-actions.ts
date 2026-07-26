@@ -12,6 +12,7 @@ import {
   type UpdateLogbookInput,
 } from "../schemas/logbook-schemas";
 import { fetchLogbooks } from "../data/logbook-data";
+import { assertStorageHealthy, StorageError } from "@/services/storage-health";
 
 export async function getLogbooks(
   query?: Parameters<typeof fetchLogbooks>[1],
@@ -103,24 +104,53 @@ export async function createLogbook(
       };
     }
 
-    const logbook = await prisma.logbook.create({
-      data: {
-        internProfileId: internProfile.id,
-        date: parsed.date,
-        activity: parsed.activity,
-        duration: parsed.duration,
-        issueId: parsed.issueId || null,
-        notes: parsed.notes || null,
-        status: "pending_review",
-      },
-      include: logbookInclude,
-    });
+    await assertStorageHealthy()
+
+    const { logbook, attachments } = await prisma.$transaction(async (tx) => {
+      const lb = await tx.logbook.create({
+        data: {
+          internProfileId: internProfile.id,
+          date: parsed.date,
+          activity: parsed.activity,
+          duration: parsed.duration,
+          issueId: parsed.issueId || null,
+          notes: parsed.notes || null,
+          status: "pending_review",
+        },
+        include: logbookInclude,
+      })
+
+      let atts: { id: string }[] = []
+      if (parsed.attachments?.length) {
+        await tx.attachment.createMany({
+          data: parsed.attachments.map((a) => ({
+            attachableType: "logbook",
+            attachableId: lb.id,
+            fileName: a.name,
+            fileUrl: a.key,
+            mimeType: a.mimeType,
+            fileSize: a.size,
+          })),
+        })
+        atts = await tx.attachment.findMany({
+          where: { attachableType: "logbook", attachableId: lb.id },
+          select: { id: true },
+        })
+      }
+
+      return { logbook: lb, attachments: atts }
+    })
 
     return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal membuat logbook",
+      error: error instanceof StorageError
+        ? error.userMessage
+        : error instanceof Error
+          ? error.message
+          : "Gagal membuat logbook",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
