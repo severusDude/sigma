@@ -31,7 +31,7 @@ const S = {
     "bg-white text-black shadow-hard hover:translate-x-1 hover:translate-y-1 hover:shadow-none",
   card: "bg-white border-2 border-black shadow-hard p-6",
   label:
-    "inline-block px-3 py-1 border-2 border-black text-xs font-body font-bold uppercase tracking-wider w-fit",
+    "inline-block px-3 py-1 border-2 border-black text-xs font-body font-bold uppercase tracking-wider w-fit text-[#000000]",
 };
 
 const stats = [
@@ -194,7 +194,7 @@ function Nav() {
           </span>
         </a>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-8 text-nb-">
           {navItems.map((item) => (
             <a
               key={item.label}
@@ -240,7 +240,7 @@ function HeroSection() {
   return (
     <section
       id="beranda"
-      className="relative pt-16 bg-[#ffe17c] border-b-2 border-black overflow-hidden md:h[100vh-26px]"
+      className="relative pt-12 bg-[#ffe17c] border-b-2 border-black overflow-hidden md:h[100vh-26px]"
     >
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.08]"
@@ -259,7 +259,7 @@ function HeroSection() {
 
             <div>
               <h1 className="font-display text-[clamp(2.5rem,5vw,4.5rem)] font-extrabold text-black leading-[0.92] tracking-tighter">
-                Sistem Magang BPS
+                Sistem Magang <br /> BPS
                 <span
                   className="block text-transparent"
                   style={{
