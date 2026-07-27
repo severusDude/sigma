@@ -189,6 +189,18 @@ async function saveDocumentRecord(
   });
 }
 
+export async function getInternDocuments(internProfileId: string) {
+  return prisma.document.findMany({
+    where: { internProfileId },
+    select: {
+      id: true,
+      documentType: true,
+      fileUrl: true,
+    },
+    orderBy: { createdAt: "desc" },
+  })
+}
+
 export async function generateCertificates(
   internIds: string[],
 ): Promise<ActionResponse<GenerateDocResult[]>> {

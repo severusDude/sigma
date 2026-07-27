@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -65,7 +65,7 @@ function checkCompleteness(row: DocumentRow, tab: DocumentType): Completeness {
 
 export function createColumns(
   actions: {
-    onView: (row: DocumentRow) => void;
+    onViewDocs: (row: DocumentRow) => void;
   },
   activeTab: DocumentType,
 ) {
@@ -118,9 +118,9 @@ export function createColumns(
 
   const actionOptions: ActionOption<DocumentRow>[] = [
     {
-      label: "Lihat Detail",
-      icon: <EyeIcon className="size-4" />,
-      onClick: (row) => actions.onView(row as DocumentRow),
+      label: "Lihat Dokumen",
+      icon: <FileText className="size-4" />,
+      onClick: (row) => actions.onViewDocs(row as DocumentRow),
     },
   ];
 
