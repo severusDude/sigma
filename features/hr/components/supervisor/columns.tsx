@@ -2,7 +2,7 @@
 
 import { EyeIcon, PencilIcon, Trash2Icon, KeyRoundIcon } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/shared/data-table/column-helpers";
 
 import type { Supervisor } from "../../types/supervisor-types";
+import { initials } from "@/lib/utils";
 
 const baseColumns: ColumnDef<Supervisor>[] = [
   {
@@ -21,9 +22,8 @@ const baseColumns: ColumnDef<Supervisor>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Avatar size="sm">
-          <AvatarFallback>
-            {row.original.name.charAt(0).toUpperCase()}
-          </AvatarFallback>
+          <AvatarImage src={row.original.image ?? ""} alt="Avatar" />
+          <AvatarFallback>{initials(row.original.name)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <span className="font-medium">{row.original.name}</span>
@@ -71,7 +71,7 @@ const baseColumns: ColumnDef<Supervisor>[] = [
       const barWidth = count === 0 ? 0 : Math.max(percentage, 4);
 
       return (
-        <div className="flex min-w-28 flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-28">
           <div className="flex items-center justify-between text-xs">
             <span className={labelColor}>
               {count}/{max}

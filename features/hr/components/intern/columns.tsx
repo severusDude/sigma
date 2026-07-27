@@ -1,8 +1,14 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon, UserXIcon, KeyRoundIcon } from "lucide-react";
+import {
+  EyeIcon,
+  PencilIcon,
+  Trash2Icon,
+  UserXIcon,
+  KeyRoundIcon,
+} from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -12,6 +18,7 @@ import {
 } from "@/components/shared/data-table/column-helpers";
 
 import type { Intern } from "../../types/intern-types";
+import { initials } from "@/lib/utils";
 
 const statusLabel: Record<string, string> = {
   active: "Aktif",
@@ -42,11 +49,18 @@ const baseColumns: ColumnDef<Intern>[] = [
     header: "Nama",
     accessorFn: (row) => row.name,
     cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="font-medium">{row.original.name}</span>
-        <span className="text-xs text-muted-foreground">
-          {row.original.internProfile!.nik}
-        </span>
+      <div className="flex items-center gap-2">
+        <Avatar size="sm">
+          <AvatarImage src={row.original.image ?? ""} alt="Avatar" />
+          <AvatarFallback>{initials(row.original.name)}</AvatarFallback>
+        </Avatar>
+
+        <div className="flex flex-col">
+          <span className="font-medium">{row.original.name}</span>
+          <span className="text-xs text-muted-foreground">
+            {row.original.internProfile!.nik}
+          </span>
+        </div>
       </div>
     ),
   },
@@ -72,9 +86,8 @@ const baseColumns: ColumnDef<Intern>[] = [
       return (
         <div className="flex items-center gap-2">
           <Avatar size="sm">
-            <AvatarFallback>
-              {supervisor.name.charAt(0).toUpperCase()}
-            </AvatarFallback>
+            <AvatarImage src={supervisor.image ?? ""} alt="Avatar" />
+            <AvatarFallback>{initials(supervisor.name)}</AvatarFallback>
           </Avatar>
           <span className="text-sm">{supervisor.name}</span>
         </div>
