@@ -33,7 +33,7 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
     navMain: [
       {
         title: "Dashboard",
-        url: "/supervisor/dashboard",
+        url: "/supervisor",
         icon: <LayoutDashboard className="size-4" />,
       },
       {
