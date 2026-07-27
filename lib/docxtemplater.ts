@@ -10,6 +10,7 @@ export type TemplateName =
   | "assessment-report"
   | "attendance-report"
   | "completion-letter"
+  | "certificate"
 
 export function getTemplatePath(name: TemplateName): string {
   return path.join(TEMPLATE_DIR, `${name}.docx`)

@@ -70,7 +70,7 @@ export async function uploadTemplate(
     }
 
     const existing = await prisma.documentTemplate.findFirst({
-      where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter" },
+      where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter" | "certificate" },
       select: { name: true, id: true },
     });
 
@@ -90,13 +90,13 @@ export async function uploadTemplate(
     const r2Key = buildTemplateKey(documentType, fileName)
 
     await prisma.documentTemplate.updateMany({
-      where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter", isActive: true },
+      where: { documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter" | "certificate", isActive: true },
       data: { isActive: false },
     });
 
     const template = await prisma.documentTemplate.create({
       data: {
-        documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter",
+        documentType: documentType as "assignment_letter" | "assessment_report" | "attendance_report" | "completion_letter" | "certificate",
         name,
         content: r2Key,
         variables: getVariablesForType(documentType),
@@ -308,6 +308,20 @@ function getVariablesForType(documentType: string): string[] {
         "tanggal_surat",
         "ttd_nama",
         "ttd_nip",
+      ];
+    case "certificate":
+      return [
+        "nama_peserta",
+        "nomor_sertifikat",
+        "nik",
+        "institusi",
+        "program",
+        "bidang",
+        "tanggal_mulai",
+        "tanggal_selesai",
+        "nama_pembimbing",
+        "nip_pembimbing",
+        "tanggal_sertifikat",
       ];
     default:
       return [];

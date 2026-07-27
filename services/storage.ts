@@ -25,6 +25,7 @@ export const ALLOWED_UPLOAD_TYPES = {
 
 export const ALLOWED_TEMPLATE_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/pdf",
 ]
 
 export const ALLOWED_UPLOAD_MIME_TYPES = Object.keys(ALLOWED_UPLOAD_TYPES)
