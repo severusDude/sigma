@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   StatBlock,
   StatContent,
@@ -38,15 +39,15 @@ export default function DashboardPage({ data }: DashboardPageProps) {
   const hasWarning = data.warningInterns.length > 0;
 
   return (
-    <div className="space-y-6">
-      <div>
+    <ScrollArea className="w-full max-h-[calc(100vh-5rem)] mx-auto space-y-6 pr-2">
+      <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard HR</h1>
         <p className="text-sm text-muted-foreground">
           Ringkasan operasional magang BPS Kota Tasikmalaya
         </p>
-      </div>
+      </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 mb-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatBlock
           mode="range"
           data={{
@@ -137,12 +138,15 @@ export default function DashboardPage({ data }: DashboardPageProps) {
         </StatBlock>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 mb-6 lg:grid-cols-2">
         <DeptBarChart data={data.deptDistribution} />
+        {/* TODO: fix label animation appearing from top left corner of the element */}
         <StatusPieChart data={data.internStatusCounts} />
       </div>
 
-      <FillRateChart data={data.weeklyFillRates} />
+      <div className="mb-6">
+        <FillRateChart data={data.weeklyFillRates} />
+      </div>
 
       {hasWarning && (
         <Card>
@@ -184,6 +188,6 @@ export default function DashboardPage({ data }: DashboardPageProps) {
           <p className="text-sm text-muted-foreground">Belum ada data</p>
         </div>
       )}
-    </div>
+    </ScrollArea>
   );
 }

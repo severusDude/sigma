@@ -37,7 +37,7 @@ export function FillRateChart({ data }: FillRateChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="aspect-[3/1]">
           <AreaChart data={data}>
             <CartesianGrid vertical={false} />
             <XAxis

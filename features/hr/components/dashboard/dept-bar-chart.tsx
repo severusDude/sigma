@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts";
 import {
   Card,
   CardContent,
@@ -15,6 +15,14 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import type { DeptDistribution } from "../../types/dashboard-types";
+
+const colors = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 const chartConfig = {
   count: {
@@ -46,7 +54,11 @@ export function DeptBarChart({ data }: DeptBarChartProps) {
             />
             <YAxis tickLine={false} tickMargin={10} axisLine={false} />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="count" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+              {data.map((_, index) => (
+                <Cell key={index} fill={colors[index % colors.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>
