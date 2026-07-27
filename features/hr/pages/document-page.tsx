@@ -32,8 +32,9 @@ import {
   generateCompletionLetter,
   validateInternsCompleteness,
   getInternDocuments,
+  filterExistingDocuments,
 } from "../actions/document-actions";
-import type { CompletenessError } from "../actions/document-actions";
+import type { CompletenessError, ExistingDocInfo } from "../actions/document-actions";
 import { DocumentDialog } from "../components/document/document-dialog";
 
 export type ActiveTemplateInfo = {
@@ -107,6 +108,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
   }>({ open: false, internName: "", documents: [] });
   const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const [completenessAlert, setCompletenessAlert] = useState<{ open: boolean; errors: CompletenessError[] }>({ open: false, errors: [] });
+  const [duplicateAlert, setDuplicateAlert] = useState<{
+    open: boolean
+    label: string
+    duplicates: ExistingDocInfo[]
+    remainingIds: string[]
+  }>({ open: false, label: "", duplicates: [], remainingIds: [] });
   const { execute } = useStorageToast();
 
   function checkTemplateError(genData: GenerateDocResult[]): string | null {
@@ -120,6 +127,40 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     }
     return null;
   }
+
+  const handleGenerateBatch = async (ids: string[], label: string) => {
+    const generateFn = generateActions[tab];
+
+    setGenerating(true);
+    const result = await generateFn(ids);
+    setGenerating(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? `Gagal generate ${label}`);
+      return;
+    }
+
+    const genData = result.data!;
+    const templateMsg = checkTemplateError(genData);
+    if (templateMsg) {
+      setTemplateAlert({ open: true, message: templateMsg });
+      return;
+    }
+
+    const docSuccess = genData.filter((r) => !r.error);
+    const docFailed = genData.filter((r) => r.error);
+
+    if (docSuccess.length > 0 && docFailed.length === 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+    } else if (docSuccess.length > 0 && docFailed.length > 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+      toast.error(`${docFailed.length} ${label} gagal: ${docFailed[0].error}`);
+    } else {
+      toast.error(genData[0]?.error ?? `Gagal generate ${label}`);
+    }
+
+    router.refresh();
+  };
 
   const handleViewDocs = async (row: DocumentRow) => {
     const internProfileId = row.internProfile?.id
@@ -139,8 +180,15 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
       return;
     }
 
+    const { duplicates, cleanIds } = await filterExistingDocuments(internIds, tab);
+
+    if (duplicates.length > 0) {
+      setDuplicateAlert({ open: true, label, duplicates, remainingIds: cleanIds });
+      if (cleanIds.length === 0) return;
+    }
+
     setGenerating(true);
-    const result = await generateFn(internIds);
+    const result = await generateFn(cleanIds.length > 0 ? cleanIds : internIds);
     setGenerating(false);
 
     if (!result.success) {
@@ -239,6 +287,49 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setTemplateAlert({ open: false, message: "" })}>
               Mengerti
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={duplicateAlert.open}
+        onOpenChange={(open) => setDuplicateAlert((prev) => ({ ...prev, open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Dokumen Sudah Ada</AlertDialogTitle>
+            <AlertDialogDescription>
+              {duplicateAlert.duplicates.length === 1
+                ? `Peserta berikut sudah memiliki ${duplicateAlert.label}:`
+                : `${duplicateAlert.duplicates.length} peserta berikut sudah memiliki ${duplicateAlert.label}:`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3 py-2">
+            {duplicateAlert.duplicates.map((dup, i) => (
+              <div key={i} className="rounded-lg border p-3 text-sm">
+                <p className="font-semibold">{dup.internName}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  No: {dup.docNumber} &middot; Status: {dup.status}
+                </p>
+              </div>
+            ))}
+            {duplicateAlert.remainingIds.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Sisa {duplicateAlert.remainingIds.length} peserta akan diproses.
+              </p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setDuplicateAlert((prev) => ({ ...prev, open: false }))
+                if (duplicateAlert.remainingIds.length > 0) {
+                  handleGenerateBatch(duplicateAlert.remainingIds, duplicateAlert.label)
+                }
+              }}
+            >
+              {duplicateAlert.remainingIds.length > 0 ? "Lanjutkan" : "Mengerti"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

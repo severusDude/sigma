@@ -1,30 +1,26 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import localFont from "next/font/local";
 
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ReactQueryProvider from "@/providers/react-query-provider";
-import {
-  JetBrains_Mono,
-  Plus_Jakarta_Sans,
-  Source_Serif_4,
-} from "next/font/google";
 
 import "./globals.css";
 
-const fontSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+const fontSans = localFont({
+  src: "../public/fonts/Inter.ttf",
   variable: "--font-sans",
 });
 
-const fontSerif = Source_Serif_4({
-  subsets: ["latin"],
+const fontSerif = localFont({
+  src: "../public/fonts/LibreBaskerville.ttf",
   variable: "--font-serif",
 });
 
-const fontMono = JetBrains_Mono({
-  subsets: ["latin"],
+const fontMono = localFont({
+  src: "../public/fonts/Inter.ttf",
   variable: "--font-mono",
 });
 
