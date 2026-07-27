@@ -23,6 +23,7 @@ export async function getAssessmentsForHR(
 
     const data = await fetchAssessmentsForHR({
       status: parsed.status,
+      internStatus: parsed.internStatus,
       supervisorId: parsed.supervisorId,
       search: parsed.search,
     })

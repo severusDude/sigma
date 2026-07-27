@@ -2,6 +2,7 @@ import z from "zod";
 
 export const getAssessmentsSchema = z.object({
   status: z.string().optional(),
+  internStatus: z.string().optional(),
   supervisorId: z.string().optional(),
   search: z.string().optional(),
 });

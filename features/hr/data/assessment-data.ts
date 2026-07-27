@@ -6,6 +6,7 @@ import type { HrAssessmentListItem, HrAssessmentDetail } from "../types/assessme
 
 export async function fetchAssessmentsForHR(input: {
   status?: string;
+  internStatus?: string;
   supervisorId?: string;
   search?: string;
 }) {
@@ -18,6 +19,10 @@ export async function fetchAssessmentsForHR(input: {
 
   if (input.status && input.status !== "all") {
     where.status = input.status;
+  }
+
+  if (input.internStatus && input.internStatus !== "all") {
+    where.internProfile = { status: input.internStatus };
   }
 
   if (input.supervisorId) {
@@ -39,6 +44,7 @@ export async function fetchAssessmentsForHR(input: {
       internName: internUser.name,
       internNim: a.internProfile.nik,
       institution: a.internProfile.institution,
+      internProfileStatus: a.internProfile.status,
       supervisorName: supervisorUser.name,
       supervisorNip: a.supervisor.nip,
       status: a.status,

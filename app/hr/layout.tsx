@@ -1,9 +1,10 @@
-import { Suspense } from "react"
+import { Suspense } from "react";
 
-import SidebarLayout from "@/components/layout/sidebar-layout"
-import { requireAuth } from "@/helpers/guard"
-import { Role } from "@/generated/prisma/enums"
-import type { SidebarData } from "@/components/layout/sidebar-types"
+import SidebarLayout from "@/components/layout/sidebar-layout";
+import { requireAuth } from "@/helpers/guard";
+import { Role } from "@/generated/prisma/enums";
+import type { SidebarData } from "@/components/layout/sidebar-types";
+import { getOptimizedSrc } from "@/lib/image-loader";
 import {
   LayoutDashboard,
   Users,
@@ -13,16 +14,16 @@ import {
   ClipboardCheck,
   Sigma,
   FileSpreadsheet,
-} from "lucide-react"
+} from "lucide-react";
 
 async function HrSidebar({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.hr])
+  const { user } = await requireAuth([Role.admin, Role.hr]);
 
   const sidebar: SidebarData = {
     user: {
       name: user.name,
       email: user.email,
-      avatar: user.image ?? "",
+      image: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {
@@ -34,7 +35,7 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
     navMain: [
       {
         title: "Dashboard",
-        url: "/hr/dashboard",
+        url: "/hr",
         icon: <LayoutDashboard className="size-4" />,
         isActive: true,
       },
@@ -69,9 +70,9 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
         icon: <BarChart3 className="size-4" />,
       },
     ],
-  }
+  };
 
-  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>;
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -79,5 +80,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <Suspense>
       <HrSidebar>{children}</HrSidebar>
     </Suspense>
-  )
+  );
 }

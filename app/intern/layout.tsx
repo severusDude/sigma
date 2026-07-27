@@ -1,9 +1,10 @@
-import { Suspense } from "react"
+import { Suspense } from "react";
 
-import SidebarLayout from "@/components/layout/sidebar-layout"
-import { requireAuth } from "@/helpers/guard"
-import { Role } from "@/generated/prisma/enums"
-import type { SidebarData } from "@/components/layout/sidebar-types"
+import SidebarLayout from "@/components/layout/sidebar-layout";
+import { requireAuth } from "@/helpers/guard";
+import { Role } from "@/generated/prisma/enums";
+import type { SidebarData } from "@/components/layout/sidebar-types";
+import { getOptimizedSrc } from "@/lib/image-loader";
 import {
   LayoutDashboard,
   BookOpen,
@@ -12,16 +13,16 @@ import {
   FileText,
   ClipboardCheck,
   Sigma,
-} from "lucide-react"
+} from "lucide-react";
 
 async function InternSidebar({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin, Role.intern])
+  const { user } = await requireAuth([Role.admin, Role.intern]);
 
   const sidebar: SidebarData = {
     user: {
       name: user.name,
       email: user.email,
-      avatar: user.image ?? "",
+      image: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {
@@ -30,10 +31,11 @@ async function InternSidebar({ children }: { children: React.ReactNode }) {
         role: "BPS Kota Tasikmalaya",
       },
     ],
+    profileUrl: "/intern/profile",
     navMain: [
       {
         title: "Dashboard",
-        url: "/intern/dashboard",
+        url: "/intern",
         icon: <LayoutDashboard className="size-4" />,
       },
       {
@@ -62,9 +64,9 @@ async function InternSidebar({ children }: { children: React.ReactNode }) {
         icon: <ClipboardCheck className="size-4" />,
       },
     ],
-  }
+  };
 
-  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>;
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -72,5 +74,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <Suspense>
       <InternSidebar>{children}</InternSidebar>
     </Suspense>
-  )
+  );
 }

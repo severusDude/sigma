@@ -1,4 +1,17 @@
 export const VARIABLE_INFO: Record<string, { name: string; description: string; isLoop?: boolean }[]> = {
+  certificate: [
+    { name: "nama_peserta", description: "Nama lengkap peserta magang" },
+    { name: "nomor_sertifikat", description: "Nomor sertifikat (digenerate otomatis)" },
+    { name: "nik", description: "NIK peserta magang" },
+    { name: "institusi", description: "Asal institusi peserta" },
+    { name: "program", description: "Program magang (tetap: \"Magang\")" },
+    { name: "bidang", description: "Bidang penempatan peserta" },
+    { name: "tanggal_mulai", description: "Tanggal mulai magang" },
+    { name: "tanggal_selesai", description: "Tanggal selesai magang" },
+    { name: "nama_pembimbing", description: "Nama pembimbing lapangan" },
+    { name: "nip_pembimbing", description: "NIP pembimbing lapangan" },
+    { name: "tanggal_sertifikat", description: "Tanggal sertifikat diterbitkan" },
+  ],
   assignment_letter: [
     { name: "nomor_surat", description: "Nomor surat digenerate otomatis" },
     { name: "nama_peserta", description: "Nama lengkap peserta magang" },

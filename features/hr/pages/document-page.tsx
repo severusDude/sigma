@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useStorageToast } from "@/hooks/use-storage-toast";
 
 import { SortOption } from "@/lib/types/sort";
 import { FilterCategory } from "@/lib/types/filter";
@@ -30,9 +31,10 @@ import {
   generateAttendanceReport,
   generateCompletionLetter,
   validateInternsCompleteness,
+  getInternDocuments,
 } from "../actions/document-actions";
 import type { CompletenessError } from "../actions/document-actions";
-import { PreviewDialog } from "@/components/shared/document";
+import { DocumentDialog } from "../components/document/document-dialog";
 
 export type ActiveTemplateInfo = {
   documentType: string;
@@ -98,8 +100,14 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
   const router = useRouter();
   const [previewDocId, setPreviewDocId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [docDialog, setDocDialog] = useState<{
+    open: boolean
+    internName: string
+    documents: { id: string; documentType: string; fileUrl: string | null }[]
+  }>({ open: false, internName: "", documents: [] });
   const [templateAlert, setTemplateAlert] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const [completenessAlert, setCompletenessAlert] = useState<{ open: boolean; errors: CompletenessError[] }>({ open: false, errors: [] });
+  const { execute } = useStorageToast();
 
   function checkTemplateError(genData: GenerateDocResult[]): string | null {
     const firstError = genData[0]?.error;
@@ -111,6 +119,13 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
       return firstError.replace("TEMPLATE_NOT_FOUND:", "");
     }
     return null;
+  }
+
+  const handleViewDocs = async (row: DocumentRow) => {
+    const internProfileId = row.internProfile?.id
+    if (!internProfileId) return
+    const docs = await getInternDocuments(internProfileId)
+    setDocDialog({ open: true, internName: row.name, documents: docs })
   }
 
   const handleGenerate = async (rows: DocumentRow | DocumentRow[]) => {
@@ -129,7 +144,7 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     setGenerating(false);
 
     if (!result.success) {
-      toast.error(result.error || `Gagal generate ${label}`);
+      toast.error(result.error ?? `Gagal generate ${label}`);
       return;
     }
 
@@ -141,11 +156,15 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     }
 
     const docSuccess = genData.filter((r) => !r.error);
+    const docFailed = genData.filter((r) => r.error);
 
-    if (docSuccess.length > 0) {
-      toast.success(
-        `${docSuccess.length} ${label} berhasil dibuat`,
-      );
+    if (docSuccess.length > 0 && docFailed.length === 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+    } else if (docSuccess.length > 0 && docFailed.length > 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+      toast.error(`${docFailed.length} ${label} gagal: ${docFailed[0].error}`);
+    } else {
+      toast.error(genData[0]?.error ?? `Gagal generate ${label}`);
     }
 
     router.refresh();
@@ -161,7 +180,7 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
 
   const columns = createColumns(
     {
-      onView: (row) => setPreviewDocId(row.id),
+      onViewDocs: handleViewDocs,
     },
     tab,
   );
@@ -204,7 +223,12 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
           </TabsContent>
         ))}
       </Tabs>
-      {/*<PreviewDialog docId={previewDocId} onClose={() => setPreviewDocId(null)} />*/}
+      <DocumentDialog
+        internName={docDialog.internName}
+        documents={docDialog.documents}
+        open={docDialog.open}
+        onClose={() => setDocDialog((prev) => ({ ...prev, open: false }))}
+      />
 
       <AlertDialog open={templateAlert.open} onOpenChange={(open) => setTemplateAlert((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>

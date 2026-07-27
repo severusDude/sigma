@@ -2,14 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorize";
-import { renderToFile } from "@react-pdf/renderer";
 import { generateDocumentNumber } from "../utils/document-number";
-import { InternshipCertificate } from "../components/document/templates/certificates";
 import { generateFromTemplate } from "@/lib/docxtemplater";
+import { generateCertificatePdf, type TextField } from "@/lib/pdf-certificate";
 import type { ActionResponse } from "@/lib/types";
 import { DocumentType } from "@/generated/prisma/client";
 import path from "path";
 import fs from "fs";
+import {
+  uploadFromBuffer,
+  buildDocumentKey,
+  fetchTemplateFromR2,
+  buildTemplateKey,
+} from "@/services/storage"
+import { assertStorageHealthy, StorageError } from "@/services/storage-health"
 
 export type GenerateDocResult = {
   internId: string;
@@ -163,12 +169,6 @@ function formatDateShort(d: Date) {
   }).format(new Date(d));
 }
 
-function buildOutputPath(docNumber: string, subDir: string): string {
-  const fullPath = path.join(process.cwd(), "generated", subDir, `${docNumber}.docx`);
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  return fullPath;
-}
-
 async function saveDocumentRecord(
   internProfileId: string,
   documentType: string,
@@ -189,11 +189,44 @@ async function saveDocumentRecord(
   });
 }
 
+export async function getInternDocuments(internProfileId: string) {
+  return prisma.document.findMany({
+    where: { internProfileId },
+    select: {
+      id: true,
+      documentType: true,
+      fileUrl: true,
+    },
+    orderBy: { createdAt: "desc" },
+  })
+}
+
 export async function generateCertificates(
   internIds: string[],
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy();
+
+    const activeTemplate = await prisma.documentTemplate.findFirst({
+      where: { documentType: "certificate", isActive: true },
+      select: { content: true, variables: true },
+    });
+
+    if (!activeTemplate) {
+      throw new Error(
+        "TEMPLATE_NOT_FOUND:Template sertifikat belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.",
+      );
+    }
+
+    const fieldConfigs = JSON.parse(JSON.stringify(activeTemplate.variables)) as TextField[];
+
+    let templatePdfBuffer: Buffer | null = null;
+    try {
+      templatePdfBuffer = await fetchTemplateFromR2(activeTemplate.content);
+    } catch {
+      throw new Error("Gagal memuat template sertifikat dari penyimpanan.");
+    }
 
     const results: GenerateDocResult[] = [];
 
@@ -217,42 +250,53 @@ export async function generateCertificates(
 
         const docNumber = await generateDocumentNumber("CERT");
 
-        const outputPath = path.join(
-          process.cwd(),
-          "generated",
-          "certificates",
-          `${docNumber}.pdf`,
-        );
-        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        const fieldValues: Record<string, string> = {
+          nama_peserta: user.name,
+          nomor_sertifikat: docNumber,
+          nik: intern.nik ?? "",
+          institusi: intern.institution ?? "",
+          program: "Magang",
+          bidang: intern.department?.name ?? "",
+          tanggal_mulai: formatDate(intern.periodStart),
+          tanggal_selesai: formatDate(intern.periodEnd),
+          nama_pembimbing: supervisor?.user?.name ?? "",
+          nip_pembimbing: supervisor?.nip ?? "",
+          tanggal_sertifikat: formatDate(new Date()),
+        };
 
-        await renderToFile(
-          <InternshipCertificate
-            recipientName={user.name}
-            organization="Badan Pusat Statistik Kota Tasikmalaya"
-            dateRange={`${formatDate(intern.periodStart)} — ${formatDate(intern.periodEnd)}`}
-            signerTitle={
-              supervisor
-                ? [supervisor.field]
-                : ["Kepala Badan Pusat Statistik", "Kota Tasikmalaya"]
-            }
-            signerName={supervisor?.user?.name ?? "Dr. Ir. Zulkipli, M.Si."}
-          />,
-          outputPath,
+        const textFields: TextField[] = fieldConfigs.map((cfg) => ({
+          name: cfg.name,
+          value: fieldValues[cfg.name] ?? "",
+          x: cfg.x,
+          y: cfg.y,
+          size: cfg.size,
+          font: cfg.font ?? "Inter",
+          align: cfg.align ?? "left",
+          color: cfg.color,
+        }));
+
+        const pdfBuffer = await generateCertificatePdf(
+          templatePdfBuffer,
+          textFields,
         );
+
+        const r2Key = buildDocumentKey("certificates", docNumber, ".pdf");
 
         await saveDocumentRecord(
           intern.id,
           "certificate",
           docNumber,
           "Sertifikat Magang",
-          outputPath,
+          r2Key,
         );
+
+        await uploadFromBuffer(r2Key, pdfBuffer, "application/pdf");
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -267,7 +311,11 @@ export async function generateCertificates(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -277,9 +325,12 @@ export async function generateCertificates(
     return {
       success: false,
       error:
-        error instanceof Error
-          ? error.message
-          : "Failed to generate certificates",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate certificates",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -289,6 +340,7 @@ export async function generateAssignmentLetter(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -330,25 +382,29 @@ export async function generateAssignmentLetter(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "assignment-letters");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("assignment-letters", docNumber, ".docx");
 
         await saveDocumentRecord(
           intern.id,
           "assignment_letter",
           docNumber,
           "Surat Tugas Magang",
-          outputPath,
+          r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
-        console.log("ini error bang", e)
         const name =
           (
             await prisma.user.findUnique({
@@ -361,18 +417,26 @@ export async function generateAssignmentLetter(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
 
     return { success: true, data: results };
   } catch (error) {
-    console.log("ini error", error)
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate letters",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate letters",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -382,6 +446,7 @@ export async function generateAssessmentReport(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -431,22 +496,27 @@ export async function generateAssessmentReport(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "assessment-reports");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("assessment-reports", docNumber, ".docx");
 
         await saveDocumentRecord(
           intern.id,
           "assessment_report",
           docNumber,
           "Laporan Penilaian Magang",
-          outputPath,
+          r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -461,7 +531,11 @@ export async function generateAssessmentReport(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -471,7 +545,12 @@ export async function generateAssessmentReport(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate reports",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate reports",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -481,6 +560,7 @@ export async function generateAttendanceReport(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -550,22 +630,27 @@ export async function generateAttendanceReport(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "attendance-reports");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("attendance-reports", docNumber, ".docx");
 
         await saveDocumentRecord(
           intern.id,
           "attendance_report",
           docNumber,
           "Rekap Absensi Magang",
-          outputPath,
+          r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -580,7 +665,11 @@ export async function generateAttendanceReport(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -590,7 +679,12 @@ export async function generateAttendanceReport(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate reports",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate reports",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
@@ -600,6 +694,7 @@ export async function generateCompletionLetter(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
+    await assertStorageHealthy()
 
     const results: GenerateDocResult[] = [];
 
@@ -639,22 +734,27 @@ export async function generateCompletionLetter(
         };
 
         const buf = generateFromTemplate(templateBuffer, data);
-        const outputPath = buildOutputPath(docNumber, "completion-letters");
-        fs.writeFileSync(outputPath, buf);
+        const r2Key = buildDocumentKey("completion-letters", docNumber, ".docx");
 
         await saveDocumentRecord(
           intern.id,
           "completion_letter",
           docNumber,
           "Surat Keterangan Selesai Magang",
-          outputPath,
+          r2Key,
+        );
+
+        await uploadFromBuffer(
+          r2Key,
+          buf,
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         );
 
         results.push({
           internId,
           internName: user.name,
           docNumber,
-          filePath: outputPath,
+          filePath: r2Key,
         });
       } catch (e) {
         const name =
@@ -669,7 +769,11 @@ export async function generateCompletionLetter(
           internName: name,
           docNumber: null,
           filePath: null,
-          error: e instanceof Error ? e.message : "Unknown error",
+          error: e instanceof StorageError
+            ? e.userMessage
+            : e instanceof Error
+              ? e.message
+              : "Unknown error",
         });
       }
     }
@@ -679,12 +783,18 @@ export async function generateCompletionLetter(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to generate letters",
+        error instanceof StorageError
+          ? error.userMessage
+          : error instanceof Error
+            ? error.message
+            : "Failed to generate letters",
+      retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }
 }
 
 const DOCUMENT_LABELS: Record<string, string> = {
+  certificate: "Sertifikat",
   assignment_letter: "Surat Tugas",
   assessment_report: "Laporan Penilaian",
   attendance_report: "Rekap Absensi",
@@ -695,24 +805,25 @@ async function getActiveTemplate(documentType: string): Promise<Buffer> {
   const active = await prisma.documentTemplate.findFirst({
     where: { documentType: documentType as DocumentType, isActive: true },
     select: { content: true },
-  });
+  })
 
-  if (!active) {
-    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
-    throw new Error(`TEMPLATE_NOT_FOUND:Template ${label} belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.`);
+  if (active) {
+    try {
+      return await fetchTemplateFromR2(active.content)
+    } catch {
+      // R2 unavailable — fall through to local built-in
+    }
   }
 
-  const uploadedPath = path.resolve(active.content);
-  if (!fs.existsSync(uploadedPath)) {
-    const label = DOCUMENT_LABELS[documentType] ?? "Dokumen";
-    throw new Error(
-      `TEMPLATE_NOT_FOUND:File template ${label} tidak ditemukan di "${uploadedPath}". ` +
-      `Path di database: "${active.content}". ` +
-      `Silahkan upload ulang template di menu Kelola Template.`
-    );
+  const localPath = path.join(process.cwd(), "templates", "hr", `${documentType}.docx`)
+  if (fs.existsSync(localPath)) {
+    return fs.readFileSync(localPath)
   }
 
-  return fs.readFileSync(uploadedPath);
+  const label = DOCUMENT_LABELS[documentType] ?? "Dokumen"
+  throw new Error(
+    `TEMPLATE_NOT_FOUND:Template ${label} belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.`,
+  )
 }
 
 function attendanceStatusLabel(status: string): string {

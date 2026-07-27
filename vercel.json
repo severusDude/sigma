@@ -1,4 +1,10 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm postinstall && next build"
+  "buildCommand": "pnpm postinstall && next build",
+  "crons": [
+    {
+      "path": "/api/cron/deactivate-interns",
+      "schedule": "0 23 * * *"
+    }
+  ]
 }

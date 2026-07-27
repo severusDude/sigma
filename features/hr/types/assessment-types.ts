@@ -19,6 +19,7 @@ export interface HrAssessmentListItem {
   internName: string;
   internNim: string;
   institution: string;
+  internProfileStatus: string;
   supervisorName: string;
   supervisorNip: string;
   status: string;

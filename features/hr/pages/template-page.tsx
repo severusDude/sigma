@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useActionState, useEffect, useTransition } from "react";
-import { toast } from "sonner";
-import { Upload, Trash2, CheckCircle2, FileText, Info } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, Trash2, CheckCircle2, FileText, Info, Image } from "lucide-react";
+
+import { useStorageToast } from "@/hooks/use-storage-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,11 @@ import {
   setActiveTemplate,
   type TemplateRow,
 } from "../actions/template-actions";
+import {
+  deleteCertificateTemplate,
+  listCertificateTemplates,
+  type CertificateTemplateInfo,
+} from "../actions/certificate-template-actions";
 import { VARIABLE_INFO } from "../data/variable-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +40,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import CertificateUpload from "../components/certificate/certificate-upload";
+import FieldConfigurator from "../components/certificate/field-configurator";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   certificate: "Sertifikat",
@@ -54,43 +62,95 @@ export default function TemplatePage({
 }) {
   const [templates, setTemplates] = useState<TemplateRow[]>(initialTemplates);
   const [selectedType, setSelectedType] = useState("");
-  const [state, formAction, pending] = useActionState(uploadTemplate, null);
-  const [, startTransition] = useTransition();
+  const [uploadPending, setUploadPending] = useState(false);
+  const { execute } = useStorageToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state?.success && state.data) {
-      toast.success("Template berhasil diunggah");
-      startTransition(() => {
-        setTemplates((prev) => [state.data!, ...prev]);
-      });
-    } else if (state?.error) {
-      toast.error(state.error);
-    }
-  }, [state, startTransition]);
+  const [certTemplates, setCertTemplates] = useState<CertificateTemplateInfo[]>([]);
+  const [showCertUpload, setShowCertUpload] = useState(false);
+  const [certConfigTarget, setCertConfigTarget] = useState<CertificateTemplateInfo | null>(null);
 
-  const handleDelete = async (id: string) => {
-    const result = await deleteTemplate(id);
-    if (result.success) {
-      toast.success("Template berhasil dihapus");
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
-    } else {
-      toast.error(result.error || "Gagal menghapus template");
+  const loadCertTemplates = async () => {
+    const result = await listCertificateTemplates();
+    if (result.success && result.data) {
+      setCertTemplates(result.data);
     }
   };
 
+  useEffect(() => {
+    loadCertTemplates();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    await execute(
+      () => deleteTemplate(id),
+      {
+        loading: "Menghapus template...",
+        success: "Template berhasil dihapus",
+        onSuccess: () => {
+          setTemplates((prev) => prev.filter((t) => t.id !== id));
+        },
+      },
+    );
+  };
+
   const handleSetActive = async (id: string) => {
-    const result = await setActiveTemplate(id);
-    if (result.success) {
-      toast.success("Template aktif telah diubah");
-      setTemplates((prev) =>
-        prev.map((t) => ({
-          ...t,
-          isActive: t.id === id,
-        })),
-      );
-    } else {
-      toast.error(result.error || "Gagal mengaktifkan template");
-    }
+    await execute(
+      () => setActiveTemplate(id),
+      {
+        loading: "Mengaktifkan template...",
+        success: "Template aktif telah diubah",
+        onSuccess: () => {
+          setTemplates((prev) =>
+            prev.map((t) => ({
+              ...t,
+              isActive: t.id === id,
+            })),
+          );
+        },
+      },
+    );
+  };
+
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    setUploadPending(true);
+    await execute(
+      () => uploadTemplate(null, formData),
+      {
+        loading: "Mengupload template...",
+        success: "Template berhasil diunggah",
+        onSuccess: (data) => {
+          formRef.current?.reset();
+          setTemplates((prev) => [data, ...prev]);
+        },
+      },
+    );
+    setUploadPending(false);
+  };
+
+  const handleCertUploadComplete = (template: CertificateTemplateInfo) => {
+    setShowCertUpload(false);
+    setCertConfigTarget(template);
+  };
+
+  const handleCertConfigComplete = () => {
+    setCertConfigTarget(null);
+    loadCertTemplates();
+  };
+
+  const handleDeleteCert = async (id: string) => {
+    await execute(
+      () => deleteCertificateTemplate(id),
+      {
+        loading: "Menghapus template...",
+        success: "Template berhasil dihapus",
+        onSuccess: () => {
+          setCertTemplates((prev) => prev.filter((t) => t.id !== id));
+        },
+      },
+    );
   };
 
   return (
@@ -100,7 +160,7 @@ export default function TemplatePage({
           Kelola Template Dokumen
         </h1>
         <p className="text-sm text-muted-foreground">
-          Upload dan kelola template .docx untuk dokumen HR
+          Upload dan kelola template untuk dokumen HR
         </p>
       </div>
 
@@ -113,7 +173,7 @@ export default function TemplatePage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form ref={formRef} onSubmit={handleUpload} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Nama Template</Label>
@@ -185,11 +245,102 @@ export default function TemplatePage({
                 required
               />
             </div>
-            <Button type="submit" disabled={pending} className="gap-2">
+            <Button type="submit" disabled={uploadPending} className="gap-2">
               <Upload className="size-4" />
-              {pending ? "Mengupload..." : "Upload Template"}
+              {uploadPending ? "Mengupload..." : "Upload Template"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Template Sertifikat</CardTitle>
+              <CardDescription>
+                Upload desain sertifikat dari Canva (export PDF), lalu atur posisi setiap field teks
+              </CardDescription>
+            </div>
+            {!showCertUpload && !certConfigTarget && (
+              <Button variant="outline" onClick={() => setShowCertUpload(true)} className="gap-2">
+                <Image className="size-4" />
+                Upload Template Sertifikat
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {certConfigTarget ? (
+            <FieldConfigurator
+              template={certConfigTarget}
+              onComplete={handleCertConfigComplete}
+            />
+          ) : showCertUpload ? (
+            <div className="space-y-4">
+              <CertificateUpload onUploadComplete={handleCertUploadComplete} />
+              <Button variant="ghost" size="sm" onClick={() => setShowCertUpload(false)}>
+                Batal
+              </Button>
+            </div>
+          ) : certTemplates.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              Belum ada template sertifikat. Klik &ldquo;Upload Template Sertifikat&rdquo; untuk memulai.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {certTemplates.map((template) => (
+                <div
+                  key={template.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <Image className="size-5 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{template.name}</span>
+                        {template.isActive ? (
+                          <Badge className="bg-green-600">Aktif</Badge>
+                        ) : (
+                          <Badge variant="secondary">Tidak Aktif</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Sertifikat
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {template.variables.length} field teks
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!template.isActive && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCertConfigTarget(template);
+                        }}
+                        className="gap-1"
+                      >
+                        <CheckCircle2 className="size-3" />
+                      Atur Posisi
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCert(template.id)}
+                      className="text-destructive gap-1"
+                    >
+                      <Trash2 className="size-3" />
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

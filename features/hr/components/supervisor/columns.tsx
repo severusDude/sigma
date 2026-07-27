@@ -1,8 +1,8 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { EyeIcon, PencilIcon, Trash2Icon, KeyRoundIcon } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/shared/data-table/column-helpers";
 
 import type { Supervisor } from "../../types/supervisor-types";
+import { initials } from "@/lib/utils";
 
 const baseColumns: ColumnDef<Supervisor>[] = [
   {
@@ -21,9 +22,8 @@ const baseColumns: ColumnDef<Supervisor>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Avatar size="sm">
-          <AvatarFallback>
-            {row.original.name.charAt(0).toUpperCase()}
-          </AvatarFallback>
+          <AvatarImage src={row.original.image ?? ""} alt="Avatar" />
+          <AvatarFallback>{initials(row.original.name)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <span className="font-medium">{row.original.name}</span>
@@ -43,8 +43,7 @@ const baseColumns: ColumnDef<Supervisor>[] = [
   {
     id: "internCount",
     header: "Jumlah Intern",
-    accessorFn: (row) =>
-      row.supervisorProfile?.internAssignments?.length ?? 0,
+    accessorFn: (row) => row.supervisorProfile?.internAssignments?.length ?? 0,
     cell: ({ row }) => {
       const count =
         row.original.supervisorProfile?.internAssignments?.length ?? 0;
@@ -69,11 +68,10 @@ const baseColumns: ColumnDef<Supervisor>[] = [
         labelColor = "text-red-600";
       }
 
-      const barWidth =
-        count === 0 ? 0 : Math.max(percentage, 4);
+      const barWidth = count === 0 ? 0 : Math.max(percentage, 4);
 
       return (
-        <div className="flex min-w-28 flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-28">
           <div className="flex items-center justify-between text-xs">
             <span className={labelColor}>
               {count}/{max}
@@ -93,10 +91,12 @@ const baseColumns: ColumnDef<Supervisor>[] = [
   {
     id: "isActive",
     header: "Status",
-    accessorFn: (row) => row.supervisorProfile?.isActive,
+    accessorFn: (row) => row.supervisorProfile?.isActive.toString(),
     cell: ({ row }) => (
       <Badge
-        variant={row.original.supervisorProfile!.isActive ? "default" : "outline"}
+        variant={
+          row.original.supervisorProfile!.isActive ? "default" : "outline"
+        }
       >
         {row.original.supervisorProfile!.isActive ? "Aktif" : "Nonaktif"}
       </Badge>
@@ -108,6 +108,7 @@ export function createColumns(actions: {
   onView: (row: Supervisor) => void;
   onUpdate: (row: Supervisor) => void;
   onDelete: (row: Supervisor) => void;
+  onChangePassword: (row: Supervisor) => void;
 }) {
   const actionOptions: ActionOption<Supervisor>[] = [
     {
@@ -119,6 +120,11 @@ export function createColumns(actions: {
       label: "Update",
       icon: <PencilIcon className="size-4" />,
       onClick: (row) => actions.onUpdate(row as Supervisor),
+    },
+    {
+      label: "Ubah Password",
+      icon: <KeyRoundIcon className="size-4" />,
+      onClick: (row) => actions.onChangePassword(row as Supervisor),
     },
     {
       label: "Hapus",

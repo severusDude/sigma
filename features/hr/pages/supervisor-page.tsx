@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-import { PlusIcon, UserPlusIcon, ArrowLeftRightIcon, InfoIcon } from "lucide-react";
+import {
+  PlusIcon,
+  UserPlusIcon,
+  ArrowLeftRightIcon,
+  InfoIcon,
+} from "lucide-react";
 
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
@@ -21,6 +26,7 @@ import { DetailDialog } from "../components/supervisor/detail-dialog";
 import { DeleteDialog } from "../components/supervisor/delete-dialog";
 import { CreateSupervisorForm } from "../components/supervisor/create-form";
 import { UpdateSupervisorForm } from "../components/supervisor/update-form";
+import { ChangePasswordDialog } from "../components/shared/change-password-dialog";
 import { QuickAssignCard } from "../components/supervisor/quick-assign-card";
 import { AssignDialog } from "../components/supervisor/assign-dialog";
 import { ReassignAllDialog } from "../components/supervisor/reassign-all-dialog";
@@ -64,11 +70,14 @@ export default function SupervisorPage({
   const [deleteSupervisor, setDeleteSupervisor] = useState<Supervisor | null>(
     null,
   );
+  const [changePasswordUser, setChangePasswordUser] =
+    useState<Supervisor | null>(null);
 
   const columns = createColumns({
     onView: (row) => setDetailId(row.id),
     onUpdate: (row) => setUpdateSupervisor(row),
     onDelete: (row) => setDeleteSupervisor(row),
+    onChangePassword: (row) => setChangePasswordUser(row),
   });
 
   return (
@@ -83,11 +92,19 @@ export default function SupervisorPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => setReassignAllOpen(true)} variant="outline" className="gap-2">
+          <Button
+            onClick={() => setReassignAllOpen(true)}
+            variant="outline"
+            className="gap-2"
+          >
             <ArrowLeftRightIcon className="size-4" />
             <span className="hidden md:inline">Reassign Massal</span>
           </Button>
-          <Button onClick={() => setAssignOpen(true)} variant="secondary" className="gap-2">
+          <Button
+            onClick={() => setAssignOpen(true)}
+            variant="secondary"
+            className="gap-2"
+          >
             <UserPlusIcon className="size-4" />
             <span className="hidden md:inline">Assign Intern</span>
           </Button>
@@ -102,7 +119,8 @@ export default function SupervisorPage({
         <InfoIcon />
         <AlertTitle>Informasi</AlertTitle>
         <AlertDescription>
-          Silakan isi data supervisor dan lakukan penempatan intern pada supervisor yang tersedia.
+          Silakan isi data supervisor dan lakukan penempatan intern pada
+          supervisor yang tersedia.
         </AlertDescription>
       </Alert>
 
@@ -174,6 +192,16 @@ export default function SupervisorPage({
       <DeleteDialog
         supervisor={deleteSupervisor}
         onClose={() => setDeleteSupervisor(null)}
+      />
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        userId={changePasswordUser?.id ?? ""}
+        userName={changePasswordUser?.name ?? ""}
+        open={!!changePasswordUser}
+        onOpenChange={(open) => {
+          if (!open) setChangePasswordUser(null);
+        }}
       />
     </div>
   );

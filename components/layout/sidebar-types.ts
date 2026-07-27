@@ -10,7 +10,7 @@ export interface SidebarNavItem {
 export interface SidebarUserData {
   name: string;
   email: string;
-  avatar: string;
+  image: string;
 }
 
 export interface SidebarTeamData {
@@ -23,4 +23,5 @@ export interface SidebarData {
   user: SidebarUserData;
   teams: SidebarTeamData[];
   navMain: SidebarNavItem[];
+  profileUrl?: string;
 }

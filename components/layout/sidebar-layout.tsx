@@ -33,7 +33,7 @@ export default function SidebarLayout({
           <NavMain items={sidebar.navMain} />
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={sidebar.user} />
+          <NavUser user={sidebar.user} profileUrl={sidebar.profileUrl} />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>

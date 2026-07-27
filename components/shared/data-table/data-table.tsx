@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
-import { FilterCategory } from "@/lib/types/filter";
+import { FilterCategory, ActiveFilter } from "@/lib/types/filter";
 import { useSortState } from "@/hooks/use-sort-state";
 import { useFilterState } from "@/hooks/use-filter-state";
 import {
@@ -65,6 +65,10 @@ export interface DataTableProps<TData, TValue> {
   batchActions?: ActionOption<TData>[];
   /** Optional row click handler — tr shifts to cursor-pointer when set */
   onRowClick?: (row: TData) => void;
+  /** Default filters applied on mount */
+  defaultFilters?: ActiveFilter<TData>[];
+  /** Default column visibility — set false to hide columns on mount */
+  defaultColumnVisibility?: VisibilityState;
 }
 
 // ─── DataTable ────────────────────────────────────────────────────────────────
@@ -75,14 +79,18 @@ export function DataTable<TData, TValue>({
   sortOptions = [],
   batchActions = [],
   onRowClick,
+  defaultFilters,
+  defaultColumnVisibility,
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    defaultColumnVisibility ?? {},
+  );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Filter and sort hooks
   const { activeFilters, columnFilters, addFilter, removeFilter, clearAll } =
-    useFilterState<TData>();
+    useFilterState<TData>(defaultFilters);
   const { activeSort, sorting, onSortChange } = useSortState<TData>();
 
   const table = useReactTable({

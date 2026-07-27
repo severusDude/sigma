@@ -1,9 +1,10 @@
-import { Suspense } from "react"
+import { Suspense } from "react";
 
-import SidebarLayout from "@/components/layout/sidebar-layout"
-import { requireAuth } from "@/helpers/guard"
-import { Role } from "@/generated/prisma/enums"
-import type { SidebarData } from "@/components/layout/sidebar-types"
+import SidebarLayout from "@/components/layout/sidebar-layout";
+import { requireAuth } from "@/helpers/guard";
+import { Role } from "@/generated/prisma/enums";
+import type { SidebarData } from "@/components/layout/sidebar-types";
+import { getOptimizedSrc } from "@/lib/image-loader";
 import {
   LayoutDashboard,
   Users,
@@ -12,16 +13,16 @@ import {
   Settings,
   BarChart3,
   Sigma,
-} from "lucide-react"
+} from "lucide-react";
 
 async function AdminSidebar({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAuth([Role.admin])
+  const { user } = await requireAuth([Role.admin]);
 
   const sidebar: SidebarData = {
     user: {
       name: user.name,
       email: user.email,
-      avatar: user.image ?? "",
+      image: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {
@@ -62,9 +63,9 @@ async function AdminSidebar({ children }: { children: React.ReactNode }) {
         icon: <Settings className="size-4" />,
       },
     ],
-  }
+  };
 
-  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>
+  return <SidebarLayout sidebar={sidebar}>{children}</SidebarLayout>;
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -72,5 +73,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <Suspense>
       <AdminSidebar>{children}</AdminSidebar>
     </Suspense>
-  )
+  );
 }
