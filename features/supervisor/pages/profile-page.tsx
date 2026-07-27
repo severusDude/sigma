@@ -37,7 +37,7 @@ import {
   changePassword,
   toggleSupervisorStatus,
 } from "../actions/profile-actions";
-import { updateAvatar } from "@/features/shared/actions/avatar-actions";
+
 
 const passwordSchema = z
   .object({
@@ -141,38 +141,22 @@ export default function ProfilePage({
         initialQuality: 0.8,
       })
 
-      const signRes = await fetch("/api/uploads/sign", {
+      const formData = new FormData()
+      formData.append("file", compressedFile, "avatar.webp")
+
+      const res = await fetch("/api/uploads/avatar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: "avatar.webp",
-          fileSize: compressedFile.size,
-          category: "avatar",
-        }),
+        body: formData,
       })
 
-      if (!signRes.ok) {
-        const err = await signRes.json()
-        throw new Error(err.error ?? "Gagal mendapatkan URL upload")
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Gagal mengupload foto profile")
       }
 
-      const { uploadUrl, key } = await signRes.json()
+      const { url } = await res.json()
 
-      const uploadRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: compressedFile,
-        headers: { "Content-Type": compressedFile.type || "image/webp" },
-      })
-
-      if (!uploadRes.ok) throw new Error("Gagal mengupload file")
-
-      const result = await updateAvatar(key)
-
-      if (!result.success) {
-        throw new Error(result.error)
-      }
-
-      setPreviewUrl(result.url ?? null)
+      setPreviewUrl(url)
       setAvatarFile(null)
       toast.success("Foto profile berhasil diperbarui")
     } catch (error) {
