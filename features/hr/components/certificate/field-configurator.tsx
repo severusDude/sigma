@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Save, Settings2, Move, Type, AlignLeft } from "lucide-react";
+import { Save, Settings2, Move, Type, AlignLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,7 +96,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  const updateField = (index: number, key: keyof TextField, value: string | number) => {
+  const updateField = (index: number, key: keyof TextField, value: string | number | boolean) => {
     setFields((prev) => {
       const next = [...prev];
       (next[index] as Record<string, unknown>)[key] = value;
@@ -153,7 +153,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* ── Left: Form Fields ── */}
-        <Card className="h-[75vh] flex flex-col">
+        <Card className="h-[75vh] flex flex-col overflow-hidden">
           <CardHeader className="pb-3 shrink-0">
             <CardTitle className="text-sm flex items-center gap-2">
               <AlignLeft className="size-4" />
@@ -163,7 +163,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
               Canvas: {CANVAS_W} &times; {CANVAS_H} pt. X = kiri, Y = atas.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-0">
+          <CardContent className="flex-1 p-0 min-h-0">
             <ScrollArea className="h-full px-6 pb-4">
               <div className="space-y-3">
                 {fields.map((field, i) => {
@@ -175,11 +175,23 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
                       className="rounded-lg border p-3 space-y-2 hover:bg-muted/30 transition-colors"
                     >
                       <div className="flex items-center gap-2 mb-1">
+                        <button
+                          type="button"
+                          onClick={() => updateField(i, "hidden", !field.hidden)}
+                          className="size-5 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                        >
+                          {field.hidden ? (
+                            <EyeOff className="size-3.5 text-muted-foreground" />
+                          ) : (
+                            <Eye className="size-3.5" />
+                          )}
+                        </button>
                         <div
-                          className={`size-3 rounded-full ${FIELD_COLORS[i % FIELD_COLORS.length].split(" ")[1]}`}
+                          className={`size-3 rounded-full ${FIELD_COLORS[i % FIELD_COLORS.length].split(" ")[1]} ${field.hidden ? "opacity-30" : ""}`}
                         />
-                        <span className="text-sm font-medium">
+                        <span className={`text-sm font-medium ${field.hidden ? "text-muted-foreground line-through" : ""}`}>
                           {FIELD_LABELS[field.name] ?? field.name}
+                          {field.hidden && <span className="text-[10px] text-muted-foreground ml-1">(hidden)</span>}
                         </span>
                         <span className="text-[10px] text-muted-foreground font-mono ml-auto">
                           {`{${field.name}}`}
@@ -304,7 +316,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
         </Card>
 
         {/* ── Right: PDF Preview with Overlay ── */}
-        <Card className="h-[75vh] flex flex-col">
+        <Card className="h-[75vh] flex flex-col overflow-hidden">
           <CardHeader className="pb-3 shrink-0">
             <CardTitle className="text-sm flex items-center gap-2">
               <Move className="size-4" />
@@ -314,7 +326,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
             Posisi field akan tampil di atas template. Seret nilai X/Y untuk menyesuaikan.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-0 relative">
+          <CardContent className="flex-1 p-0 relative min-h-0">
             <div ref={previewRef} className="relative w-full h-full">
               <embed
                 src={`/api/templates/${template.id}/file`}
@@ -322,6 +334,8 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
                 className="w-full h-full rounded-none border-0"
               />
               {fields.map((field, i) => {
+                if (field.hidden) return null
+
                 const boxW = field.size * BOX_W_RATIO * scale;
                 const boxH = field.size * 1.6 * scale;
                 const left = field.x * scale;

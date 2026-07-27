@@ -133,6 +133,7 @@ export async function saveCertificateFieldConfig(
       font: f.font ?? "Inter",
       align: f.align ?? "left",
       color: f.color ?? { r: 0, g: 0, b: 0 },
+      hidden: f.hidden ?? false,
     }));
 
     await prisma.documentTemplate.updateMany({

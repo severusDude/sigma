@@ -9,6 +9,7 @@ export type TextField = {
   font?: "Inter" | "LibreBaskerville"
   align?: "left" | "center" | "right"
   color?: { r: number; g: number; b: number }
+  hidden?: boolean
 }
 
 function hexToRgb(hex?: string) {
@@ -31,17 +32,17 @@ function resolveY(y: number): number {
 
 export function getDefaultCertificateFields(): TextField[] {
   return [
-    { name: "nomor_sertifikat", value: "", x: 50, y: 50, size: 10, font: "Inter", align: "left" },
-    { name: "nama_peserta", value: "", x: 421, y: 330, size: 22, font: "LibreBaskerville", align: "center", color: { r: 0.12, g: 0.16, b: 0.23 } },
-    { name: "nik", value: "", x: 50, y: 420, size: 11, font: "Inter", align: "left" },
-    { name: "institusi", value: "", x: 421, y: 380, size: 11, font: "Inter", align: "center" },
-    { name: "program", value: "", x: 421, y: 405, size: 11, font: "Inter", align: "center" },
-    { name: "bidang", value: "", x: 421, y: 430, size: 11, font: "Inter", align: "center" },
-    { name: "tanggal_mulai", value: "", x: 300, y: 460, size: 11, font: "Inter", align: "left" },
-    { name: "tanggal_selesai", value: "", x: 500, y: 460, size: 11, font: "Inter", align: "left" },
-    { name: "nama_pembimbing", value: "", x: 421, y: 520, size: 12, font: "Inter", align: "center" },
-    { name: "nip_pembimbing", value: "", x: 421, y: 535, size: 10, font: "Inter", align: "center" },
-    { name: "tanggal_sertifikat", value: "", x: 421, y: 560, size: 10, font: "Inter", align: "center" },
+    { name: "nomor_sertifikat", value: "", x: 50, y: 50, size: 10, font: "Inter", align: "left", hidden: false },
+    { name: "nama_peserta", value: "", x: 421, y: 330, size: 22, font: "LibreBaskerville", align: "center", color: { r: 0.12, g: 0.16, b: 0.23 }, hidden: false },
+    { name: "nik", value: "", x: 50, y: 420, size: 11, font: "Inter", align: "left", hidden: false },
+    { name: "institusi", value: "", x: 421, y: 380, size: 11, font: "Inter", align: "center", hidden: false },
+    { name: "program", value: "", x: 421, y: 405, size: 11, font: "Inter", align: "center", hidden: false },
+    { name: "bidang", value: "", x: 421, y: 430, size: 11, font: "Inter", align: "center", hidden: false },
+    { name: "tanggal_mulai", value: "", x: 300, y: 460, size: 11, font: "Inter", align: "left", hidden: false },
+    { name: "tanggal_selesai", value: "", x: 500, y: 460, size: 11, font: "Inter", align: "left", hidden: false },
+    { name: "nama_pembimbing", value: "", x: 421, y: 520, size: 12, font: "Inter", align: "center", hidden: false },
+    { name: "nip_pembimbing", value: "", x: 421, y: 535, size: 10, font: "Inter", align: "center", hidden: false },
+    { name: "tanggal_sertifikat", value: "", x: 421, y: 560, size: 10, font: "Inter", align: "center", hidden: false },
   ]
 }
 
@@ -86,6 +87,7 @@ export async function generateCertificatePdf(
   })
 
   for (const field of fields) {
+    if (field.hidden) continue
     if (!field.value || field.value.trim() === "") continue
 
     const fontKey = field.font ?? "Inter"
