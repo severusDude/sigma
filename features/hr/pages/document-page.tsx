@@ -131,10 +131,7 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     setGenerating(false);
 
     if (!result.success) {
-      await execute(
-        () => generateFn(internIds),
-        { fallbackError: `Gagal generate ${label}` },
-      );
+      toast.error(result.error ?? `Gagal generate ${label}`);
       return;
     }
 
@@ -146,11 +143,15 @@ export default function DocumentPage({ interns, activeTemplates }: DocumentPageP
     }
 
     const docSuccess = genData.filter((r) => !r.error);
+    const docFailed = genData.filter((r) => r.error);
 
-    if (docSuccess.length > 0) {
-      toast.success(
-        `${docSuccess.length} ${label} berhasil dibuat`,
-      );
+    if (docSuccess.length > 0 && docFailed.length === 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+    } else if (docSuccess.length > 0 && docFailed.length > 0) {
+      toast.success(`${docSuccess.length} ${label} berhasil dibuat`);
+      toast.error(`${docFailed.length} ${label} gagal: ${docFailed[0].error}`);
+    } else {
+      toast.error(genData[0]?.error ?? `Gagal generate ${label}`);
     }
 
     router.refresh();

@@ -2,10 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorize";
-import { renderToStream } from "@react-pdf/renderer";
 import { generateDocumentNumber } from "../utils/document-number";
-import { InternshipCertificate } from "../components/document/templates/certificates";
 import { generateFromTemplate } from "@/lib/docxtemplater";
+import { generateCertificatePdf, type TextField } from "@/lib/pdf-certificate";
 import type { ActionResponse } from "@/lib/types";
 import { DocumentType } from "@/generated/prisma/client";
 import path from "path";
@@ -195,7 +194,27 @@ export async function generateCertificates(
 ): Promise<ActionResponse<GenerateDocResult[]>> {
   try {
     await requirePermission({ document: ["create"] });
-    await assertStorageHealthy()
+    await assertStorageHealthy();
+
+    const activeTemplate = await prisma.documentTemplate.findFirst({
+      where: { documentType: "certificate", isActive: true },
+      select: { content: true, variables: true },
+    });
+
+    if (!activeTemplate) {
+      throw new Error(
+        "TEMPLATE_NOT_FOUND:Template sertifikat belum tersedia. Silahkan upload template terlebih dahulu di menu Kelola Template.",
+      );
+    }
+
+    const fieldConfigs = JSON.parse(JSON.stringify(activeTemplate.variables)) as TextField[];
+
+    let templatePdfBuffer: Buffer | null = null;
+    try {
+      templatePdfBuffer = await fetchTemplateFromR2(activeTemplate.content);
+    } catch {
+      throw new Error("Gagal memuat template sertifikat dari penyimpanan.");
+    }
 
     const results: GenerateDocResult[] = [];
 
@@ -219,25 +238,35 @@ export async function generateCertificates(
 
         const docNumber = await generateDocumentNumber("CERT");
 
-        const pdfStream = await renderToStream(
-          <InternshipCertificate
-            recipientName={user.name}
-            organization="Badan Pusat Statistik Kota Tasikmalaya"
-            dateRange={`${formatDate(intern.periodStart)} — ${formatDate(intern.periodEnd)}`}
-            signerTitle={
-              supervisor
-                ? [supervisor.field]
-                : ["Kepala Badan Pusat Statistik", "Kota Tasikmalaya"]
-            }
-            signerName={supervisor?.user?.name ?? "Dr. Ir. Zulkipli, M.Si."}
-          />,
-        );
+        const fieldValues: Record<string, string> = {
+          nama_peserta: user.name,
+          nomor_sertifikat: docNumber,
+          nik: intern.nik ?? "",
+          institusi: intern.institution ?? "",
+          program: "Magang",
+          bidang: intern.department?.name ?? "",
+          tanggal_mulai: formatDate(intern.periodStart),
+          tanggal_selesai: formatDate(intern.periodEnd),
+          nama_pembimbing: supervisor?.user?.name ?? "",
+          nip_pembimbing: supervisor?.nip ?? "",
+          tanggal_sertifikat: formatDate(new Date()),
+        };
 
-        const chunks: Buffer[] = [];
-        for await (const chunk of pdfStream) {
-          chunks.push(Buffer.from(chunk));
-        }
-        const pdfBuffer = Buffer.concat(chunks);
+        const textFields: TextField[] = fieldConfigs.map((cfg) => ({
+          name: cfg.name,
+          value: fieldValues[cfg.name] ?? "",
+          x: cfg.x,
+          y: cfg.y,
+          size: cfg.size,
+          font: cfg.font ?? "Inter",
+          align: cfg.align ?? "left",
+          color: cfg.color,
+        }));
+
+        const pdfBuffer = await generateCertificatePdf(
+          templatePdfBuffer,
+          textFields,
+        );
 
         const r2Key = buildDocumentKey("certificates", docNumber, ".pdf");
 
@@ -753,6 +782,7 @@ export async function generateCompletionLetter(
 }
 
 const DOCUMENT_LABELS: Record<string, string> = {
+  certificate: "Sertifikat",
   assignment_letter: "Surat Tugas",
   assessment_report: "Laporan Penilaian",
   attendance_report: "Rekap Absensi",

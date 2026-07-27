@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Upload, Trash2, CheckCircle2, FileText, Info } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, Trash2, CheckCircle2, FileText, Info, Image } from "lucide-react";
 
 import { useStorageToast } from "@/hooks/use-storage-toast";
 
@@ -27,6 +27,11 @@ import {
   setActiveTemplate,
   type TemplateRow,
 } from "../actions/template-actions";
+import {
+  deleteCertificateTemplate,
+  listCertificateTemplates,
+  type CertificateTemplateInfo,
+} from "../actions/certificate-template-actions";
 import { VARIABLE_INFO } from "../data/variable-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +40,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import CertificateUpload from "../components/certificate/certificate-upload";
+import FieldConfigurator from "../components/certificate/field-configurator";
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   certificate: "Sertifikat",
@@ -58,6 +65,21 @@ export default function TemplatePage({
   const [uploadPending, setUploadPending] = useState(false);
   const { execute } = useStorageToast();
   const formRef = useRef<HTMLFormElement>(null);
+
+  const [certTemplates, setCertTemplates] = useState<CertificateTemplateInfo[]>([]);
+  const [showCertUpload, setShowCertUpload] = useState(false);
+  const [certConfigTarget, setCertConfigTarget] = useState<CertificateTemplateInfo | null>(null);
+
+  const loadCertTemplates = async () => {
+    const result = await listCertificateTemplates();
+    if (result.success && result.data) {
+      setCertTemplates(result.data);
+    }
+  };
+
+  useEffect(() => {
+    loadCertTemplates();
+  }, []);
 
   const handleDelete = async (id: string) => {
     await execute(
@@ -108,6 +130,29 @@ export default function TemplatePage({
     setUploadPending(false);
   };
 
+  const handleCertUploadComplete = (template: CertificateTemplateInfo) => {
+    setShowCertUpload(false);
+    setCertConfigTarget(template);
+  };
+
+  const handleCertConfigComplete = () => {
+    setCertConfigTarget(null);
+    loadCertTemplates();
+  };
+
+  const handleDeleteCert = async (id: string) => {
+    await execute(
+      () => deleteCertificateTemplate(id),
+      {
+        loading: "Menghapus template...",
+        success: "Template berhasil dihapus",
+        onSuccess: () => {
+          setCertTemplates((prev) => prev.filter((t) => t.id !== id));
+        },
+      },
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -115,7 +160,7 @@ export default function TemplatePage({
           Kelola Template Dokumen
         </h1>
         <p className="text-sm text-muted-foreground">
-          Upload dan kelola template .docx untuk dokumen HR
+          Upload dan kelola template untuk dokumen HR
         </p>
       </div>
 
@@ -205,6 +250,97 @@ export default function TemplatePage({
               {uploadPending ? "Mengupload..." : "Upload Template"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Template Sertifikat</CardTitle>
+              <CardDescription>
+                Upload desain sertifikat dari Canva (export PDF), lalu atur posisi setiap field teks
+              </CardDescription>
+            </div>
+            {!showCertUpload && !certConfigTarget && (
+              <Button variant="outline" onClick={() => setShowCertUpload(true)} className="gap-2">
+                <Image className="size-4" />
+                Upload Template Sertifikat
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {certConfigTarget ? (
+            <FieldConfigurator
+              template={certConfigTarget}
+              onComplete={handleCertConfigComplete}
+            />
+          ) : showCertUpload ? (
+            <div className="space-y-4">
+              <CertificateUpload onUploadComplete={handleCertUploadComplete} />
+              <Button variant="ghost" size="sm" onClick={() => setShowCertUpload(false)}>
+                Batal
+              </Button>
+            </div>
+          ) : certTemplates.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              Belum ada template sertifikat. Klik &ldquo;Upload Template Sertifikat&rdquo; untuk memulai.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {certTemplates.map((template) => (
+                <div
+                  key={template.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <Image className="size-5 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{template.name}</span>
+                        {template.isActive ? (
+                          <Badge className="bg-green-600">Aktif</Badge>
+                        ) : (
+                          <Badge variant="secondary">Tidak Aktif</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Sertifikat
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {template.variables.length} field teks
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!template.isActive && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCertConfigTarget(template);
+                        }}
+                        className="gap-1"
+                      >
+                        <CheckCircle2 className="size-3" />
+                      Atur Posisi
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCert(template.id)}
+                      className="text-destructive gap-1"
+                    >
+                      <Trash2 className="size-3" />
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
