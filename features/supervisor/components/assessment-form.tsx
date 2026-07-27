@@ -129,7 +129,7 @@ function ComponentRow({
             onChange(index, "score", v);
           }}
           disabled={disabled}
-          className="w-16 shrink-0 text-center"
+          className="w-16 text-center shrink-0"
         />
       </div>
 
@@ -140,9 +140,9 @@ function ComponentRow({
         value={component.notes}
         onChange={(e) => onChange(index, "notes", e.target.value)}
         disabled={disabled}
-        className="resize-none text-xs"
+        className="text-xs resize-none"
       />
-      <p className="text-xs text-muted-foreground text-right">
+      <p className="text-xs text-right text-muted-foreground">
         {component.notes.length}/500
       </p>
     </div>
@@ -244,7 +244,7 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
     <div className="space-y-4">
       <Button
         variant="link"
-        onClick={() => router.push("/supervisor/penilaian")}
+        onClick={() => router.back()}
         className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeftIcon className="size-4" />
@@ -252,9 +252,9 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
       </Button>
 
       {/* Card Header */}
-      <div className="flex items-center justify-between rounded-none border bg-card p-4">
+      <div className="flex items-center justify-between p-4 border rounded-none bg-card">
         <div className="flex items-center gap-3">
-          <Avatar className="size-10 rounded-none">
+          <Avatar className="rounded-none size-10">
             <AvatarImage
               src={data.avatarUrl ?? undefined}
               alt={data.internName}
@@ -268,12 +268,14 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
               {data.internName}
             </h2>
             <div className="flex items-center gap-1">
-              <University className="size-3"/>
-              <p className="text-sm text-muted-foreground">{data.institution}</p>
+              <University className="size-3" />
+              <p className="text-sm text-muted-foreground">
+                {data.institution}
+              </p>
             </div>
 
             <div className="flex items-center gap-1">
-              <CalendarClock className="size-3"/>
+              <CalendarClock className="size-3" />
               <p className="text-xs text-muted-foreground">
                 {formatDate(data.periodStart)} — {formatDate(data.periodEnd)}
               </p>
@@ -285,12 +287,12 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
           {data.status ? (
             <Badge
               variant={STATUS_MAP[data.status]?.variant ?? "outline"}
-              className="rounded-none text-xs"
+              className="text-xs rounded-none"
             >
               {STATUS_MAP[data.status]?.label ?? data.status}
             </Badge>
           ) : (
-            <Badge variant="outline" className="rounded-none text-xs">
+            <Badge variant="outline" className="text-xs rounded-none">
               Belum Dinilai
             </Badge>
           )}
@@ -306,7 +308,7 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">
               Komponen Penilaian
             </h3>
 
@@ -323,8 +325,8 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-none border bg-card p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="p-4 border rounded-none bg-card">
+            <h3 className="mb-3 text-sm font-semibold tracking-wider uppercase text-muted-foreground">
               Ringkasan
             </h3>
 
@@ -334,7 +336,7 @@ export default function AssessmentForm({ data }: AssessmentFormProps) {
                   key={comp.name}
                   className="flex items-center justify-between"
                 >
-                  <dt className="text-muted-foreground truncate pr-2">
+                  <dt className="pr-2 truncate text-muted-foreground">
                     {comp.name}
                   </dt>
                   <dd className="font-medium tabular-nums">

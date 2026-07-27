@@ -4,6 +4,7 @@ import SidebarLayout from "@/components/layout/sidebar-layout";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import type { SidebarData } from "@/components/layout/sidebar-types";
+import { getOptimizedSrc } from "@/lib/image-loader";
 import {
   LayoutDashboard,
   Users,
@@ -20,7 +21,7 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
     user: {
       name: user.name,
       email: user.email,
-      avatar: user.image ?? "",
+      image: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {
@@ -33,7 +34,7 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
     navMain: [
       {
         title: "Dashboard",
-        url: "/supervisor/dashboard",
+        url: "/supervisor",
         icon: <LayoutDashboard className="size-4" />,
       },
       {

@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Loader2Icon, UploadIcon } from "lucide-react";
+import imageCompression from "browser-image-compression";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import type { InternProfile } from "@/generated/prisma/client";
 
 import { changePassword } from "../actions/profile-actions";
+import { updateAvatar } from "@/features/shared/actions/avatar-actions";
 
 const passwordSchema = z
   .object({
@@ -48,6 +50,8 @@ export default function ProfilePage({
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const {
     register,
@@ -73,8 +77,70 @@ export default function ProfilePage({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      if (!file.type.startsWith("image/")) {
+        toast.error("Hanya file gambar yang diizinkan");
+        return
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("File terlalu besar. Maksimal 2MB")
+        return
+      }
+      setAvatarFile(file)
+      setPreviewUrl(URL.createObjectURL(file))
+    }
+  }
+
+  async function handleUpload() {
+    if (!avatarFile) return
+
+    setUploading(true)
+    try {
+      const compressedFile = await imageCompression(avatarFile, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 512,
+        useWebWorker: true,
+        fileType: "image/webp",
+        initialQuality: 0.8,
+      })
+
+      const signRes = await fetch("/api/uploads/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: "avatar.webp",
+          fileSize: compressedFile.size,
+          category: "avatar",
+        }),
+      })
+
+      if (!signRes.ok) {
+        const err = await signRes.json()
+        throw new Error(err.error ?? "Gagal mendapatkan URL upload")
+      }
+
+      const { uploadUrl, key } = await signRes.json()
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: compressedFile,
+        headers: { "Content-Type": compressedFile.type || "image/webp" },
+      })
+
+      if (!uploadRes.ok) throw new Error("Gagal mengupload file")
+
+      const result = await updateAvatar(key)
+
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
+      setPreviewUrl(result.url ?? null)
+      setAvatarFile(null)
+      toast.success("Foto profile berhasil diperbarui")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengupload foto profile")
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -113,15 +179,31 @@ export default function ProfilePage({
             <AvatarImage src={previewUrl ?? user.image ?? ""} />
             <AvatarFallback className="text-lg">{initials}</AvatarFallback>
           </Avatar>
-          <div className="space-y-1">
+          <div className="space-y-3 flex-1">
             <Input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
+              disabled={uploading}
             />
-            <p className="text-xs text-muted-foreground">
-              Format: JPG, PNG. Maksimal 2MB. (Fitur upload belum tersedia)
-            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleUpload}
+                disabled={!avatarFile || uploading}
+              >
+                {uploading ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <UploadIcon className="size-4" />
+                )}
+                {uploading ? "Mengupload..." : "Simpan"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Format: JPG, PNG, WebP. Maksimal 2MB.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
