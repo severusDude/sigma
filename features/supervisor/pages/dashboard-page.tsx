@@ -1,6 +1,10 @@
 "use client";
 
-import { ClipboardCheck, FileText, Users, UserCheck } from "lucide-react";
+import { ClipboardCheck, FileText, UserCheck, Users } from "lucide-react";
+
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -8,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -28,10 +31,10 @@ import {
   StatTitle,
   StatValue,
 } from "@/components/shared/stat-block";
+
 import type { SupervisorDashboardData } from "../types/dashboard-types";
 import { LogbookStatusChart } from "../components/dashboard/logbook-status-chart";
 import { AssessmentProgressChart } from "../components/dashboard/assessment-progress-chart";
-import Link from "next/link";
 
 type DashboardPageProps = {
   data: SupervisorDashboardData;
@@ -196,16 +199,16 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                           </TableCell>
                           <TableCell>{attPct}%</TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            <Badge
+                              variant={
                                 intern.assessmentStatus === "finalized"
-                                  ? "bg-emerald-500/10 text-emerald-600"
+                                  ? "success"
                                   : intern.assessmentStatus === "submitted"
-                                    ? "bg-amber-500/10 text-amber-600"
+                                    ? "warning"
                                     : intern.assessmentStatus === "draft"
-                                      ? "bg-blue-500/10 text-blue-600"
-                                      : "bg-muted text-muted-foreground"
-                              }`}
+                                      ? "info"
+                                      : "secondary"
+                              }
                             >
                               {intern.assessmentStatus === "finalized"
                                 ? "Selesai"
@@ -214,7 +217,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                                   : intern.assessmentStatus === "draft"
                                     ? "Draft"
                                     : "Belum"}
-                            </span>
+                            </Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <Link

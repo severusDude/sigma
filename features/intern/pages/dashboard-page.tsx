@@ -7,6 +7,9 @@ import {
   Trophy,
   User,
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -14,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   StatBlock,
   StatContent,
@@ -26,6 +28,7 @@ import {
   StatTitle,
   StatValue,
 } from "@/components/shared/stat-block";
+
 import type { InternDashboardData } from "../types/dashboard-types";
 import { LogbookProgressChart } from "../components/dashboard/logbook-progress-chart";
 
@@ -48,9 +51,9 @@ export default function DashboardPage({ data }: DashboardPageProps) {
               Ringkasan aktivitas magang Anda
             </p>
           </div>
-          <span className="inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-medium text-emerald-600 bg-emerald-500/10">
+          <Badge variant="success">
             {data.status === "active" ? "Aktif" : data.status}
-          </span>
+          </Badge>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -215,21 +218,22 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                         {new Date(item.date).toLocaleDateString("id-ID")}
                       </p>
                     </div>
-                    <span
-                      className={`ml-3 shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                    <Badge
+                      className="ml-3 shrink-0"
+                      variant={
                         item.status === "approved"
-                          ? "bg-emerald-500/10 text-emerald-600"
+                          ? "success"
                           : item.status === "pending_review"
-                            ? "bg-amber-500/10 text-amber-600"
-                            : "bg-rose-500/10 text-rose-600"
-                      }`}
+                            ? "warning"
+                            : "destructive"
+                      }
                     >
                       {item.status === "approved"
                         ? "Disetujui"
                         : item.status === "pending_review"
                           ? "Menunggu"
                           : "Revisi"}
-                    </span>
+                    </Badge>
                   </div>
                 ))}
               </div>
