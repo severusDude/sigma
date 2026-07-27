@@ -20,6 +20,7 @@ import {
 import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { initials } from "@/lib/utils";
 
 export function NavUser({
   user,
@@ -28,7 +29,7 @@ export function NavUser({
   user: {
     name: string;
     email: string;
-    avatar: string;
+    image: string;
   };
   profileUrl?: string;
 }) {
@@ -63,12 +64,12 @@ export function NavUser({
             }
           >
             <Avatar>
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage src={user.image ?? ""} alt={user.name} />
+              <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs">{user.email}</span>
+            <div className="grid flex-1 text-sm leading-tight text-left">
+              <span className="font-medium truncate">{user.name}</span>
+              <span className="text-xs truncate">{user.email}</span>
             </div>
             <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
@@ -82,12 +83,12 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={user.image ?? ""} alt={user.name} />
+                    <AvatarFallback>{initials(user.name)}</AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
+                  <div className="grid flex-1 text-sm leading-tight text-left">
+                    <span className="font-medium truncate">{user.name}</span>
+                    <span className="text-xs truncate">{user.email}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>

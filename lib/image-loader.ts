@@ -9,15 +9,36 @@ function normalizeSrc(src: string): string {
   return src.replace(/^\//, "")
 }
 
+function isR2Url(src: string): boolean {
+  return !!(R2_PUBLIC_URL && src.startsWith(R2_PUBLIC_URL))
+}
+
+function toFullUrl(src: string): string | null {
+  if (!R2_PUBLIC_URL) return null
+  if (isR2Url(src)) return src
+  if (src.startsWith("avatars/")) {
+    return `${R2_PUBLIC_URL.replace(/\/$/, "")}/${src}`
+  }
+  return null
+}
+
+function buildCfImageUrl(
+  src: string,
+  width: number,
+  quality?: number,
+): string {
+  const params = [`width=${width}`, `quality=${quality || 75}`, "format=auto"]
+  return `/cdn-cgi/image/${params.join(",")}/${normalizeSrc(src)}`
+}
+
 export default function cfImageLoader({
   src,
   width,
   quality,
 }: ImageLoaderProps) {
-  if (process.env.NODE_ENV === "development") return src
-
-  const params = [`width=${width}`, `quality=${quality || 75}`, "format=auto"]
-  return `/cdn-cgi/image/${params.join(",")}/${normalizeSrc(src)}`
+  const fullUrl = toFullUrl(src)
+  if (!fullUrl) return src
+  return buildCfImageUrl(fullUrl, width, quality)
 }
 
 export function getOptimizedSrc(
@@ -26,12 +47,7 @@ export function getOptimizedSrc(
   quality?: number,
 ): string {
   if (!src) return ""
-  if (process.env.NODE_ENV === "development") return src
-
-  if (src.startsWith(R2_PUBLIC_URL)) {
-    const params = [`width=${width}`, `quality=${quality || 75}`, "format=auto"]
-    return `/cdn-cgi/image/${params.join(",")}/${normalizeSrc(src)}`
-  }
-
-  return src
+  const fullUrl = toFullUrl(src)
+  if (!fullUrl) return src
+  return buildCfImageUrl(fullUrl, width, quality)
 }

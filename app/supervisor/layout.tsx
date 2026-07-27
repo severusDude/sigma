@@ -21,7 +21,7 @@ async function SupervisorSidebar({ children }: { children: React.ReactNode }) {
     user: {
       name: user.name,
       email: user.email,
-      avatar: getOptimizedSrc(user.image, 64),
+      image: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {

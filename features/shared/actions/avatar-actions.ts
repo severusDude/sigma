@@ -25,6 +25,13 @@ export async function updateAvatar(key: string) {
       return { success: false as const, error: "Unauthorized" }
     }
 
+    if (!R2_PUBLIC_URL) {
+      return {
+        success: false as const,
+        error: "R2_PUBLIC_URL belum dikonfigurasi. Hubungi administrator.",
+      }
+    }
+
     const { size, contentType } = await getObjectMetadata(key)
 
     if (size <= 0 || size > MAX_FILE_SIZES.avatar) {
@@ -47,7 +54,7 @@ export async function updateAvatar(key: string) {
       }
     }
 
-    const publicUrl = R2_PUBLIC_URL ? `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}` : key
+    const publicUrl = `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`
 
     await prisma.user.update({
       where: { id: session.user.id },
