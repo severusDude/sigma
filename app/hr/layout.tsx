@@ -4,6 +4,7 @@ import SidebarLayout from "@/components/layout/sidebar-layout";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import type { SidebarData } from "@/components/layout/sidebar-types";
+import { getOptimizedSrc } from "@/lib/image-loader";
 import {
   LayoutDashboard,
   Users,
@@ -22,7 +23,7 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
     user: {
       name: user.name,
       email: user.email,
-      avatar: user.image ?? "",
+      avatar: getOptimizedSrc(user.image, 64),
     },
     teams: [
       {

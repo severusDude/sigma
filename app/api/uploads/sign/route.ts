@@ -4,9 +4,11 @@ import { headers } from "next/headers"
 import {
   getSignedUploadUrl,
   buildAttachmentKey,
+  buildAvatarKey,
   validateFileType,
   validateFileSize,
   ALLOWED_UPLOAD_MIME_TYPES,
+  AVATAR_ALLOWED_MIME_TYPES,
 } from "@/services/storage"
 import { assertStorageHealthy, StorageError } from "@/services/storage-health"
 
@@ -16,8 +18,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { fileName, fileSize, attachableType, attachableId } =
+  const { fileName, fileSize, attachableType, attachableId, category } =
     await request.json()
+
+  if (category === "avatar") {
+    if (!fileName || !fileSize) {
+      return NextResponse.json(
+        { error: "Missing required fields: fileName, fileSize" },
+        { status: 400 },
+      )
+    }
+
+    try {
+      const mimeType = validateFileType(fileName, AVATAR_ALLOWED_MIME_TYPES)
+      validateFileSize(fileSize, "avatar")
+
+      await assertStorageHealthy()
+
+      const key = buildAvatarKey(session.user.id, `.${mimeType.split("/")[1] === "jpeg" ? "jpg" : mimeType.split("/")[1]}`)
+      const uploadUrl = await getSignedUploadUrl(key, mimeType, 900)
+
+      return NextResponse.json({ uploadUrl, key, requiredContentType: mimeType })
+    } catch (e) {
+      const message = e instanceof StorageError
+        ? e.userMessage
+        : e instanceof Error
+          ? e.message
+          : "Validation failed"
+      const status = e instanceof StorageError ? 503 : 400
+      return NextResponse.json({ error: message }, { status })
+    }
+  }
 
   if (!fileName || !fileSize || !attachableType || !attachableId) {
     return NextResponse.json(

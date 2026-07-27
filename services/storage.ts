@@ -33,6 +33,7 @@ export const MAX_FILE_SIZES = {
   template: 10 * 1024 * 1024,
   attachment: 5 * 1024 * 1024,
   generatedDocument: 20 * 1024 * 1024,
+  avatar: 2 * 1024 * 1024,
 } as const
 
 export type FileCategory = keyof typeof MAX_FILE_SIZES
@@ -74,6 +75,12 @@ export function validateFileType(
   return mime
 }
 
+export const AVATAR_ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]
+
 export function validateFileSize(size: number, category: FileCategory): void {
   const max = MAX_FILE_SIZES[category]
   if (size > max) {
@@ -107,6 +114,10 @@ export function buildAttachmentKey(
   filename: string,
 ): string {
   return `attachments/${attachableType}/${attachableId}/${crypto.randomUUID()}-${filename}`
+}
+
+export function buildAvatarKey(userId: string, ext: string): string {
+  return `avatars/${userId}/${crypto.randomUUID()}${ext.startsWith(".") ? ext : `.${ext}`}`
 }
 
 // ── Upload ──────────────────────────────────────────
