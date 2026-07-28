@@ -66,9 +66,6 @@ const FIELD_COLORS = [
   "border-rose-500 bg-rose-500/10 text-rose-600",
 ];
 
-const CANVAS_W = 842;
-const CANVAS_H = 595;
-
 const BOX_W_RATIO = 9;
 
 type Props = {
@@ -80,21 +77,42 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
   const [fields, setFields] = useState<TextField[]>(template.variables);
   const [saving, setSaving] = useState(false);
   const [scale, setScale] = useState(0.75);
+  const [canvasDims, setCanvasDims] = useState<{ width: number; height: number } | null>(null);
+  const [dimsLoading, setDimsLoading] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
   const { execute } = useStorageToast();
 
   useEffect(() => {
+    const fetchDims = async () => {
+      try {
+        const res = await fetch(`/api/templates/${template.id}/dimensions`);
+        if (res.ok) {
+          const dims = await res.json();
+          setCanvasDims(dims);
+        }
+      } catch {
+      } finally {
+        setDimsLoading(false);
+      }
+    };
+    fetchDims();
+  }, [template.id]);
+
+  const cw = canvasDims?.width ?? 842
+  const ch = canvasDims?.height ?? 595
+
+  useEffect(() => {
     const el = previewRef.current;
-    if (!el) return;
+    if (!el || !canvasDims) return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const w = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
-        setScale(w > 0 ? w / CANVAS_W : 0.75);
+        setScale(w > 0 ? w / canvasDims.width : 0.75);
       }
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [canvasDims]);
 
   const updateField = (index: number, key: keyof TextField, value: string | number | boolean) => {
     setFields((prev) => {
@@ -160,7 +178,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
               Posisi Field
             </CardTitle>
             <CardDescription>
-              Canvas: {CANVAS_W} &times; {CANVAS_H} pt. X = kiri, Y = atas.
+              Canvas: {cw} &times; {ch} pt. X = kiri, Y = atas.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 p-0 min-h-0">
@@ -209,7 +227,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
                             onChange={(e) => updateField(i, "x", Number(e.target.value))}
                             className="h-7 text-xs"
                             min={0}
-                            max={CANVAS_W}
+                            max={cw}
                           />
                         </div>
 
@@ -223,7 +241,7 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
                             onChange={(e) => updateField(i, "y", Number(e.target.value))}
                             className="h-7 text-xs"
                             min={0}
-                            max={CANVAS_H}
+                            max={ch}
                           />
                         </div>
 

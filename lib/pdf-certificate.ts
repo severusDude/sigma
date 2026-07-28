@@ -23,26 +23,41 @@ function hexToRgb(hex?: string) {
   }
 }
 
-const PAGE_HEIGHT = 595
-const PAGE_WIDTH = 842
-
-function resolveY(y: number): number {
-  return PAGE_HEIGHT - y
+export async function getPdfDimensions(buffer: Buffer): Promise<{ width: number; height: number }> {
+  const doc = await PDFDocument.load(buffer, { ignoreEncryption: true })
+  const pages = doc.getPages()
+  if (pages.length === 0) {
+    throw new Error("PDF tidak memiliki halaman")
+  }
+  const { width, height } = pages[0].getSize()
+  return { width, height }
 }
 
-export function getDefaultCertificateFields(): TextField[] {
+const DEFAULT_W = 842
+const DEFAULT_H = 595
+
+export function getDefaultCertificateFields(
+  canvasW?: number,
+  canvasH?: number,
+): TextField[] {
+  const sx = canvasW ? canvasW / DEFAULT_W : 1
+  const sy = canvasH ? canvasH / DEFAULT_H : 1
+  const s = canvasW ? Math.min(sx, sy) : 1
+  const scaleCoord = (val: number) => Math.round(val * s)
+  const scaleSize = (val: number) => Math.max(6, Math.round(val * s))
+
   return [
-    { name: "nomor_sertifikat", value: "", x: 50, y: 50, size: 10, font: "Inter", align: "left", hidden: false },
-    { name: "nama_peserta", value: "", x: 421, y: 330, size: 22, font: "LibreBaskerville", align: "center", color: { r: 0.12, g: 0.16, b: 0.23 }, hidden: false },
-    { name: "nik", value: "", x: 50, y: 420, size: 11, font: "Inter", align: "left", hidden: false },
-    { name: "institusi", value: "", x: 421, y: 380, size: 11, font: "Inter", align: "center", hidden: false },
-    { name: "program", value: "", x: 421, y: 405, size: 11, font: "Inter", align: "center", hidden: false },
-    { name: "bidang", value: "", x: 421, y: 430, size: 11, font: "Inter", align: "center", hidden: false },
-    { name: "tanggal_mulai", value: "", x: 300, y: 460, size: 11, font: "Inter", align: "left", hidden: false },
-    { name: "tanggal_selesai", value: "", x: 500, y: 460, size: 11, font: "Inter", align: "left", hidden: false },
-    { name: "nama_pembimbing", value: "", x: 421, y: 520, size: 12, font: "Inter", align: "center", hidden: false },
-    { name: "nip_pembimbing", value: "", x: 421, y: 535, size: 10, font: "Inter", align: "center", hidden: false },
-    { name: "tanggal_sertifikat", value: "", x: 421, y: 560, size: 10, font: "Inter", align: "center", hidden: false },
+    { name: "nomor_sertifikat", value: "", x: scaleCoord(50), y: scaleCoord(50), size: scaleSize(10), font: "Inter", align: "left", hidden: false },
+    { name: "nama_peserta", value: "", x: scaleCoord(421), y: scaleCoord(330), size: scaleSize(22), font: "LibreBaskerville", align: "center", color: { r: 0.12, g: 0.16, b: 0.23 }, hidden: false },
+    { name: "nik", value: "", x: scaleCoord(50), y: scaleCoord(420), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
+    { name: "institusi", value: "", x: scaleCoord(421), y: scaleCoord(380), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
+    { name: "program", value: "", x: scaleCoord(421), y: scaleCoord(405), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
+    { name: "bidang", value: "", x: scaleCoord(421), y: scaleCoord(430), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
+    { name: "tanggal_mulai", value: "", x: scaleCoord(300), y: scaleCoord(460), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
+    { name: "tanggal_selesai", value: "", x: scaleCoord(500), y: scaleCoord(460), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
+    { name: "nama_pembimbing", value: "", x: scaleCoord(421), y: scaleCoord(520), size: scaleSize(12), font: "Inter", align: "center", hidden: false },
+    { name: "nip_pembimbing", value: "", x: scaleCoord(421), y: scaleCoord(535), size: scaleSize(10), font: "Inter", align: "center", hidden: false },
+    { name: "tanggal_sertifikat", value: "", x: scaleCoord(421), y: scaleCoord(560), size: scaleSize(10), font: "Inter", align: "center", hidden: false },
   ]
 }
 
@@ -67,23 +82,22 @@ export async function generateCertificatePdf(
   ])
 
   const firstBgPage = bgPages[0]
-  const { width: bgW, height: bgH } = firstBgPage.getSize()
-  const scale = Math.min(PAGE_WIDTH / bgW, PAGE_HEIGHT / bgH)
+  const { width: pageW, height: pageH } = firstBgPage.getSize()
 
   const embeddedBg = await newDoc.embedPage(firstBgPage, {
     left: 0,
-    right: bgW,
+    right: pageW,
     bottom: 0,
-    top: bgH,
+    top: pageH,
   })
 
-  const page = newDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
+  const page = newDoc.addPage([pageW, pageH])
 
   page.drawPage(embeddedBg, {
     x: 0,
     y: 0,
-    width: bgW * scale,
-    height: bgH * scale,
+    width: pageW,
+    height: pageH,
   })
 
   for (const field of fields) {
@@ -96,7 +110,7 @@ export async function generateCertificatePdf(
     const fieldColor = field.color ?? { r: 0, g: 0, b: 0 }
 
     const fieldX = field.x
-    const fieldY = resolveY(field.y)
+    const fieldY = pageH - field.y
 
     const textWidth = font.widthOfTextAtSize(field.value, field.size)
 
