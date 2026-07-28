@@ -201,6 +201,53 @@ export async function getInternDocuments(internProfileId: string) {
   })
 }
 
+export type ExistingDocInfo = {
+  internId: string
+  internName: string
+  docNumber: string
+  status: string
+}
+
+export async function filterExistingDocuments(
+  internIds: string[],
+  documentType: DocumentType,
+) {
+  if (internIds.length === 0) return { duplicates: [], cleanIds: [] as string[] }
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: internIds } },
+    select: { id: true, name: true, internProfile: { select: { id: true } } },
+  })
+
+  const profileMap = users
+    .filter((u) => u.internProfile)
+    .map((u) => ({ userId: u.id, name: u.name, internProfileId: u.internProfile!.id }))
+
+  const existing = await prisma.document.findMany({
+    where: {
+      internProfileId: { in: profileMap.map((i) => i.internProfileId) },
+      documentType,
+    },
+    select: { internProfileId: true, documentNumber: true, status: true },
+  })
+
+  const existingMap = new Map(existing.map((e) => [e.internProfileId, e]))
+
+  const duplicates: ExistingDocInfo[] = []
+  const cleanIds: string[] = []
+
+  for (const u of profileMap) {
+    const det = existingMap.get(u.internProfileId)
+    if (det) {
+      duplicates.push({ internId: u.userId, internName: u.name, docNumber: det.documentNumber, status: det.status })
+    } else {
+      cleanIds.push(u.userId)
+    }
+  }
+
+  return { duplicates, cleanIds }
+}
+
 export async function generateCertificates(
   internIds: string[],
 ): Promise<ActionResponse<GenerateDocResult[]>> {
@@ -273,6 +320,7 @@ export async function generateCertificates(
           font: cfg.font ?? "Inter",
           align: cfg.align ?? "left",
           color: cfg.color,
+          hidden: cfg.hidden,
         }));
 
         const pdfBuffer = await generateCertificatePdf(
