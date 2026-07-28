@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Save, Settings2, Move, Type, AlignLeft, Eye, EyeOff } from "lucide-react";
+import { Save, Settings2, Move, Type, AlignLeft, Eye, EyeOff, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +76,7 @@ type Props = {
 export default function FieldConfigurator({ template, onComplete }: Props) {
   const [fields, setFields] = useState<TextField[]>(template.variables);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [scale, setScale] = useState(0.75);
   const [canvasDims, setCanvasDims] = useState<{ width: number; height: number } | null>(null);
   const [dimsLoading, setDimsLoading] = useState(true);
@@ -149,6 +150,33 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
       },
     );
     setSaving(false);
+  };
+
+  const handleTestGenerate = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch(`/api/templates/${template.id}/test-generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal generate test PDF");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `test-${template.name.replace(/\s+/g, "-")}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Gagal generate test PDF. Silakan coba lagi.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -388,7 +416,16 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
         </Card>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <Button
+          variant="outline"
+          onClick={handleTestGenerate}
+          disabled={generating}
+          className="gap-2"
+        >
+          <Download className="size-4" />
+          {generating ? "Mengenerate..." : "Test Generate PDF"}
+        </Button>
         <Button onClick={handleSave} disabled={saving} className="gap-2" size="lg">
           <Save className="size-4" />
           {saving ? "Menyimpan..." : "Simpan Konfigurasi"}
