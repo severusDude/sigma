@@ -320,6 +320,7 @@ export async function generateCertificates(
           font: cfg.font ?? "Inter",
           align: cfg.align ?? "left",
           color: cfg.color,
+          hidden: cfg.hidden,
         }));
 
         const pdfBuffer = await generateCertificatePdf(
