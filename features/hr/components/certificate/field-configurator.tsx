@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Save, Settings2, Move, Type, AlignLeft, Eye, EyeOff, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   type CertificateTemplateInfo,
 } from "../../actions/certificate-template-actions";
 import type { TextField } from "@/lib/pdf-certificate";
+import PdfPreview from "./pdf-preview";
 
 const FIELD_LABELS: Record<string, string> = {
   nama_peserta: "Nama Peserta",
@@ -77,10 +78,8 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
   const [fields, setFields] = useState<TextField[]>(template.variables);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [scale, setScale] = useState(0.75);
+  const [renderScale, setRenderScale] = useState(1);
   const [canvasDims, setCanvasDims] = useState<{ width: number; height: number } | null>(null);
-  const [dimsLoading, setDimsLoading] = useState(true);
-  const previewRef = useRef<HTMLDivElement>(null);
   const { execute } = useStorageToast();
 
   useEffect(() => {
@@ -92,8 +91,6 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
           setCanvasDims(dims);
         }
       } catch {
-      } finally {
-        setDimsLoading(false);
       }
     };
     fetchDims();
@@ -101,19 +98,6 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
 
   const cw = canvasDims?.width ?? 842
   const ch = canvasDims?.height ?? 595
-
-  useEffect(() => {
-    const el = previewRef.current;
-    if (!el || !canvasDims) return;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const w = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
-        setScale(w > 0 ? w / canvasDims.width : 0.75);
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [canvasDims]);
 
   const updateField = (index: number, key: keyof TextField, value: string | number | boolean) => {
     setFields((prev) => {
@@ -373,19 +357,20 @@ export default function FieldConfigurator({ template, onComplete }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 p-0 relative min-h-0">
-            <div ref={previewRef} className="relative w-full h-full">
-              <embed
-                src={`/api/templates/${template.id}/file`}
-                type="application/pdf"
-                className="w-full h-full rounded-none border-0"
+            <div className="relative w-full h-full">
+              <PdfPreview
+                templateId={template.id}
+                canvasW={cw}
+                canvasH={ch}
+                onRenderScaleChange={setRenderScale}
               />
               {fields.map((field, i) => {
                 if (field.hidden) return null
 
-                const boxW = field.size * BOX_W_RATIO * scale;
-                const boxH = field.size * 1.6 * scale;
-                const left = field.x * scale;
-                const top = field.y * scale;
+                const boxW = field.size * BOX_W_RATIO * renderScale;
+                const boxH = field.size * 1.6 * renderScale;
+                const left = field.x * renderScale;
+                const top = field.y * renderScale;
                 const colorClass = FIELD_COLORS[i % FIELD_COLORS.length];
                 const isCenter = field.align === "center";
                 const isRight = field.align === "right";
