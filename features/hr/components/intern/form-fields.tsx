@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/select";
 import { SelectItemType } from "@/lib/types";
 import { InternStatus } from "@/generated/prisma/enums";
-import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 
 interface InternFormFieldsProps<T extends FieldValues> {
   control: Control<T>;

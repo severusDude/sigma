@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SelectItemType } from "@/lib/types";
 
 interface SupervisorFormFieldsProps<T extends FieldValues> {
   control: Control<T>;
@@ -38,6 +39,13 @@ export function SupervisorFormFields<T extends FieldValues>({
   control,
   teamOptions,
 }: SupervisorFormFieldsProps<T>) {
+  type TeamId = (typeof teamOptions)[number]["id"];
+
+  const teamSelect: SelectItemType<TeamId>[] = teamOptions.map((team) => ({
+    label: team.name,
+    value: team.id,
+  }));
+
   return (
     <div className="grid md:grid-cols-2 gap-4">
       {/* Name */}
@@ -95,6 +103,7 @@ export function SupervisorFormFields<T extends FieldValues>({
             <FieldLabel htmlFor="teamId">Team</FieldLabel>
             <Select
               value={field.value || ""}
+              items={teamSelect}
               onValueChange={(val) => field.onChange(val || undefined)}
             >
               <SelectTrigger
