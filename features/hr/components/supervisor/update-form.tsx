@@ -35,7 +35,7 @@ export function UpdateSupervisorForm({
     defaultValues: {
       name: supervisor.name,
       nip: supervisor.supervisorProfile!.nip,
-      teamId: supervisor.supervisorProfile!.teamId,
+      teamId: supervisor.supervisorProfile!.teamId ?? undefined,
       phone: supervisor.supervisorProfile!.phone || "",
       email: supervisor.email || "",
       maxInterns: supervisor.supervisorProfile!.maxInterns,
