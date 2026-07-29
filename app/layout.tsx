@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ReactQueryProvider from "@/providers/react-query-provider";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
 
@@ -22,6 +23,10 @@ const fontSerif = localFont({
 const fontMono = localFont({
   src: "../public/fonts/Inter.ttf",
   variable: "--font-mono",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
 });
 
 export const metadata: Metadata = {
@@ -41,7 +46,7 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        fontSans.variable,
+        plusJakartaSans.variable,
         fontSerif.variable,
         "font-sans",
         fontMono.variable,
