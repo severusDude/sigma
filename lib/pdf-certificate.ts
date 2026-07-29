@@ -52,7 +52,7 @@ export function getDefaultCertificateFields(
     { name: "nik", value: "", x: scaleCoord(50), y: scaleCoord(420), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
     { name: "institusi", value: "", x: scaleCoord(421), y: scaleCoord(380), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
     { name: "program", value: "", x: scaleCoord(421), y: scaleCoord(405), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
-    { name: "bidang", value: "", x: scaleCoord(421), y: scaleCoord(430), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
+    { name: "team", value: "", x: scaleCoord(421), y: scaleCoord(430), size: scaleSize(11), font: "Inter", align: "center", hidden: false },
     { name: "tanggal_mulai", value: "", x: scaleCoord(300), y: scaleCoord(460), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
     { name: "tanggal_selesai", value: "", x: scaleCoord(500), y: scaleCoord(460), size: scaleSize(11), font: "Inter", align: "left", hidden: false },
     { name: "nama_pembimbing", value: "", x: scaleCoord(421), y: scaleCoord(520), size: scaleSize(12), font: "Inter", align: "center", hidden: false },

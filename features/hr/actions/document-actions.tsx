@@ -41,7 +41,7 @@ export async function validateInternsCompleteness(
     include: {
       internProfile: {
         include: {
-          department: { select: { name: true } },
+          team: { select: { name: true } },
           supervisorAssignments: {
             where: { endedAt: null },
             take: 1,
@@ -82,7 +82,7 @@ export async function validateInternsCompleteness(
     if (!user.name) missingFields.push("Nama peserta");
     if (!intern.nik) missingFields.push("NIK");
     if (!intern.institution) missingFields.push("Institusi");
-    if (!intern.department?.name) missingFields.push("Bidang penempatan");
+    if (!intern.team?.name) missingFields.push("Team");
     if (!intern.periodStart) missingFields.push("Tanggal mulai");
     if (!intern.periodEnd) missingFields.push("Tanggal selesai");
 
@@ -131,7 +131,7 @@ async function getInternData(internId: string) {
     include: {
       internProfile: {
         include: {
-          department: true,
+          team: true,
           supervisorAssignments: {
             where: { endedAt: null },
             include: {
@@ -303,7 +303,7 @@ export async function generateCertificates(
           nik: intern.nik ?? "",
           institusi: intern.institution ?? "",
           program: "Magang",
-          bidang: intern.department?.name ?? "",
+          team: intern.team?.name ?? "",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           nama_pembimbing: supervisor?.user?.name ?? "",
@@ -419,7 +419,7 @@ export async function generateAssignmentLetter(
           nik: intern.nik,
           institusi: intern.institution,
           program: "Magang",
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           nama_pembimbing: supervisor?.user?.name ?? "-",
@@ -524,7 +524,7 @@ export async function generateAssessmentReport(
           nama_peserta: user.name,
           nik: intern.nik,
           institusi: intern.institution,
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           periode_penilaian: assessment
             ? `${formatDateShort(assessment.periodStart)} — ${formatDateShort(assessment.periodEnd)}`
             : "-",
@@ -651,7 +651,7 @@ export async function generateAttendanceReport(
         const data = {
           nama_peserta: user.name,
           nik: intern.nik,
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           periode: `${formatDateShort(intern.periodStart)} — ${formatDateShort(intern.periodEnd)}`,
           absensi: attendanceRecords.map((a) => ({
             tanggal: formatDateShort(a.date),
@@ -773,7 +773,7 @@ export async function generateCompletionLetter(
           nik: intern.nik,
           institusi: intern.institution,
           program: "Magang",
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           tanggal_surat: formatDate(new Date()),

@@ -22,7 +22,7 @@ const issueInclude = {
       },
     },
   },
-  department: {
+  team: {
     select: {
       id: true,
       name: true,
@@ -57,7 +57,7 @@ const issueDetailInclude = {
       },
     },
   },
-  department: {
+  team: {
     select: {
       id: true,
       name: true,

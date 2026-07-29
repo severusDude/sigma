@@ -196,7 +196,7 @@ model AuditLog {
 // Masters
 // ──────────────────────────────────────────────
 
-model Department {
+model Team {
   id          String   @id @default(cuid())
   name        String
   description String?
@@ -205,10 +205,11 @@ model Department {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  issues  Issue[]
-  interns InternProfile[]
+  issues      Issue[]
+  interns     InternProfile[]
+  supervisors SupervisorProfile[]
 
-  @@map("department")
+  @@map("team")
 }
 
 model InternProfile {
@@ -222,8 +223,8 @@ model InternProfile {
   periodStart    DateTime
   periodEnd      DateTime
   status         InternStatus @default(active)
-  departmentId   String?
-  department     Department?  @relation(fields: [departmentId], references: [id])
+  teamId   String?
+  team     Team?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   deactivatedAt  DateTime?
 
   createdAt DateTime @default(now())
@@ -248,7 +249,8 @@ model SupervisorProfile {
   userId     String   @unique
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   nip        String   @unique
-  field      String
+  teamId     String
+  team       Team     @relation(fields: [teamId], references: [id])
   phone      String?
   email      String?
   maxInterns Int      @default(5)
@@ -296,8 +298,8 @@ model Issue {
   supervisor          SupervisorProfile @relation(fields: [supervisorProfileId], references: [id], onDelete: Cascade)
   internProfileId     String?
   internProfile       InternProfile?   @relation(fields: [internProfileId], references: [id])
-  departmentId        String?
-  department          Department?      @relation(fields: [departmentId], references: [id])
+  teamId        String?
+  team          Team?      @relation(fields: [teamId], references: [id], onDelete: SetNull)
   title               String
   description         String?
   startDate           DateTime?

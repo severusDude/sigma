@@ -139,7 +139,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
       </div>
 
       <div className="grid gap-4 mb-6 lg:grid-cols-2">
-        <DeptBarChart data={data.deptDistribution} />
+        <DeptBarChart data={data.teamDistribution} />
         {/* TODO: fix label animation appearing from top left corner of the element */}
         <StatusPieChart data={data.internStatusCounts} />
       </div>
@@ -170,7 +170,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                     <p className="text-sm font-medium">{intern.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {intern.institution}
-                      {intern.department ? ` — ${intern.department}` : ""}
+                      {intern.team ? ` — ${intern.team}` : ""}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-rose-600">

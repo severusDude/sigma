@@ -17,9 +17,10 @@ import {
 
 interface CreateSupervisorFormProps {
   onSuccess: () => void;
+  teamOptions: { id: string; name: string }[];
 }
 
-export function CreateSupervisorForm({ onSuccess }: CreateSupervisorFormProps) {
+export function CreateSupervisorForm({ onSuccess, teamOptions }: CreateSupervisorFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm({
@@ -28,7 +29,7 @@ export function CreateSupervisorForm({ onSuccess }: CreateSupervisorFormProps) {
     defaultValues: {
       name: "",
       nip: "",
-      field: "",
+      teamId: "",
       phone: "",
       email: "",
       maxInterns: 5,
@@ -64,7 +65,7 @@ export function CreateSupervisorForm({ onSuccess }: CreateSupervisorFormProps) {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <SupervisorFormFields control={form.control} />
+      <SupervisorFormFields control={form.control} teamOptions={teamOptions} />
       <footer className="flex gap-2 w-full justify-end">
         <Button
           type="reset"

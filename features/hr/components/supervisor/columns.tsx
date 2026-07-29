@@ -35,10 +35,10 @@ const baseColumns: ColumnDef<Supervisor>[] = [
     ),
   },
   {
-    id: "field",
-    header: "Bidang",
-    accessorFn: (row) => row.supervisorProfile?.field,
-    cell: ({ row }) => row.original.supervisorProfile!.field,
+    id: "team",
+    header: "Team",
+    accessorFn: (row) => row.supervisorProfile?.team?.name,
+    cell: ({ row }) => row.original.supervisorProfile?.team?.name ?? "-",
   },
   {
     id: "internCount",

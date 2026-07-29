@@ -12,7 +12,7 @@ const DUMMY_DATA: Record<string, string> = {
   nik: "3273010101010001",
   institusi: "Universitas Indonesia",
   program: "Magang Merdeka",
-  bidang: "Teknologi Informasi",
+  team: "Teknologi Informasi",
   tanggal_mulai: "01 Januari 2026",
   tanggal_selesai: "31 Maret 2026",
   nama_pembimbing: "Dr. Budi Santoso, S.Kom., M.Kom.",

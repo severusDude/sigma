@@ -18,7 +18,7 @@ export default async function seedDevelopment() {
   await prisma.internSupervisor.deleteMany()
   await prisma.supervisorProfile.deleteMany()
   await prisma.internProfile.deleteMany()
-  await prisma.department.deleteMany()
+  await prisma.team.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.auditLog.deleteMany()
   await prisma.account.deleteMany()
@@ -28,19 +28,13 @@ export default async function seedDevelopment() {
   await prisma.systemConfig.deleteMany()
   await prisma.guide.deleteMany()
 
-  await prisma.department.create({
-    data: { name: "Statistik Distribusi" },
-  })
-  await prisma.department.create({
-    data: { name: "Statistik Produksi" },
-  })
-  await prisma.department.create({
-    data: { name: "Statistik Sosial" },
-  })
-  const deptUmum = await prisma.department.create({
-    data: { name: "Umum & Kepegawaian" },
-  })
-  console.log("  ✓ 4 departments created")
+  const teams = await Promise.all(
+    ["KEJAR", "HALIS", "GADIS", "CAPUNG", "INTANT", "HUMAS", "SE2026", "Pengolahan", "D'Stik", "PEK", "KTIP", "UMUM"].map(
+      (name) => prisma.team.create({ data: { name } }),
+    ),
+  )
+  const teamUmum = teams[teams.length - 1]
+  console.log(`  ✓ ${teams.length} teams created`)
 
   const admin = await auth.api.signUpEmail({
     body: {
@@ -88,7 +82,7 @@ export default async function seedDevelopment() {
     data: {
       userId: supervisor.user.id,
       nip: "198001012010011001",
-      field: "Statistik Distribusi",
+      teamId: teamUmum.id,
       phone: "081234567890",
       email: process.env.SEED_SUPERVISOR_EMAIL || "supervisor@bps.go.id",
     },
@@ -113,7 +107,7 @@ export default async function seedDevelopment() {
       email: process.env.SEED_INTERN_EMAIL || "intern@bps.go.id",
       periodStart: new Date("2026-07-01"),
       periodEnd: new Date("2026-12-31"),
-      departmentId: deptUmum.id,
+      teamId: teamUmum.id,
       status: "active",
     },
   })

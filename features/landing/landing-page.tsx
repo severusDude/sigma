@@ -63,7 +63,7 @@ const steps = [
   {
     num: "01",
     title: "Daftar & Ditempatkan",
-    desc: "HR mendaftarkan Intern, menentukan Supervisor dan bidang penempatan. Intern langsung mendapat informasi lengkap di dashboard personal.",
+    desc: "HR mendaftarkan Intern, menentukan Supervisor dan team penempatan. Intern langsung mendapat informasi lengkap di dashboard personal.",
   },
   {
     num: "02",
@@ -332,7 +332,7 @@ function HeroSection() {
                   </div>
                   <div className="h-16 rounded-lg bg-[#171e19] border border-black/10 p-3 flex flex-col justify-between">
                     <span className="font-mono text-xs text-white/50">
-                      Divisi
+                      Team
                     </span>
                     <span className="font-body text-sm font-bold text-white">
                       Statistik

@@ -36,7 +36,7 @@ export async function fetchAssessmentList(
       internProfile: {
         include: {
           user: true,
-          department: true,
+          team: true,
           assessments: {
             orderBy: { createdAt: "desc" },
             take: 1,
@@ -70,7 +70,7 @@ export async function fetchAssessmentList(
       photoUrl: intern.user.image,
       nim: intern.nik,
       institution: intern.institution,
-      divisionName: intern.department?.name ?? null,
+      teamName: intern.team?.name ?? null,
       periodStart: intern.periodStart,
       periodEnd: intern.periodEnd,
       logbookProgress,

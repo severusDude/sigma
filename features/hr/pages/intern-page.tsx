@@ -31,7 +31,7 @@ import { ChangePasswordDialog } from "../components/shared/change-password-dialo
 
 interface InternPageProps {
   interns: Intern[];
-  departments: { id: string; name: string }[];
+  teams: { id: string; name: string }[];
 }
 
 const filterOptions: FilterCategory[] = [
@@ -54,7 +54,7 @@ const sortOptions: SortOption[] = [
   { id: "status", label: "Status" },
 ];
 
-export default function InternPage({ interns, departments }: InternPageProps) {
+export default function InternPage({ interns, teams }: InternPageProps) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [updateIntern, setUpdateIntern] = useState<Intern | null>(null);
@@ -141,7 +141,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
           <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
             <div className="pt-6">
               <CreateInternForm
-                departmentOptions={departments}
+                teamOptions={teams}
                 onSuccess={() => setCreateOpen(false)}
               />
             </div>
@@ -170,7 +170,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
               {updateIntern && (
                 <UpdateInternForm
                   intern={updateIntern}
-                  departmentOptions={departments}
+                  teamOptions={teams}
                   onSuccess={() => setUpdateIntern(null)}
                 />
               )}

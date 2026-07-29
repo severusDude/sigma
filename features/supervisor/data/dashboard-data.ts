@@ -25,7 +25,7 @@ export async function fetchSupervisorDashboardData(
       internProfile: {
         include: {
           user: { select: { name: true, image: true } },
-          department: { select: { name: true } },
+          team: { select: { name: true } },
           logbooks: {
             where: { deletedAt: null },
             select: { status: true, date: true },
@@ -104,7 +104,7 @@ export async function fetchSupervisorDashboardData(
       name: intern.user.name,
       image: intern.user.image,
       institution: intern.institution,
-      department: intern.department?.name ?? null,
+      team: intern.team?.name ?? null,
       approvedLogbooks,
       totalLogbooks: intern.logbooks.length,
       presentDays,

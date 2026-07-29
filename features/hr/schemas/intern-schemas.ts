@@ -25,7 +25,7 @@ const baseFields = {
     .min(16, "Nomor Induk Penduduk Tidak Valid")
     .max(16, "Nomor Induk Penduduk Tidak Valid"),
   email: z.email({ error: "Email tidak valid" }).min(1, "Email wajib diisi"),
-  departmentId: z.string().optional().or(z.literal("")),
+  teamId: z.string().optional().or(z.literal("")),
   status: z
     .enum(Object.values(InternStatus) as [string, ...string[]])
     .default(InternStatus.active),

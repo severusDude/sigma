@@ -43,7 +43,7 @@ export default function ProfilePage({
   profile,
 }: {
   user: { id: string; name: string; email: string; image?: string | null; username?: string | null };
-  profile: (InternProfile & { department?: { name: string } | null }) | null;
+  profile: (InternProfile & { team?: { name: string } | null }) | null;
 }) {
   const router = useRouter();
   const [showCurrent, setShowCurrent] = useState(false);
@@ -230,8 +230,8 @@ export default function ProfilePage({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Field>
-              <FieldLabel>Bidang Penempatan</FieldLabel>
-              <Input value={profile?.department?.name ?? "-"} disabled />
+              <FieldLabel>Team</FieldLabel>
+              <Input value={profile?.team?.name ?? "-"} disabled />
             </Field>
             <Field>
               <FieldLabel>Periode</FieldLabel>

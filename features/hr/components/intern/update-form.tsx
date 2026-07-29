@@ -21,13 +21,13 @@ import {
 
 interface UpdateInternFormProps {
   intern: Intern;
-  departmentOptions: { id: string; name: string }[];
+  teamOptions: { id: string; name: string }[];
   onSuccess: () => void;
 }
 
 export function UpdateInternForm({
   intern,
-  departmentOptions,
+  teamOptions,
   onSuccess,
 }: UpdateInternFormProps) {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ export function UpdateInternForm({
       institution: intern.internProfile!.institution,
       phone: intern.internProfile!.phone || "",
       email: intern.email || "",
-      departmentId: intern.internProfile!.departmentId || "",
+      teamId: intern.internProfile!.teamId || "",
       periodStart: intern.internProfile!.periodStart,
       periodEnd: intern.internProfile!.periodEnd,
       status: intern.internProfile!.status,
@@ -91,7 +91,7 @@ export function UpdateInternForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <InternFormFields
         control={form.control}
-        departmentOptions={departmentOptions}
+        teamOptions={teamOptions}
         periodValue={periodValue}
         onPeriodChange={(range) => {
           setPeriod(range);

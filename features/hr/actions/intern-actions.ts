@@ -105,7 +105,7 @@ export async function createIntern(
               periodStart: parsed.periodStart,
               periodEnd: parsed.periodEnd,
               status: parsed.status as "active" | "completed" | "withdrawn",
-              departmentId: parsed.departmentId || null,
+              teamId: parsed.teamId || null,
             },
           },
         },
@@ -170,8 +170,8 @@ export async function updateIntern(
       internData.periodStart = parsed.periodStart;
     if (parsed.periodEnd !== undefined) internData.periodEnd = parsed.periodEnd;
     if (parsed.status !== undefined) internData.status = parsed.status;
-    if (parsed.departmentId !== undefined)
-      internData.departmentId = parsed.departmentId || null;
+    if (parsed.teamId !== undefined)
+      internData.teamId = parsed.teamId || null;
 
     if (Object.keys(internData).length > 0) {
       await prisma.internProfile.update({

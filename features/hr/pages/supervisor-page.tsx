@@ -35,6 +35,7 @@ interface SupervisorPageProps {
   supervisors: Supervisor[];
   unassignedInterns: UnassignedIntern[];
   activeSupervisors: ActiveSupervisorOption[];
+  teams: { id: string; name: string }[];
 }
 
 const filterOptions: FilterCategory[] = [
@@ -50,7 +51,7 @@ const filterOptions: FilterCategory[] = [
 
 const sortOptions: SortOption[] = [
   { id: "name", label: "Nama" },
-  { id: "field", label: "Bidang" },
+  { id: "field", label: "Team" },
   { id: "internCount", label: "Jumlah Intern" },
   { id: "isActive", label: "Status" },
 ];
@@ -59,6 +60,7 @@ export default function SupervisorPage({
   supervisors,
   unassignedInterns,
   activeSupervisors,
+  teams,
 }: SupervisorPageProps) {
   const [reassignAllOpen, setReassignAllOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -148,7 +150,7 @@ export default function SupervisorPage({
         title="Tambah Supervisor Baru"
         description="Lengkapi data supervisor"
       >
-        <CreateSupervisorForm onSuccess={() => setCreateOpen(false)} />
+        <CreateSupervisorForm teamOptions={teams} onSuccess={() => setCreateOpen(false)} />
       </ResponsiveModal>
 
       {/* Update Dialog/Drawer */}
@@ -161,6 +163,7 @@ export default function SupervisorPage({
         {updateSupervisor && (
           <UpdateSupervisorForm
             supervisor={updateSupervisor}
+            teamOptions={teams}
             onSuccess={() => setUpdateSupervisor(null)}
           />
         )}
