@@ -190,7 +190,6 @@ export default function LogbookPage({
   );
 
   const hasConsecutiveMiss = useMemo(() => {
-    if (logbooks.length === 0) return false;
     const dates = logbooks.map((lb) => new Date(lb.date).toDateString());
     const uniqueDates = new Set(dates);
     const today = new Date();
@@ -450,7 +449,7 @@ export default function LogbookPage({
                 </DialogDescription>
               </div>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-4">
               <div className="pt-6">
                 <CreateLogbookForm
                   issueOptions={issueOptions}
@@ -476,7 +475,7 @@ export default function LogbookPage({
                 </DialogDescription>
               </div>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-4">
               <div className="pt-6">
                 {updateLogbook && (
                   <UpdateLogbookForm

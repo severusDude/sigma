@@ -143,13 +143,12 @@ export async function createLogbook(
 
     return { success: true, data: logbook as Logbook };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       error: error instanceof StorageError
         ? error.userMessage
-        : error instanceof Error
-          ? error.message
-          : "Gagal membuat logbook",
+        : "Gagal membuat logbook",
       retryable: error instanceof StorageError ? error.retryable : undefined,
     };
   }

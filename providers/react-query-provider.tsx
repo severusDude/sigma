@@ -9,7 +9,7 @@ export default function ReactQueryProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const queryClient = new QueryClient();
+  const queryClient = React.useRef(new QueryClient()).current;
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
