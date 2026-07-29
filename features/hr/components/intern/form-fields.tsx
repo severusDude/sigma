@@ -33,6 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SelectItemType } from "@/lib/types";
+import { InternStatus } from "@/generated/prisma/enums";
+import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 
 interface InternFormFieldsProps<T extends FieldValues> {
   control: Control<T>;
@@ -63,12 +66,34 @@ function PeriodDuration({ from, to }: { from?: Date; to?: Date }) {
   );
 }
 
+const statusOptions: SelectItemType<InternStatus>[] = [
+  {
+    label: "Aktif",
+    value: InternStatus.active,
+  },
+  {
+    label: "Selesai",
+    value: InternStatus.completed,
+  },
+  {
+    label: "Ditarik",
+    value: InternStatus.withdrawn,
+  },
+];
+
 export function InternFormFields<T extends FieldValues>({
   control,
   teamOptions,
   periodValue,
   onPeriodChange,
 }: InternFormFieldsProps<T>) {
+  type TeamId = (typeof teamOptions)[number]["id"];
+
+  const teamSelect: SelectItemType<TeamId>[] = teamOptions.map((team) => ({
+    label: team.name,
+    value: team.id,
+  }));
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <Controller
@@ -179,6 +204,7 @@ export function InternFormFields<T extends FieldValues>({
             <FieldLabel htmlFor="team">Team</FieldLabel>
             <Select
               value={field.value || ""}
+              items={teamSelect}
               onValueChange={(val) => field.onChange(val || undefined)}
             >
               <SelectTrigger
@@ -209,6 +235,7 @@ export function InternFormFields<T extends FieldValues>({
             <FieldLabel htmlFor="status">Status Intern</FieldLabel>
             <Select
               value={field.value || ""}
+              items={statusOptions}
               onValueChange={field.onChange}
             >
               <SelectTrigger
@@ -229,7 +256,7 @@ export function InternFormFields<T extends FieldValues>({
         )}
       />
 
-      <Field>
+      <Field className="col-span-2">
         <FieldLabel>Periode Magang</FieldLabel>
         <Popover>
           <PopoverTrigger
@@ -257,7 +284,8 @@ export function InternFormFields<T extends FieldValues>({
               </Button>
             }
           />
-          <PopoverContent className="w-auto p-0" align="end">
+
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="range"
               selected={periodValue}
