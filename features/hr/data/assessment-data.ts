@@ -89,7 +89,7 @@ export async function fetchAssessmentDetail(assessmentId: string) {
     institution: assessment.internProfile.institution,
     supervisorName: supervisorUser.name,
     supervisorNip: assessment.supervisor.nip,
-    supervisorField: assessment.supervisor.field,
+    supervisorTeamName: assessment.supervisor.team?.name ?? "-",
     periodStart: assessment.periodStart,
     periodEnd: assessment.periodEnd,
     status: assessment.status,

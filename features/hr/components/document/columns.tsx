@@ -85,7 +85,7 @@ export function createColumns(
     },
     {
       id: "team",
-      header: "Bidang",
+      header: "Team",
       accessorFn: (row) => row.internProfile?.team?.name ?? null,
       cell: ({ row }) => (
         <span>

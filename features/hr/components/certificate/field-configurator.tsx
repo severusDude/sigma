@@ -34,7 +34,7 @@ const FIELD_LABELS: Record<string, string> = {
   nik: "NIK",
   institusi: "Institusi",
   program: "Program",
-  bidang: "Bidang",
+  team: "Team",
   tanggal_mulai: "Tanggal Mulai",
   tanggal_selesai: "Tanggal Selesai",
   nama_pembimbing: "Nama Pembimbing",

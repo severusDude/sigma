@@ -176,7 +176,7 @@ export function InternFormFields<T extends FieldValues>({
         control={control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="team">Departemen</FieldLabel>
+            <FieldLabel htmlFor="team">Team</FieldLabel>
             <Select
               value={field.value || ""}
               onValueChange={(val) => field.onChange(val || undefined)}
@@ -186,12 +186,12 @@ export function InternFormFields<T extends FieldValues>({
                 value={field.value}
                 aria-invalid={fieldState.invalid}
               >
-                <SelectValue placeholder="Pilih departemen" />
+                <SelectValue placeholder="Pilih team" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
-                {teamOptions.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
+                {teamOptions.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
                   </SelectItem>
                 ))}
               </SelectContent>

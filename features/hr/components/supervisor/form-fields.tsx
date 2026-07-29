@@ -21,13 +21,22 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SupervisorFormFieldsProps<T extends FieldValues> {
   control: Control<T>;
+  teamOptions: { id: string; name: string }[];
 }
 
 export function SupervisorFormFields<T extends FieldValues>({
   control,
+  teamOptions,
 }: SupervisorFormFieldsProps<T>) {
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -77,20 +86,32 @@ export function SupervisorFormFields<T extends FieldValues>({
         )}
       />
 
-      {/* Field */}
+      {/* Team */}
       <Controller
-        name={"field" as FieldPath<T>}
+        name={"teamId" as FieldPath<T>}
         control={control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="field">Bidang</FieldLabel>
-            <Input
-              {...field}
-              id="field"
-              placeholder="Masukkan bidang"
-              autoComplete="off"
-              aria-invalid={fieldState.invalid}
-            />
+            <FieldLabel htmlFor="teamId">Team</FieldLabel>
+            <Select
+              value={field.value || ""}
+              onValueChange={(val) => field.onChange(val || undefined)}
+            >
+              <SelectTrigger
+                id="teamId"
+                value={field.value}
+                aria-invalid={fieldState.invalid}
+              >
+                <SelectValue placeholder="Pilih team" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {teamOptions.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}

@@ -4,7 +4,7 @@ import { startOfWeek, format, subWeeks, differenceInDays } from "date-fns";
 import { id } from "date-fns/locale";
 import type {
   DashboardData,
-  DeptDistribution,
+  TeamDistribution,
   InternStatusCount,
   WeeklyFillRate,
   InternWarning,
@@ -98,7 +98,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     select: { id: true, name: true },
   });
 
-  const deptDistribution: DeptDistribution[] = teams.map((d) => ({
+  const teamDistribution: TeamDistribution[] = teams.map((d) => ({
     name: d.name,
     count: deptMap.get(d.id) ?? 0,
   }));
@@ -190,7 +190,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     logbookFillRatePrevMonth,
     attendanceRate,
     attendanceRatePrevMonth,
-    deptDistribution,
+    teamDistribution,
     internStatusCounts,
     weeklyFillRates,
     warningInterns: warningInterns.slice(0, 10),

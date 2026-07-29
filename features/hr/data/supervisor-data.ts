@@ -26,7 +26,7 @@ export async function fetchSupervisors(query?: string) {
               },
               {
                 supervisorProfile: {
-                  field: { contains: query, mode: "insensitive" },
+                  team: { name: { contains: query, mode: "insensitive" } },
                 },
               },
             ],

@@ -159,7 +159,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Info Pembimbing</CardTitle>
-              <CardDescription>Supervisor dan divisi</CardDescription>
+              <CardDescription>Supervisor dan Team</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                   <p className="text-sm font-medium">
                     {data.teamName ?? "—"}
                   </p>
-                  <p className="text-xs text-muted-foreground">Divisi</p>
+                  <p className="text-xs text-muted-foreground">Team</p>
                 </div>
               </div>
               <div className="pt-2 text-xs text-muted-foreground">

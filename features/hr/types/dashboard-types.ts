@@ -1,6 +1,6 @@
 import type { InternStatus } from "@/generated/prisma/enums";
 
-export type DeptDistribution = {
+export type TeamDistribution = {
   name: string;
   count: number;
 };
@@ -31,7 +31,7 @@ export type DashboardData = {
   logbookFillRatePrevMonth: number;
   attendanceRate: number;
   attendanceRatePrevMonth: number;
-  deptDistribution: DeptDistribution[];
+  teamDistribution: TeamDistribution[];
   internStatusCounts: InternStatusCount[];
   weeklyFillRates: WeeklyFillRate[];
   warningInterns: InternWarning[];

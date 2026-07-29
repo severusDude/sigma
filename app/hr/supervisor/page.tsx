@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import SupervisorPage from "@/features/hr/pages/supervisor-page";
 import {
   fetchSupervisors,
@@ -6,11 +7,15 @@ import {
 } from "@/features/hr/data/supervisor-data";
 
 export default async function Page() {
-  const [supervisors, unassignedInterns, activeSupervisors] =
+  const [supervisors, unassignedInterns, activeSupervisors, teams] =
     await Promise.all([
       fetchSupervisors(),
       fetchUnassignedInterns(),
       fetchActiveSupervisorOptions(),
+      prisma.team.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      }),
     ]);
 
   return (
@@ -18,6 +23,7 @@ export default async function Page() {
       supervisors={supervisors}
       unassignedInterns={unassignedInterns}
       activeSupervisors={activeSupervisors}
+      teams={teams}
     />
   );
 }

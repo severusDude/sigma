@@ -8,6 +8,7 @@ export default async function Page() {
 
   const profile = await prisma.supervisorProfile.findUnique({
     where: { userId: user.id },
+    include: { team: { select: { name: true } } },
   });
 
   return <ProfilePage user={user} profile={profile} />;

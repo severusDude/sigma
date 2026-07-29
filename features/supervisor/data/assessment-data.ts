@@ -70,7 +70,7 @@ export async function fetchAssessmentList(
       photoUrl: intern.user.image,
       nim: intern.nik,
       institution: intern.institution,
-      divisionName: intern.team?.name ?? null,
+      teamName: intern.team?.name ?? null,
       periodStart: intern.periodStart,
       periodEnd: intern.periodEnd,
       logbookProgress,

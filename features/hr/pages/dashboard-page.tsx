@@ -139,7 +139,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
       </div>
 
       <div className="grid gap-4 mb-6 lg:grid-cols-2">
-        <DeptBarChart data={data.deptDistribution} />
+        <DeptBarChart data={data.teamDistribution} />
         {/* TODO: fix label animation appearing from top left corner of the element */}
         <StatusPieChart data={data.internStatusCounts} />
       </div>

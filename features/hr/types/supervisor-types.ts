@@ -3,6 +3,7 @@ import { UserGetPayload } from "@/generated/prisma/models";
 const supervisorInclude = {
   supervisorProfile: {
     include: {
+      team: { select: { name: true } },
       internAssignments: {
         where: { endedAt: null },
       },

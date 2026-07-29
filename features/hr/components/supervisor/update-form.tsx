@@ -19,11 +19,13 @@ import {
 interface UpdateSupervisorFormProps {
   supervisor: Supervisor;
   onSuccess: () => void;
+  teamOptions: { id: string; name: string }[];
 }
 
 export function UpdateSupervisorForm({
   supervisor,
   onSuccess,
+  teamOptions,
 }: UpdateSupervisorFormProps) {
   const queryClient = useQueryClient();
 
@@ -33,7 +35,7 @@ export function UpdateSupervisorForm({
     defaultValues: {
       name: supervisor.name,
       nip: supervisor.supervisorProfile!.nip,
-      field: supervisor.supervisorProfile!.field,
+      teamId: supervisor.supervisorProfile!.teamId,
       phone: supervisor.supervisorProfile!.phone || "",
       email: supervisor.email || "",
       maxInterns: supervisor.supervisorProfile!.maxInterns,
@@ -70,6 +72,7 @@ export function UpdateSupervisorForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <SupervisorFormFields
         control={form.control}
+        teamOptions={teamOptions}
       />
       <footer className="flex gap-2 justify-end">
         <Button type="reset" disabled={isPending} variant="outline">

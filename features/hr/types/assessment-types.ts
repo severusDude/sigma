@@ -7,6 +7,7 @@ const assessmentInclude = {
   supervisor: {
     include: {
       user: true,
+      team: { select: { name: true } },
     },
   },
   components: true,
@@ -37,7 +38,7 @@ export interface HrAssessmentDetail {
   institution: string;
   supervisorName: string;
   supervisorNip: string;
-  supervisorField: string;
+  supervisorTeamName: string;
   periodStart: Date;
   periodEnd: Date;
   status: string;

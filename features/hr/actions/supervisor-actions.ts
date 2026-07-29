@@ -114,7 +114,7 @@ export async function createSupervisor(
           supervisorProfile: {
             create: {
               nip: parsed.nip,
-              field: parsed.field,
+              teamId: parsed.teamId,
               phone: parsed.phone || null,
               email: parsed.email || null,
               maxInterns: parsed.maxInterns ?? 5,
@@ -175,7 +175,7 @@ export async function updateSupervisor(
 
     const supervisorData: Record<string, unknown> = {};
     if (parsed.nip !== undefined) supervisorData.nip = parsed.nip;
-    if (parsed.field !== undefined) supervisorData.field = parsed.field;
+    if (parsed.teamId !== undefined) supervisorData.teamId = parsed.teamId;
     if (parsed.phone !== undefined) supervisorData.phone = parsed.phone || null;
     if (parsed.email !== undefined) supervisorData.email = parsed.email || null;
     if (parsed.maxInterns !== undefined)

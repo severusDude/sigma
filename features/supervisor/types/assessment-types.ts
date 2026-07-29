@@ -4,7 +4,7 @@ export type AssessmentListItem = {
   photoUrl: string | null
   nim: string
   institution: string
-  divisionName: string | null
+  teamName: string | null
   periodStart: Date
   periodEnd: Date
   logbookProgress: number

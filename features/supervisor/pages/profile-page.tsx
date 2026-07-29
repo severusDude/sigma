@@ -254,8 +254,8 @@ export default function ProfilePage({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Field>
-              <FieldLabel>Bidang</FieldLabel>
-              <Input value={profile?.field ?? "-"} disabled />
+              <FieldLabel>Team</FieldLabel>
+              <Input value={(profile as { team?: { name: string } | null })?.team?.name ?? "-"} disabled />
             </Field>
             <Field>
               <FieldLabel>Telepon</FieldLabel>

@@ -230,7 +230,7 @@ export default function ProfilePage({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Field>
-              <FieldLabel>Bidang Penempatan</FieldLabel>
+              <FieldLabel>Team</FieldLabel>
               <Input value={profile?.team?.name ?? "-"} disabled />
             </Field>
             <Field>
