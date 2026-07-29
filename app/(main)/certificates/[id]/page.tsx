@@ -1,8 +1,36 @@
+import type { Metadata } from "next";
 import { cacheLife } from "next/cache";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DocumentPreview } from "@/components/shared/document";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const doc = await prisma.document.findUnique({
+    where: { id, documentType: "certificate" },
+    include: {
+      internProfile: { include: { user: true } },
+    },
+  });
+
+  if (!doc || doc.deletedAt) {
+    return { title: "Sertifikat Tidak Ditemukan" };
+  }
+
+  return {
+    title: `Verifikasi Sertifikat — ${doc.title}`,
+    description: `Verifikasi sertifikat magang ${doc.title} an. ${doc.internProfile.user.name} — BPS Kota Tasikmalaya.`,
+    robots: { index: false, follow: false },
+    alternates: {
+      canonical: `/certificates/${id}`,
+    },
+  };
+}
 
 export default function CertificatePage({
   params,

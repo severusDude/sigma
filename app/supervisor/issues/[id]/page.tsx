@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { prisma } from "@/lib/prisma";
@@ -6,6 +7,11 @@ import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import IssueView from "@/features/supervisor/pages/issue-view";
 import { issueDetailInclude } from "@/features/supervisor/types/issue-types";
+
+export const metadata: Metadata = {
+  title: "Detail Bimbingan",
+  robots: { index: false, follow: false },
+};
 
 import Loading from "./loading";
 

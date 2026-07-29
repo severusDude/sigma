@@ -1,9 +1,15 @@
+import type { Metadata } from "next"
 import { ClipboardCheck, MessageCircle, Clock, ArrowRight } from "lucide-react"
 
 import { requireAuth } from "@/helpers/guard"
 import { Role } from "@/generated/prisma/enums"
 import { fetchInternAssessment } from "@/features/intern/data/assessment-intern-data"
 import AssessmentInternPage from "@/features/intern/pages/assessment-intern-page"
+
+export const metadata: Metadata = {
+  title: "Penilaian",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page() {
   const { user } = await requireAuth([Role.admin, Role.intern])

@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import LogbookPage from "@/features/intern/pages/logbook-page";
+
+export const metadata: Metadata = {
+  title: "Logbook",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page() {
   const { user } = await requireAuth([Role.admin, Role.intern]);
