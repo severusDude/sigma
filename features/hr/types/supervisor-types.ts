@@ -18,7 +18,7 @@ export interface UnassignedIntern {
   id: string;
   name: string;
   institution: string;
-  departmentName: string | null;
+  teamName: string | null;
 }
 
 export interface ActiveSupervisorOption {
@@ -34,7 +34,7 @@ export interface AssignedIntern {
   internName: string;
   nim: string;
   institution: string;
-  departmentName: string | null;
+  teamName: string | null;
   assignedAt: string;
 }
 

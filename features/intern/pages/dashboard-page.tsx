@@ -183,7 +183,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {data.departmentName ?? "—"}
+                    {data.teamName ?? "—"}
                   </p>
                   <p className="text-xs text-muted-foreground">Divisi</p>
                 </div>

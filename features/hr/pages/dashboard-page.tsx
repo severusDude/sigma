@@ -170,7 +170,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                     <p className="text-sm font-medium">{intern.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {intern.institution}
-                      {intern.department ? ` — ${intern.department}` : ""}
+                      {intern.team ? ` — ${intern.team}` : ""}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-rose-600">

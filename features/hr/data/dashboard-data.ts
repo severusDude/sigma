@@ -30,7 +30,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       where: { status: "active", deletedAt: null },
       include: {
         user: { select: { name: true } },
-        department: { select: { name: true } },
+        team: { select: { name: true } },
         logbooks: {
           where: { deletedAt: null },
           select: { id: true, date: true, status: true },
@@ -58,11 +58,11 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       },
     }),
     prisma.internProfile.groupBy({
-      by: ["departmentId"],
+      by: ["teamId"],
       where: {
         status: "active",
         deletedAt: null,
-        departmentId: { not: null },
+        teamId: { not: null },
       },
       _count: true,
     }),
@@ -74,7 +74,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
         periodStart: true,
         periodEnd: true,
         user: { select: { name: true } },
-        department: { select: { name: true } },
+        team: { select: { name: true } },
         logbooks: {
           where: { deletedAt: null, status: "approved" },
           select: { date: true },
@@ -89,16 +89,16 @@ export async function fetchDashboardData(): Promise<DashboardData> {
 
   const deptMap = new Map<string, number>();
   for (const d of deptRaw) {
-    if (!d.departmentId) continue;
-    deptMap.set(d.departmentId, d._count);
+    if (!d.teamId) continue;
+    deptMap.set(d.teamId, d._count);
   }
 
-  const departments = await prisma.department.findMany({
+  const teams = await prisma.team.findMany({
     where: { id: { in: Array.from(deptMap.keys()) } },
     select: { id: true, name: true },
   });
 
-  const deptDistribution: DeptDistribution[] = departments.map((d) => ({
+  const deptDistribution: DeptDistribution[] = teams.map((d) => ({
     name: d.name,
     count: deptMap.get(d.id) ?? 0,
   }));
@@ -145,7 +145,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
         name: intern.user.name,
         institution: intern.institution,
         logbookRate: Math.round(fillRate),
-        department: intern.department?.name ?? null,
+        team: intern.team?.name ?? null,
       });
     }
   }

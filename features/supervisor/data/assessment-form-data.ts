@@ -22,7 +22,7 @@ export async function fetchAssessmentFormData(
       internProfile: {
         include: {
           user: true,
-          department: true,
+          team: true,
           assessments: {
             orderBy: { updatedAt: "desc" },
             take: 1,

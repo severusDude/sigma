@@ -60,7 +60,7 @@ const tabConfig: { value: DocumentType; label: string }[] = [
 
 const filterOptions: FilterCategory[] = [
   {
-    id: "department",
+    id: "team",
     label: "Bidang",
     options: [
       { label: "Statistik Sosial", value: "Statistik Sosial" },
@@ -74,7 +74,7 @@ const filterOptions: FilterCategory[] = [
 
 const sortOptions: SortOption[] = [
   { id: "nameNik", label: "Nama" },
-  { id: "department", label: "Bidang" },
+  { id: "team", label: "Bidang" },
   { id: "period", label: "Periode" },
 ];
 

@@ -20,7 +20,7 @@ export type InternWarning = {
   name: string;
   institution: string;
   logbookRate: number;
-  department: string | null;
+  team: string | null;
 };
 
 export type DashboardData = {

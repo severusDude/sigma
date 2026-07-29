@@ -8,7 +8,7 @@ export default async function Page() {
 
   const profile = await prisma.internProfile.findUnique({
     where: { userId: user.id },
-    include: { department: true },
+    include: { team: true },
   });
 
   return <ProfilePage user={user} profile={profile} />;

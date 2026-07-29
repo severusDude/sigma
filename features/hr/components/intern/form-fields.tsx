@@ -36,7 +36,7 @@ import {
 
 interface InternFormFieldsProps<T extends FieldValues> {
   control: Control<T>;
-  departmentOptions: { id: string; name: string }[];
+  teamOptions: { id: string; name: string }[];
   periodValue?: DateRange | undefined;
   onPeriodChange?: (range: DateRange | undefined) => void;
 }
@@ -65,7 +65,7 @@ function PeriodDuration({ from, to }: { from?: Date; to?: Date }) {
 
 export function InternFormFields<T extends FieldValues>({
   control,
-  departmentOptions,
+  teamOptions,
   periodValue,
   onPeriodChange,
 }: InternFormFieldsProps<T>) {
@@ -172,24 +172,24 @@ export function InternFormFields<T extends FieldValues>({
       />
 
       <Controller
-        name={"departmentId" as FieldPath<T>}
+        name={"teamId" as FieldPath<T>}
         control={control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="department">Departemen</FieldLabel>
+            <FieldLabel htmlFor="team">Departemen</FieldLabel>
             <Select
               value={field.value || ""}
               onValueChange={(val) => field.onChange(val || undefined)}
             >
               <SelectTrigger
-                id="department"
+                id="team"
                 value={field.value}
                 aria-invalid={fieldState.invalid}
               >
                 <SelectValue placeholder="Pilih departemen" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
-                {departmentOptions.map((dept) => (
+                {teamOptions.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
                   </SelectItem>

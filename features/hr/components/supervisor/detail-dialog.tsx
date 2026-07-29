@@ -233,8 +233,8 @@ export function DetailDialog({
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate">
                               {intern.nim} · {intern.institution}
-                              {intern.departmentName
-                                ? ` - ${intern.departmentName}`
+                              {intern.teamName
+                                ? ` - ${intern.teamName}`
                                 : ""}
                             </p>
                           </div>
