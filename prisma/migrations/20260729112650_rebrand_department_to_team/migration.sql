@@ -16,11 +16,6 @@ ALTER TABLE "supervisor_profile" ADD COLUMN "teamId" TEXT;
 
 -- Custom SupervisorProfile data migration
 -- Ensure UMUM team exists (from department data if present, or create placeholder)
-INSERT INTO "team" (id, name, description, "createdAt", "updatedAt")
-SELECT id, name, description, "createdAt", "updatedAt"
-FROM "team"
-WHERE name = 'UMUM'
-ON CONFLICT (id) DO NOTHING;
 
 -- If UMUM still doesn't exist (no department named UMUM), create it
 INSERT INTO "team" (id, name, description, "createdAt", "updatedAt")
@@ -35,15 +30,16 @@ ALTER TABLE "supervisor_profile" ALTER COLUMN "teamId" SET NOT NULL;
 
 -- Add foreign key constraint for supervisor_profile
 ALTER TABLE "supervisor_profile" ADD CONSTRAINT "supervisor_profile_teamId_fkey"
-  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE SET NULL;
+  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE RESTRICT;
 
 -- Drop the old field column
 ALTER TABLE "supervisor_profile" DROP COLUMN IF EXISTS "field";
 
 -- AddForeignKey for intern_profile
 ALTER TABLE "intern_profile" ADD CONSTRAINT "intern_profile_teamId_fkey"
-  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE SET NULL ON UPDATE CASCADE;
+  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE SET NULL;
 
 -- AddForeignKey for issue
 ALTER TABLE "issue" ADD CONSTRAINT "issue_teamId_fkey"
-  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE SET NULL ON UPDATE CASCADE;
+  FOREIGN KEY ("teamId") REFERENCES "team"(id) ON DELETE SET NULL;
+
