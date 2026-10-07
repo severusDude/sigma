@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import SupervisorPage from "@/features/hr/pages/supervisor-page";
 import {
@@ -5,6 +6,11 @@ import {
   fetchUnassignedInterns,
   fetchActiveSupervisorOptions,
 } from "@/features/hr/data/supervisor-data";
+
+export const metadata: Metadata = {
+  title: "Manajemen Supervisor",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page() {
   const [supervisors, unassignedInterns, activeSupervisors, teams] =

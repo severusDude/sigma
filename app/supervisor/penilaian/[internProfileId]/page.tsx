@@ -1,9 +1,15 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { requireAuth } from "@/helpers/guard"
 import { Role } from "@/generated/prisma/enums"
 import { fetchSupervisorProfileId } from "@/features/supervisor/data/assessment-data"
 import { fetchAssessmentFormData } from "@/features/supervisor/data/assessment-form-data"
 import AssessmentFormPage from "@/features/supervisor/pages/assessment-form-page"
+
+export const metadata: Metadata = {
+  title: "Form Penilaian Intern",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page({
   params,
