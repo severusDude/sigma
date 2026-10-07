@@ -12,7 +12,8 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { getRoleHome } from "@/helpers/role-home";
+import { getRoleHome, roleHome } from "@/helpers/role-home";
+import { getSafeRedirectPath } from "@/helpers/safe-redirect";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -27,8 +28,9 @@ import { signInSchema } from "../schemas";
 
 export function SignInForm({
   className,
+  redirectTo,
   ...props
-}: React.ComponentProps<"form">) {
+}: React.ComponentProps<"form"> & { redirectTo?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -79,7 +81,21 @@ export function SignInForm({
 
     try {
       const data = await mutationPromise;
-      router.push(getRoleHome(data.user.role ?? ""));
+      const role = data.user.role ?? "";
+
+      if (!(role in roleHome)) {
+        // TODO: Localization
+        toast.error(
+          "Akun belum memiliki peran yang valid. Hubungi admin atau HR.",
+        );
+        await authClient.signOut();
+        return;
+      }
+
+      const roleHomeUrl = getRoleHome(role);
+      router.push(
+        redirectTo ? getSafeRedirectPath(redirectTo, roleHomeUrl) : roleHomeUrl,
+      );
     } catch {
       // Toast sudah handle error untuk user
     }
