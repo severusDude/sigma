@@ -105,7 +105,11 @@ export async function createLogbook(
       };
     }
 
-    await assertStorageHealthy()
+    // R2 hanya dipakai untuk file lampiran; isi logbook murni Postgres.
+    // Health check tanpa syarat memblokir semua pembuatan logbook saat R2 down.
+    if (parsed.attachments?.length) {
+      await assertStorageHealthy()
+    }
 
     const { logbook, attachments } = await prisma.$transaction(async (tx) => {
       const lb = await tx.logbook.create({
