@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import NavigationProgressProvider from "@/providers/progress-provider";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
@@ -113,7 +114,11 @@ export default function RootLayout({
             defaultTheme="dark"
             disableTransitionOnChange
           >
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              <NavigationProgressProvider>
+                {children}
+              </NavigationProgressProvider>
+            </TooltipProvider>
             <Toaster />
           </ThemeProvider>
         </ReactQueryProvider>

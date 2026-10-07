@@ -64,11 +64,6 @@ async function HrSidebar({ children }: { children: React.ReactNode }) {
         url: "/hr/templates",
         icon: <FileSpreadsheet className="size-4" />,
       },
-      {
-        title: "Pelaporan",
-        url: "/hr/laporan",
-        icon: <BarChart3 className="size-4" />,
-      },
     ],
   };
 
