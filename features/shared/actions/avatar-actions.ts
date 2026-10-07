@@ -3,6 +3,8 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { headers } from "next/headers"
+import { updateTag } from "next/cache"
+import { invalidateInternScope } from "@/helpers/cache-invalidation"
 import {
   getObjectMetadata,
   deleteObject,
@@ -59,6 +61,31 @@ export async function updateAvatar(key: string) {
     await prisma.user.update({
       where: { id: session.user.id },
       data: { image: publicUrl },
+    })
+
+    const [internProfile, supervisorProfile, ownedAssignments] = await Promise.all([
+      prisma.internProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      }),
+      prisma.supervisorProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      }),
+      prisma.internSupervisor.findMany({
+        where: { internProfile: { userId: session.user.id }, endedAt: null },
+        select: { supervisorProfileId: true },
+      }),
+    ]);
+
+    updateTag("supervisors");
+    invalidateInternScope({
+      supervisorIds: [
+        ...ownedAssignments.map((a) => a.supervisorProfileId),
+        ...(supervisorProfile ? [supervisorProfile.id] : []),
+      ],
+      internProfileId: internProfile?.id,
+      userId: session.user.id,
     })
 
     return { success: true as const, url: publicUrl }

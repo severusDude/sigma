@@ -3,9 +3,9 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { updateTag } from "next/cache"
 
 import { requirePermission } from "@/lib/auth/authorize"
+import { invalidateInternScope } from "@/helpers/cache-invalidation"
 import type { ActionResponse } from "@/lib/types"
 
 import { createOrUpdateAssessmentSchema, submitAssessmentSchema } from "../schemas/assessment-form-schemas"
@@ -67,9 +67,10 @@ export async function createOrUpdateAssessment(
         }
       }
 
-      updateTag(`assessment-form-${parsed.internProfileId}`)
-      updateTag(`assessment-list-${supervisor.id}`)
-      updateTag(`supervisor-interns-${supervisor.id}`)
+      invalidateInternScope({
+        supervisorIds: [supervisor.id],
+        internProfileId: parsed.internProfileId,
+      })
 
       return { success: true, data: { assessmentId: existingAssessment.id } }
     }
@@ -92,9 +93,10 @@ export async function createOrUpdateAssessment(
       },
     })
 
-    updateTag(`assessment-form-${parsed.internProfileId}`)
-    updateTag(`assessment-list-${supervisor.id}`)
-    updateTag(`supervisor-interns-${supervisor.id}`)
+    invalidateInternScope({
+      supervisorIds: [supervisor.id],
+      internProfileId: parsed.internProfileId,
+    })
 
     return { success: true, data: { assessmentId: assessment.id } }
   } catch (error) {
@@ -154,9 +156,10 @@ export async function submitAssessment(
     })
 
     if (assignment) {
-      updateTag(`assessment-form-${assessment.internProfileId}`)
-      updateTag(`assessment-list-${supervisor.id}`)
-      updateTag(`supervisor-interns-${supervisor.id}`)
+      invalidateInternScope({
+        supervisorIds: [supervisor.id],
+        internProfileId: assessment.internProfileId,
+      })
     }
 
     return { success: true }

@@ -6,6 +6,7 @@ import { headers } from "next/headers"
 import { updateTag } from "next/cache"
 
 import { requirePermission } from "@/lib/auth/authorize"
+import { invalidateInternScope } from "@/helpers/cache-invalidation"
 import type { ActionResponse } from "@/lib/types"
 
 import { getAssessmentsSchema, finalizeAssessmentSchema } from "../schemas/assessment-schemas"
@@ -93,7 +94,10 @@ export async function finalizeAssessment(
 
     const assessment = await prisma.assessment.findUnique({
       where: { id: parsed.assessmentId },
-      include: { components: true },
+      include: {
+        components: true,
+        internProfile: { select: { id: true, userId: true } },
+      },
     })
 
     if (!assessment) {
@@ -124,8 +128,12 @@ export async function finalizeAssessment(
       },
     })
 
-    updateTag("hr-assessments")
     updateTag(`hr-assessment-${parsed.assessmentId}`)
+    invalidateInternScope({
+      supervisorIds: [assessment.supervisorProfileId],
+      internProfileId: assessment.internProfileId,
+      userId: assessment.internProfile.userId,
+    })
 
     return { success: true }
   } catch (error) {
