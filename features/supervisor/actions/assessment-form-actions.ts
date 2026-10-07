@@ -69,6 +69,7 @@ export async function createOrUpdateAssessment(
 
       updateTag(`assessment-form-${parsed.internProfileId}`)
       updateTag(`assessment-list-${supervisor.id}`)
+      updateTag(`supervisor-interns-${supervisor.id}`)
 
       return { success: true, data: { assessmentId: existingAssessment.id } }
     }
@@ -93,6 +94,7 @@ export async function createOrUpdateAssessment(
 
     updateTag(`assessment-form-${parsed.internProfileId}`)
     updateTag(`assessment-list-${supervisor.id}`)
+    updateTag(`supervisor-interns-${supervisor.id}`)
 
     return { success: true, data: { assessmentId: assessment.id } }
   } catch (error) {
@@ -154,6 +156,7 @@ export async function submitAssessment(
     if (assignment) {
       updateTag(`assessment-form-${assessment.internProfileId}`)
       updateTag(`assessment-list-${supervisor.id}`)
+      updateTag(`supervisor-interns-${supervisor.id}`)
     }
 
     return { success: true }

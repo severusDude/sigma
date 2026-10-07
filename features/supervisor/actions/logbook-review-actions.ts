@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 
+import { updateTag } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 import type { ActionResponse } from "@/lib/types";
 import { requirePermission } from "@/lib/auth/authorize";
@@ -47,6 +49,8 @@ export async function approveLogbook(
       where: { id: logbookId },
       data: { status: LogbookStatus.approved },
     });
+
+    updateTag(`supervisor-interns-${supervisorProfile.id}`);
 
     return { success: true };
   } catch (error) {
@@ -108,6 +112,8 @@ export async function requestRevision(
         notes: parsed.notes,
       },
     });
+
+    updateTag(`supervisor-interns-${supervisorProfile.id}`);
 
     return { success: true };
   } catch (error) {
