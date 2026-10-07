@@ -96,10 +96,6 @@ export function DetailDialog({ intern, onClose }: DetailDialogProps) {
                   value={`${intern.pendingLogbooks}`}
                 />
                 <InfoRow
-                  label="Kehadiran"
-                  value={`${intern.presentDays}/${intern.totalAttendance} hari`}
-                />
-                <InfoRow
                   label="Penilaian"
                   value={
                     intern.assessmentStatus

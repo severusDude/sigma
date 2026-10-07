@@ -17,12 +17,9 @@ interface AssignmentRow {
     user: { name: string; image: string | null };
     team: { name: string } | null;
     logbooks: { status: string }[];
-    attendanceRecords: { status: string }[];
     assessments: { status: string }[];
   };
 }
-
-const PRESENT_STATUSES = new Set(["present", "late", "field_duty"]);
 
 // Fungsi murni (testable): agregat + split aktif vs riwayat.
 export function groupSupervisedInterns(
@@ -51,10 +48,6 @@ export function groupSupervisedInterns(
       pendingLogbooks: intern.logbooks.filter(
         (l) => l.status === "pending_review",
       ).length,
-      presentDays: intern.attendanceRecords.filter((r) =>
-        PRESENT_STATUSES.has(r.status),
-      ).length,
-      totalAttendance: intern.attendanceRecords.length,
       assessmentStatus:
         (intern.assessments[0]?.status as SupervisedIntern["assessmentStatus"]) ??
         null,
@@ -87,10 +80,6 @@ export async function fetchSupervisorInterns(
           user: { select: { name: true, image: true } },
           team: { select: { name: true } },
           logbooks: {
-            where: { deletedAt: null },
-            select: { status: true },
-          },
-          attendanceRecords: {
             where: { deletedAt: null },
             select: { status: true },
           },

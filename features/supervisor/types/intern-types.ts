@@ -20,8 +20,6 @@ export interface SupervisedIntern {
   approvedLogbooks: number;
   totalLogbooks: number;
   pendingLogbooks: number;
-  presentDays: number;
-  totalAttendance: number;
   assessmentStatus: SupervisedAssessmentStatus;
 }
 

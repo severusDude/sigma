@@ -103,16 +103,6 @@ const baseColumns: ColumnDef<SupervisedIntern>[] = [
     ),
   },
   {
-    id: "attendance",
-    header: "Presensi",
-    accessorFn: (row) => row.presentDays,
-    cell: ({ row }) => (
-      <span className="text-sm whitespace-nowrap">
-        {row.original.presentDays}/{row.original.totalAttendance} hadir
-      </span>
-    ),
-  },
-  {
     id: "assessment",
     header: "Penilaian",
     accessorFn: (row) => row.assessmentStatus ?? "",
