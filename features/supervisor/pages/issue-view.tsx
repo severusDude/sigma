@@ -25,7 +25,6 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IssueStatus, LogbookStatus } from "@/generated/prisma/enums";
@@ -295,7 +294,7 @@ export default function IssueView({ issue }: IssueViewProps) {
   const assignedCount = getAssignedInternCount(issueData);
 
   return (
-    <ScrollArea className="max-w-[100vw] h-[calc(100vh-5rem)] pr-2">
+    <div className="w-full max-w-full min-w-0 h-[calc(100vh-5rem)] overflow-y-auto pr-2">
       <div className="w-full pb-8 space-y-8">
         <Link
           href="/supervisor/issues"
@@ -661,6 +660,6 @@ export default function IssueView({ issue }: IssueViewProps) {
           </DialogContent>
         </Dialog>
       </div>
-    </ScrollArea>
+    </div>
   );
 }

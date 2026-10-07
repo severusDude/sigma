@@ -215,7 +215,7 @@ export default function LogbookPage({
   const activeDays = Math.max(0, Math.min(elapsedDays, totalDays));
 
   return (
-    <ScrollArea className="max-w-[100vw] h-[calc(100vh-5rem)] pr-2">
+    <div className="w-full max-w-full min-w-0 h-[calc(100vh-5rem)] overflow-y-auto pr-2">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -496,6 +496,6 @@ export default function LogbookPage({
           onClose={() => setDeleteLogbook(null)}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 }

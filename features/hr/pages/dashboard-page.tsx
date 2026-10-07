@@ -14,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   StatBlock,
   StatContent,
@@ -39,7 +38,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
   const hasWarning = data.warningInterns.length > 0;
 
   return (
-    <ScrollArea className="w-full max-h-[calc(100vh-5rem)] mx-auto space-y-6 pr-2">
+    <div className="w-full max-w-full min-w-0 max-h-[calc(100vh-5rem)] overflow-y-auto mx-auto space-y-6 pr-2">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard HR</h1>
         <p className="text-sm text-muted-foreground">
@@ -188,6 +187,6 @@ export default function DashboardPage({ data }: DashboardPageProps) {
           <p className="text-sm text-muted-foreground">Belum ada data</p>
         </div>
       )}
-    </ScrollArea>
+    </div>
   );
 }

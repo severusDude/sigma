@@ -7,7 +7,6 @@ import { Users, FileClock, CircleCheck } from "lucide-react";
 import { SortOption } from "@/lib/types/sort";
 import { FilterCategory } from "@/lib/types/filter";
 import { InternStatus } from "@/generated/prisma/enums";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { DataTable } from "@/components/shared/data-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -90,7 +89,7 @@ export default function InternPage({ active, history }: InternPageProps) {
   }
 
   return (
-    <ScrollArea className="w-full max-h-[calc(100vh-5rem)] mx-auto space-y-8 pr-2">
+    <div className="w-full max-w-full min-w-0 max-h-[calc(100vh-5rem)] overflow-y-auto mx-auto space-y-8 pr-2">
       <div className="space-y-6 contents">
         <header>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -188,6 +187,6 @@ export default function InternPage({ active, history }: InternPageProps) {
           onClose={() => setDetailId(null)}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 }
