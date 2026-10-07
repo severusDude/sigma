@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { updateTag } from "next/cache";
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
 
 import { prisma } from "@/lib/prisma";
 import type { ActionResponse } from "@/lib/types";
@@ -50,7 +50,19 @@ export async function approveLogbook(
       data: { status: LogbookStatus.approved },
     });
 
-    updateTag(`supervisor-interns-${supervisorProfile.id}`);
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: logbook.internProfileId },
+      select: { userId: true },
+    });
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: logbook.internProfileId, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: logbook.internProfileId,
+      userId: intern?.userId,
+    });
 
     return { success: true };
   } catch (error) {
@@ -113,7 +125,19 @@ export async function requestRevision(
       },
     });
 
-    updateTag(`supervisor-interns-${supervisorProfile.id}`);
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: logbook.internProfileId },
+      select: { userId: true },
+    });
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: logbook.internProfileId, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: logbook.internProfileId,
+      userId: intern?.userId,
+    });
 
     return { success: true };
   } catch (error) {

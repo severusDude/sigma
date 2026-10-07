@@ -3,6 +3,8 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
+import { updateTag } from "next/cache";
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
 
 export async function changePassword(
   currentPassword: string,
@@ -44,6 +46,10 @@ export async function toggleSupervisorStatus(
       where: { userId },
       data: { isActive },
     });
+
+    updateTag("supervisors");
+    updateTag("supervisor-options");
+    invalidateInternScope({ userId });
 
     return { success: true as const };
   } catch (error) {

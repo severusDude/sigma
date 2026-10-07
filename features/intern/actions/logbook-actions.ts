@@ -13,6 +13,7 @@ import {
 } from "../schemas/logbook-schemas";
 import { fetchLogbooks } from "../data/logbook-data";
 import { assertStorageHealthy, StorageError } from "@/services/storage-health";
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
 
 export async function getLogbooks(
   query?: Parameters<typeof fetchLogbooks>[1],
@@ -104,7 +105,11 @@ export async function createLogbook(
       };
     }
 
-    await assertStorageHealthy()
+    // R2 hanya dipakai untuk file lampiran; isi logbook murni Postgres.
+    // Health check tanpa syarat memblokir semua pembuatan logbook saat R2 down.
+    if (parsed.attachments?.length) {
+      await assertStorageHealthy()
+    }
 
     const { logbook, attachments } = await prisma.$transaction(async (tx) => {
       const lb = await tx.logbook.create({
@@ -140,6 +145,16 @@ export async function createLogbook(
 
       return { logbook: lb, attachments: atts }
     })
+
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: internProfile.id,
+      userId: session.user.id,
+    });
 
     return { success: true, data: logbook as Logbook };
   } catch (error) {
@@ -208,6 +223,16 @@ export async function updateLogbook(
       include: logbookInclude,
     });
 
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: internProfile.id,
+      userId: session.user.id,
+    });
+
     return { success: true, data: logbook as Logbook };
   } catch (error) {
     return {
@@ -248,6 +273,16 @@ export async function deleteLogbook(id: string): Promise<ActionResponse<void>> {
 
     await prisma.logbook.delete({
       where: { id },
+    });
+
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: internProfile.id,
+      userId: session.user.id,
     });
 
     return { success: true };

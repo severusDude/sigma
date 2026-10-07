@@ -14,7 +14,7 @@ import {
   updateInternSchema,
 } from "../schemas/intern-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
-import { updateTag } from "next/cache";
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
 import { fetchInterns } from "../data/intern-data";
 
 export async function getInterns(
@@ -112,7 +112,7 @@ export async function createIntern(
         include: { internProfile: true },
       });
 
-      updateTag("interns");
+      invalidateInternScope({});
 
       return {
         success: true,
@@ -120,7 +120,6 @@ export async function createIntern(
       };
     } catch (profileError) {
       await auth.api.removeUser({ body: { userId: userId } });
-      updateTag("interns");
       return {
         success: false,
         error:
@@ -197,8 +196,16 @@ export async function updateIntern(
       include: { internProfile: true },
     });
 
-    updateTag("interns");
-    updateTag("hr-assessments");
+    const affectedSupervisors = await prisma.internSupervisor.findMany({
+      where: { internProfileId: existing.internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+
+    invalidateInternScope({
+      supervisorIds: affectedSupervisors.map((s) => s.supervisorProfileId),
+      internProfileId: existing.internProfile.id,
+      userId: id,
+    });
 
     return { success: true, data: user as Intern };
   } catch (error) {
@@ -261,12 +268,11 @@ export async function deactivateIntern(
       });
     });
 
-    updateTag("interns");
-    updateTag("hr-assessments");
-    for (const s of affectedSupervisors) {
-      updateTag(`assessment-list-${s.supervisorProfileId}`);
-      updateTag(`assessment-period-${s.supervisorProfileId}`);
-    }
+    invalidateInternScope({
+      supervisorIds: affectedSupervisors.map((s) => s.supervisorProfileId),
+      internProfileId: existing.internProfile.id,
+      userId: id,
+    });
 
     return { success: true };
   } catch (error) {
@@ -289,11 +295,21 @@ export async function deleteIntern(id: string): Promise<ActionResponse<void>> {
     if (!existing?.internProfile)
       return { success: false, error: "Intern tidak ditemukan" };
 
+    const affectedSupervisors = await prisma.internSupervisor.findMany({
+      where: { internProfileId: existing.internProfile.id, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    const internProfileId = existing.internProfile.id;
+
     await prisma.internProfile.delete({
       where: { userId: id },
     });
 
-    updateTag("interns");
+    invalidateInternScope({
+      supervisorIds: affectedSupervisors.map((s) => s.supervisorProfileId),
+      internProfileId,
+      userId: id,
+    });
 
     return { success: true };
   } catch (error) {
