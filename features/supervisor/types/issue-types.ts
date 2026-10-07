@@ -30,7 +30,11 @@ const issueInclude = {
   },
   _count: {
     select: {
-      logbooks: true,
+      logbooks: {
+        where: {
+          deletedAt: null,
+        },
+      },
     },
   },
 } as const;
