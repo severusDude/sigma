@@ -20,12 +20,12 @@ import {
 } from "../../schemas/intern-schemas";
 
 interface CreateInternFormProps {
-  departmentOptions: { id: string; name: string }[];
+  teamOptions: { id: string; name: string }[];
   onSuccess: () => void;
 }
 
 export function CreateInternForm({
-  departmentOptions,
+  teamOptions,
   onSuccess,
 }: CreateInternFormProps) {
   const queryClient = useQueryClient();
@@ -82,7 +82,7 @@ export function CreateInternForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <InternFormFields
         control={form.control}
-        departmentOptions={departmentOptions}
+        teamOptions={teamOptions}
         periodValue={period}
         onPeriodChange={(range) => {
           setPeriod(range);

@@ -3,7 +3,7 @@ import { UserGetPayload } from "@/generated/prisma/models";
 const documentInclude = {
   internProfile: {
     include: {
-      department: true,
+      team: true,
       supervisorAssignments: {
         where: { endedAt: null },
         take: 1,

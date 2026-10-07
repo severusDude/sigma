@@ -47,3 +47,7 @@ next-env.d.ts
 
 # Task artifacts
 .superpowers/
+
+# Docs
+docs/laporan
+docs/research

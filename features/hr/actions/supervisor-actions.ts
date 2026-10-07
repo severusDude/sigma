@@ -15,6 +15,7 @@ import {
 } from "../schemas/supervisor-schemas";
 import { requirePermission } from "@/lib/auth/authorize";
 import { updateTag } from "next/cache";
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
 import {
   fetchSupervisors,
   fetchSupervisorInterns,
@@ -114,7 +115,7 @@ export async function createSupervisor(
           supervisorProfile: {
             create: {
               nip: parsed.nip,
-              field: parsed.field,
+              teamId: parsed.teamId,
               phone: parsed.phone || null,
               email: parsed.email || null,
               maxInterns: parsed.maxInterns ?? 5,
@@ -125,6 +126,8 @@ export async function createSupervisor(
       });
 
       updateTag("supervisors");
+      updateTag("supervisor-options");
+      invalidateInternScope({ userId });
 
       return {
         success: true,
@@ -132,7 +135,6 @@ export async function createSupervisor(
       };
     } catch (profileError) {
       await auth.api.removeUser({ body: { userId: userId } });
-      updateTag("supervisors");
       return {
         success: false,
         error:
@@ -175,7 +177,7 @@ export async function updateSupervisor(
 
     const supervisorData: Record<string, unknown> = {};
     if (parsed.nip !== undefined) supervisorData.nip = parsed.nip;
-    if (parsed.field !== undefined) supervisorData.field = parsed.field;
+    if (parsed.teamId !== undefined) supervisorData.teamId = parsed.teamId;
     if (parsed.phone !== undefined) supervisorData.phone = parsed.phone || null;
     if (parsed.email !== undefined) supervisorData.email = parsed.email || null;
     if (parsed.maxInterns !== undefined)
@@ -194,6 +196,8 @@ export async function updateSupervisor(
     });
 
     updateTag("supervisors");
+    updateTag("supervisor-options");
+    invalidateInternScope({ userId: id });
 
     return { success: true, data: user as Supervisor };
   } catch (error) {
@@ -223,6 +227,8 @@ export async function deleteSupervisor(
     });
 
     updateTag("supervisors");
+    updateTag("supervisor-options");
+    invalidateInternScope({ userId: id });
 
     return { success: true };
   } catch (error) {
@@ -278,9 +284,11 @@ export async function assignSupervisor(
     });
 
     updateTag("supervisors");
-    updateTag("interns");
-    updateTag(`assessment-list-${supervisorProfileId}`);
-    updateTag(`assessment-period-${supervisorProfileId}`);
+    invalidateInternScope({
+      supervisorIds: [supervisorProfileId],
+      internProfileId,
+      userId: intern.userId,
+    });
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -369,9 +377,11 @@ export async function assignMultipleInterns(
     );
 
     updateTag("supervisors");
-    updateTag("interns");
-    updateTag(`assessment-list-${parsed.supervisorProfileId}`);
-    updateTag(`assessment-period-${parsed.supervisorProfileId}`);
+    invalidateInternScope({
+      supervisorIds: [parsed.supervisorProfileId],
+      internProfileIds: validInterns.map((i) => i.id),
+      userIds: validInterns.map((i) => i.userId),
+    });
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -484,9 +494,14 @@ export async function reassignIntern(
     ]);
 
     updateTag("supervisors");
-    updateTag("interns");
-    updateTag(`assessment-list-${newSupervisorProfileId}`);
-    updateTag(`assessment-period-${newSupervisorProfileId}`);
+    invalidateInternScope({
+      supervisorIds: [
+        currentAssignment.supervisorProfileId,
+        newSupervisorProfileId,
+      ],
+      internProfileId,
+      userId: intern.userId,
+    });
 
     const result: AssignResult = { success: true };
     if (isOverLimit) {
@@ -572,12 +587,21 @@ export async function reassignAllInterns(
       }),
     ]);
 
+    const movedInterns = await prisma.internProfile.findMany({
+      where: {
+        id: { in: activeAssignments.map((a) => a.internProfileId) },
+      },
+      select: { id: true, userId: true },
+    });
+
     await prisma.$transaction(operations);
 
     updateTag("supervisors");
-    updateTag("interns");
-    updateTag(`assessment-list-${toSupervisorProfileId}`);
-    updateTag(`assessment-period-${toSupervisorProfileId}`);
+    invalidateInternScope({
+      supervisorIds: [fromSupervisorProfileId, toSupervisorProfileId],
+      internProfileIds: movedInterns.map((i) => i.id),
+      userIds: movedInterns.map((i) => i.userId),
+    });
 
     return { success: true, count: activeAssignments.length };
   } catch (error) {

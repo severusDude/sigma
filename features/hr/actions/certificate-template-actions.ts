@@ -12,7 +12,7 @@ import {
   ALLOWED_TEMPLATE_MIME_TYPES,
 } from "@/services/storage";
 import { assertStorageHealthy, StorageError } from "@/services/storage-health";
-import { getDefaultCertificateFields, type TextField } from "@/lib/pdf-certificate";
+import { getDefaultCertificateFields, getPdfDimensions, type TextField } from "@/lib/pdf-certificate";
 
 export type CertificateTemplateInfo = {
   id: string;
@@ -58,7 +58,8 @@ export async function uploadCertificateTemplate(
 
     const r2Key = buildTemplateKey("certificate", fileName);
 
-    const defaultFields = getDefaultCertificateFields();
+    const { width: canvasW, height: canvasH } = await getPdfDimensions(buffer);
+    const defaultFields = getDefaultCertificateFields(canvasW, canvasH);
 
     const template = await prisma.documentTemplate.create({
       data: {
@@ -133,6 +134,7 @@ export async function saveCertificateFieldConfig(
       font: f.font ?? "Inter",
       align: f.align ?? "left",
       color: f.color ?? { r: 0, g: 0, b: 0 },
+      hidden: f.hidden ?? false,
     }));
 
     await prisma.documentTemplate.updateMany({

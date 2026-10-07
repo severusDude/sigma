@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { requireAuth } from "@/helpers/guard";
 import { Role } from "@/generated/prisma/enums";
 import { fetchInternDashboardData } from "@/features/intern/data/dashboard-data";
 import DashboardPage from "@/features/intern/pages/dashboard-page";
+
+export const metadata: Metadata = {
+  title: "Dashboard Intern",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page() {
   const { user } = await requireAuth([Role.admin, Role.intern]);

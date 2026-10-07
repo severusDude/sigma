@@ -111,7 +111,7 @@ export function QuickAssignCard({
                   <span>{intern.name}</span>
                   <span className="text-[10px] text-muted-foreground">
                     {intern.institution}
-                    {intern.departmentName ? ` - ${intern.departmentName}` : ""}
+                    {intern.teamName ? ` - ${intern.teamName}` : ""}
                   </span>
                 </div>
               </SelectItem>

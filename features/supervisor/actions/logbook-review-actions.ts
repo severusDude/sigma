@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 
+import { invalidateInternScope } from "@/helpers/cache-invalidation";
+
 import { prisma } from "@/lib/prisma";
 import type { ActionResponse } from "@/lib/types";
 import { requirePermission } from "@/lib/auth/authorize";
@@ -46,6 +48,20 @@ export async function approveLogbook(
     await prisma.logbook.update({
       where: { id: logbookId },
       data: { status: LogbookStatus.approved },
+    });
+
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: logbook.internProfileId },
+      select: { userId: true },
+    });
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: logbook.internProfileId, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: logbook.internProfileId,
+      userId: intern?.userId,
     });
 
     return { success: true };
@@ -107,6 +123,20 @@ export async function requestRevision(
         status: LogbookStatus.revision,
         notes: parsed.notes,
       },
+    });
+
+    const intern = await prisma.internProfile.findUnique({
+      where: { id: logbook.internProfileId },
+      select: { userId: true },
+    });
+    const assignments = await prisma.internSupervisor.findMany({
+      where: { internProfileId: logbook.internProfileId, endedAt: null },
+      select: { supervisorProfileId: true },
+    });
+    invalidateInternScope({
+      supervisorIds: assignments.map((a) => a.supervisorProfileId),
+      internProfileId: logbook.internProfileId,
+      userId: intern?.userId,
     });
 
     return { success: true };

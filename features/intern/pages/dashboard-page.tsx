@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -40,7 +39,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
   const hasRecent = data.recentActivity.length > 0;
 
   return (
-    <ScrollArea className="w-full max-h-[calc(100vh-5rem)] mx-auto space-y-8 pr-2">
+    <div className="w-full max-w-full min-w-0 max-h-[calc(100vh-5rem)] overflow-y-auto mx-auto space-y-8 pr-2">
       <div className="space-y-6 contents">
         <div className="flex items-center justify-between">
           <div>
@@ -159,7 +158,7 @@ export default function DashboardPage({ data }: DashboardPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Info Pembimbing</CardTitle>
-              <CardDescription>Supervisor dan divisi</CardDescription>
+              <CardDescription>Supervisor dan Team</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
@@ -183,9 +182,9 @@ export default function DashboardPage({ data }: DashboardPageProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {data.departmentName ?? "—"}
+                    {data.teamName ?? "—"}
                   </p>
-                  <p className="text-xs text-muted-foreground">Divisi</p>
+                  <p className="text-xs text-muted-foreground">Team</p>
                 </div>
               </div>
               <div className="pt-2 text-xs text-muted-foreground">
@@ -249,6 +248,6 @@ export default function DashboardPage({ data }: DashboardPageProps) {
           </div>
         )}
       </div>
-    </ScrollArea>
+    </div>
   );
 }

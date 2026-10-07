@@ -210,8 +210,8 @@ export function DetailDialog({ assessmentId, onClose }: DetailDialogProps) {
                       <p className="font-medium">{detail.supervisorName}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Bidang Supervisor</p>
-                      <p className="font-medium">{detail.supervisorField}</p>
+                      <p className="text-muted-foreground">Team</p>
+                      <p className="font-medium">{detail.supervisorTeamName}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Periode Penilaian</p>

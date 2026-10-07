@@ -22,7 +22,9 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (isAuthRoute && sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.nextUrl.origin));
+    // Proxy hanya tahu keberadaan cookie, bukan role user — biarkan lewat
+    // agar server component /sign-in yang memutuskan tujuan berbasis role.
+    return NextResponse.next();
   }
 
   return NextResponse.next();

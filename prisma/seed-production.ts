@@ -54,6 +54,18 @@ function seedConfig(prefix: string) {
 export default async function seedProduction() {
   console.log("Seeding database (production) ...");
 
+  const teamNames = ["KEJAR", "HALIS", "GADIS", "CAPUNG", "INTANT", "HUMAS", "SE2026", "Pengolahan", "D'Stik", "PEK", "KTIP", "UMUM"] as const
+  const teamEntries = await Promise.all(
+    teamNames.map(async (name) => {
+      const existing = await prisma.team.findFirst({ where: { name } })
+      const team = existing ?? (await prisma.team.create({ data: { name } }))
+      return [name, team] as const
+    }),
+  )
+  const teamMap = new Map(teamEntries)
+  const teamUmum = teamMap.get("UMUM")!
+  console.log(`  ✓ ${teamMap.size} teams created`)
+
   const admin = seedConfig("ADMIN");
   if (admin) {
     await ensureUser(admin.email, admin.password, admin.name, Role.admin);
@@ -88,7 +100,7 @@ export default async function seedProduction() {
         data: {
           userId: supervisorId,
           nip: "198001012010011001",
-          field: "Statistik Distribusi",
+          teamId: teamUmum.id,
           phone: "081234567890",
           email: sup.email,
         },

@@ -6,5 +6,7 @@ export const roleHome: Record<string, string> = {
 };
 
 export function getRoleHome(role: string): string {
-  return roleHome[role] ?? "/sign-in";
+  // Fallback "/" (landing publik) — JANGAN "/sign-in" agar tidak loop
+  // /sign-in → (ada session) → ... untuk role yang tidak dikenal.
+  return roleHome[role] ?? "/";
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Upload, Trash2, CheckCircle2, FileText, Info, Image } from "lucide-react";
+import { Upload, Trash2, CheckCircle2, FileText, Info, Image, Pencil } from "lucide-react";
 
 import { useStorageToast } from "@/hooks/use-storage-toast";
 
@@ -314,19 +314,21 @@ export default function TemplatePage({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!template.isActive && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setCertConfigTarget(template);
-                        }}
-                        className="gap-1"
-                      >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCertConfigTarget(template);
+                      }}
+                      className="gap-1"
+                    >
+                      {template.isActive ? (
+                        <Pencil className="size-3" />
+                      ) : (
                         <CheckCircle2 className="size-3" />
-                      Atur Posisi
-                      </Button>
-                    )}
+                      )}
+                      {template.isActive ? "Edit Posisi" : "Atur Posisi"}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

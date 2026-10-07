@@ -170,10 +170,10 @@ export function DetailDialog({
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Bidang</p>
-                      <p className="font-medium">{supervisor.field}</p>
+                      <p className="text-muted-foreground">Team</p>
+                      <p className="font-medium">{supervisor.team?.name ?? "-"}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">No. HP</p>
@@ -233,8 +233,8 @@ export function DetailDialog({
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate">
                               {intern.nim} · {intern.institution}
-                              {intern.departmentName
-                                ? ` - ${intern.departmentName}`
+                              {intern.teamName
+                                ? ` - ${intern.teamName}`
                                 : ""}
                             </p>
                           </div>

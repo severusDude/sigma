@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { SortOption } from "@/lib/types/sort";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FilterCategory } from "@/lib/types/filter";
 import { InternStatus } from "@/generated/prisma/enums";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,16 +21,16 @@ import {
 
 import type { Intern } from "../types/intern-types";
 import { createColumns } from "../components/intern/columns";
-import { deactivateIntern } from "../actions/intern-actions";
 import { DetailDialog } from "../components/intern/detail-dialog";
 import { DeleteDialog } from "../components/intern/delete-dialog";
+import { DeactivateDialog } from "../components/intern/deactivate-dialog";
 import { CreateInternForm } from "../components/intern/create-form";
 import { UpdateInternForm } from "../components/intern/update-form";
 import { ChangePasswordDialog } from "../components/shared/change-password-dialog";
 
 interface InternPageProps {
   interns: Intern[];
-  departments: { id: string; name: string }[];
+  teams: { id: string; name: string }[];
 }
 
 const filterOptions: FilterCategory[] = [
@@ -54,43 +53,21 @@ const sortOptions: SortOption[] = [
   { id: "status", label: "Status" },
 ];
 
-export default function InternPage({ interns, departments }: InternPageProps) {
-  const queryClient = useQueryClient();
+export default function InternPage({ interns, teams }: InternPageProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [updateIntern, setUpdateIntern] = useState<Intern | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [deleteIntern, setDeleteIntern] = useState<Intern | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<Intern | null>(null);
   const [changePasswordUser, setChangePasswordUser] = useState<Intern | null>(null);
 
-  const { mutateAsync: doDeactivate } = useMutation({
-    mutationKey: ["deactivate-intern"],
-    mutationFn: async (intern: Intern) => {
-      const res = await deactivateIntern(intern.id);
-      if (!res.success) throw new Error(res.error);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["interns"] });
-    },
-  });
-
-  async function handleDeactivate(intern: Intern) {
+  function handleDeactivate(intern: Intern) {
     if (intern.internProfile?.status !== "active") {
       toast.error("Intern sudah tidak aktif");
       return;
     }
 
-    const confirmed = window.confirm(
-      `Nonaktifkan intern "${intern.name}"?\n\nStatus akan berubah menjadi "Ditarik" dan akun tidak bisa login.`,
-    );
-    if (!confirmed) return;
-
-    const promise = doDeactivate(intern);
-    toast.promise(promise, {
-      loading: "Menonaktifkan intern...",
-      success: "Intern berhasil dinonaktifkan",
-      error: (err) =>
-        err instanceof Error ? err.message : "Gagal menonaktifkan intern",
-    });
+    setDeactivateTarget(intern);
   }
 
   const columns = createColumns({
@@ -141,7 +118,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
           <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
             <div className="pt-6">
               <CreateInternForm
-                departmentOptions={departments}
+                teamOptions={teams}
                 onSuccess={() => setCreateOpen(false)}
               />
             </div>
@@ -170,7 +147,7 @@ export default function InternPage({ interns, departments }: InternPageProps) {
               {updateIntern && (
                 <UpdateInternForm
                   intern={updateIntern}
-                  departmentOptions={departments}
+                  teamOptions={teams}
                   onSuccess={() => setUpdateIntern(null)}
                 />
               )}
@@ -186,6 +163,12 @@ export default function InternPage({ interns, departments }: InternPageProps) {
       <DeleteDialog
         intern={deleteIntern}
         onClose={() => setDeleteIntern(null)}
+      />
+
+      {/* Deactivate Dialog */}
+      <DeactivateDialog
+        intern={deactivateTarget}
+        onClose={() => setDeactivateTarget(null)}
       />
 
       {/* Change Password Dialog */}

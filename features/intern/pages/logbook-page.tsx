@@ -190,7 +190,6 @@ export default function LogbookPage({
   );
 
   const hasConsecutiveMiss = useMemo(() => {
-    if (logbooks.length === 0) return false;
     const dates = logbooks.map((lb) => new Date(lb.date).toDateString());
     const uniqueDates = new Set(dates);
     const today = new Date();
@@ -216,7 +215,7 @@ export default function LogbookPage({
   const activeDays = Math.max(0, Math.min(elapsedDays, totalDays));
 
   return (
-    <ScrollArea className="max-w-[100vw] h-[calc(100vh-5rem)] pr-2">
+    <div className="w-full max-w-full min-w-0 h-[calc(100vh-5rem)] overflow-y-auto pr-2">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -450,7 +449,7 @@ export default function LogbookPage({
                 </DialogDescription>
               </div>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-4">
               <div className="pt-6">
                 <CreateLogbookForm
                   issueOptions={issueOptions}
@@ -476,7 +475,7 @@ export default function LogbookPage({
                 </DialogDescription>
               </div>
             </DialogHeader>
-            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-6">
+            <ScrollArea className="max-h-[calc(100vh-12rem)] -mr-6 pr-4">
               <div className="pt-6">
                 {updateLogbook && (
                   <UpdateLogbookForm
@@ -497,6 +496,6 @@ export default function LogbookPage({
           onClose={() => setDeleteLogbook(null)}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 }

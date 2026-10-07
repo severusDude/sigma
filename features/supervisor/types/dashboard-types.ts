@@ -3,7 +3,7 @@ export type InternDashboard = {
   name: string;
   image: string | null;
   institution: string;
-  department: string | null;
+  team: string | null;
   approvedLogbooks: number;
   totalLogbooks: number;
   presentDays: number;

@@ -22,7 +22,7 @@ const issueInclude = {
       },
     },
   },
-  department: {
+  team: {
     select: {
       id: true,
       name: true,
@@ -30,7 +30,11 @@ const issueInclude = {
   },
   _count: {
     select: {
-      logbooks: true,
+      logbooks: {
+        where: {
+          deletedAt: null,
+        },
+      },
     },
   },
 } as const;
@@ -57,7 +61,7 @@ const issueDetailInclude = {
       },
     },
   },
-  department: {
+  team: {
     select: {
       id: true,
       name: true,

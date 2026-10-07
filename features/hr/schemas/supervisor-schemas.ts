@@ -11,7 +11,7 @@ const baseFields = {
     .trim()
     .length(18, { message: "NIP harus tepat 18 karakter" })
     .regex(/^\d+$/, { message: "NIP hanya boleh berisi angka" }),
-  field: z.string().default("Staff"),
+  teamId: z.string().min(1, "Team harus dipilih"),
   phone: z
     .string()
     .trim()

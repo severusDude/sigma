@@ -26,7 +26,7 @@ export async function fetchSupervisors(query?: string) {
               },
               {
                 supervisorProfile: {
-                  field: { contains: query, mode: "insensitive" },
+                  team: { name: { contains: query, mode: "insensitive" } },
                 },
               },
             ],
@@ -52,7 +52,7 @@ export async function fetchUnassignedInterns(): Promise<UnassignedIntern[]> {
     },
     include: {
       user: { select: { name: true } },
-      department: { select: { name: true } },
+      team: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -61,7 +61,7 @@ export async function fetchUnassignedInterns(): Promise<UnassignedIntern[]> {
     id: i.id,
     name: i.user.name,
     institution: i.institution,
-    departmentName: i.department?.name ?? null,
+    teamName: i.team?.name ?? null,
   }));
 }
 
@@ -77,7 +77,7 @@ export async function fetchSupervisorInterns(
       internProfile: {
         include: {
           user: { select: { name: true } },
-          department: { select: { name: true } },
+          team: { select: { name: true } },
         },
       },
     },
@@ -89,7 +89,7 @@ export async function fetchSupervisorInterns(
     internName: a.internProfile.user.name,
     nim: a.internProfile.nik,
     institution: a.internProfile.institution,
-    departmentName: a.internProfile.department?.name ?? null,
+    teamName: a.internProfile.team?.name ?? null,
     assignedAt: a.assignedAt.toISOString(),
   }));
 }

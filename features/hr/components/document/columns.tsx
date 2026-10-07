@@ -32,7 +32,7 @@ function checkCompleteness(row: DocumentRow, tab: DocumentType): Completeness {
   const hasSupervisor = Boolean(supervisor?.user?.name && supervisor?.nip);
 
   const hasBasicData = Boolean(
-    row.name && intern?.nik && intern?.institution && intern?.department?.name &&
+    row.name && intern?.nik && intern?.institution && intern?.team?.name &&
     intern?.periodStart && intern?.periodEnd,
   );
 
@@ -84,12 +84,12 @@ export function createColumns(
       ),
     },
     {
-      id: "department",
-      header: "Bidang",
-      accessorFn: (row) => row.internProfile?.department?.name ?? null,
+      id: "team",
+      header: "Team",
+      accessorFn: (row) => row.internProfile?.team?.name ?? null,
       cell: ({ row }) => (
         <span>
-          {row.original.internProfile?.department?.name ?? (
+          {row.original.internProfile?.team?.name ?? (
             <span className="text-muted-foreground">-</span>
           )}
         </span>

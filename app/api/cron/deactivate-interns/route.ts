@@ -95,11 +95,21 @@ export async function GET(request: Request) {
       const uniqueSupervisorIds = [
         ...new Set(affectedSupervisors.map((s) => s.supervisorProfileId)),
       ];
+      // Route handler tak bisa updateTag — gunakan revalidateTag inline
+      // (stale-while-revalidate: jeda singkat diekspektasikan, bukan bug).
+      revalidateTag("interns", 'max');
+      revalidateTag("hr-dashboard", 'max');
+      revalidateTag("hr-assessments", 'max');
       for (const sid of uniqueSupervisorIds) {
         revalidateTag(`assessment-list-${sid}`, 'max');
         revalidateTag(`assessment-period-${sid}`, 'max');
+        revalidateTag(`supervisor-interns-${sid}`, 'max');
+        revalidateTag(`supervisor-dashboard-${sid}`, 'max');
       }
-      revalidateTag("hr-assessments", 'max');
+      for (const uid of userIds) {
+        revalidateTag(`intern-dashboard-${uid}`, 'max');
+        revalidateTag(`intern-assessment-${uid}`, 'max');
+      }
 
       batchCount++;
       totalDeactivated += expiredInterns.length;

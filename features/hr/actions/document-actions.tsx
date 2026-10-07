@@ -41,7 +41,7 @@ export async function validateInternsCompleteness(
     include: {
       internProfile: {
         include: {
-          department: { select: { name: true } },
+          team: { select: { name: true } },
           supervisorAssignments: {
             where: { endedAt: null },
             take: 1,
@@ -82,7 +82,7 @@ export async function validateInternsCompleteness(
     if (!user.name) missingFields.push("Nama peserta");
     if (!intern.nik) missingFields.push("NIK");
     if (!intern.institution) missingFields.push("Institusi");
-    if (!intern.department?.name) missingFields.push("Bidang penempatan");
+    if (!intern.team?.name) missingFields.push("Team");
     if (!intern.periodStart) missingFields.push("Tanggal mulai");
     if (!intern.periodEnd) missingFields.push("Tanggal selesai");
 
@@ -131,7 +131,7 @@ async function getInternData(internId: string) {
     include: {
       internProfile: {
         include: {
-          department: true,
+          team: true,
           supervisorAssignments: {
             where: { endedAt: null },
             include: {
@@ -201,6 +201,53 @@ export async function getInternDocuments(internProfileId: string) {
   })
 }
 
+export type ExistingDocInfo = {
+  internId: string
+  internName: string
+  docNumber: string
+  status: string
+}
+
+export async function filterExistingDocuments(
+  internIds: string[],
+  documentType: DocumentType,
+) {
+  if (internIds.length === 0) return { duplicates: [], cleanIds: [] as string[] }
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: internIds } },
+    select: { id: true, name: true, internProfile: { select: { id: true } } },
+  })
+
+  const profileMap = users
+    .filter((u) => u.internProfile)
+    .map((u) => ({ userId: u.id, name: u.name, internProfileId: u.internProfile!.id }))
+
+  const existing = await prisma.document.findMany({
+    where: {
+      internProfileId: { in: profileMap.map((i) => i.internProfileId) },
+      documentType,
+    },
+    select: { internProfileId: true, documentNumber: true, status: true },
+  })
+
+  const existingMap = new Map(existing.map((e) => [e.internProfileId, e]))
+
+  const duplicates: ExistingDocInfo[] = []
+  const cleanIds: string[] = []
+
+  for (const u of profileMap) {
+    const det = existingMap.get(u.internProfileId)
+    if (det) {
+      duplicates.push({ internId: u.userId, internName: u.name, docNumber: det.documentNumber, status: det.status })
+    } else {
+      cleanIds.push(u.userId)
+    }
+  }
+
+  return { duplicates, cleanIds }
+}
+
 export async function generateCertificates(
   internIds: string[],
 ): Promise<ActionResponse<GenerateDocResult[]>> {
@@ -256,7 +303,7 @@ export async function generateCertificates(
           nik: intern.nik ?? "",
           institusi: intern.institution ?? "",
           program: "Magang",
-          bidang: intern.department?.name ?? "",
+          team: intern.team?.name ?? "",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           nama_pembimbing: supervisor?.user?.name ?? "",
@@ -273,6 +320,7 @@ export async function generateCertificates(
           font: cfg.font ?? "Inter",
           align: cfg.align ?? "left",
           color: cfg.color,
+          hidden: cfg.hidden,
         }));
 
         const pdfBuffer = await generateCertificatePdf(
@@ -371,7 +419,7 @@ export async function generateAssignmentLetter(
           nik: intern.nik,
           institusi: intern.institution,
           program: "Magang",
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           nama_pembimbing: supervisor?.user?.name ?? "-",
@@ -476,7 +524,7 @@ export async function generateAssessmentReport(
           nama_peserta: user.name,
           nik: intern.nik,
           institusi: intern.institution,
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           periode_penilaian: assessment
             ? `${formatDateShort(assessment.periodStart)} — ${formatDateShort(assessment.periodEnd)}`
             : "-",
@@ -603,7 +651,7 @@ export async function generateAttendanceReport(
         const data = {
           nama_peserta: user.name,
           nik: intern.nik,
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           periode: `${formatDateShort(intern.periodStart)} — ${formatDateShort(intern.periodEnd)}`,
           absensi: attendanceRecords.map((a) => ({
             tanggal: formatDateShort(a.date),
@@ -725,7 +773,7 @@ export async function generateCompletionLetter(
           nik: intern.nik,
           institusi: intern.institution,
           program: "Magang",
-          bidang: intern.department?.name ?? "-",
+          team: intern.team?.name ?? "-",
           tanggal_mulai: formatDate(intern.periodStart),
           tanggal_selesai: formatDate(intern.periodEnd),
           tanggal_surat: formatDate(new Date()),

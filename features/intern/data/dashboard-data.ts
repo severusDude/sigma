@@ -14,7 +14,7 @@ export async function fetchInternDashboardData(
     where: { userId, deletedAt: null },
     include: {
       user: { select: { name: true } },
-      department: { select: { name: true } },
+      team: { select: { name: true } },
       supervisorAssignments: {
         where: { endedAt: null },
         include: {
@@ -137,7 +137,7 @@ export async function fetchInternDashboardData(
     avgGrade,
     supervisorName: supervisor?.user.name ?? null,
     supervisorNip: supervisor?.nip ?? null,
-    departmentName: profile.department?.name ?? null,
+    teamName: profile.team?.name ?? null,
     weeklyLogbooks,
     recentActivity: profile.logbooks.slice(0, 10).map((l) => ({
       date: l.date.toISOString(),

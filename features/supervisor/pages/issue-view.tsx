@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -25,7 +25,6 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IssueStatus, LogbookStatus } from "@/generated/prisma/enums";
@@ -169,6 +168,7 @@ function getAssignedInternCount(issue: IssueWithLogbooks): number {
 export default function IssueView({ issue }: IssueViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [issueData, setIssueData] = useState(issue);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [revisionDialog, setRevisionDialog] = useState<{
     logbookId: string;
@@ -176,11 +176,11 @@ export default function IssueView({ issue }: IssueViewProps) {
   } | null>(null);
   const [revisionNotes, setRevisionNotes] = useState("");
 
-  const status = issueStatusConfig[issue.status] ?? issueStatusConfig.active;
+  const status = issueStatusConfig[issueData.status] ?? issueStatusConfig.active;
 
   const logbooksByDate = useMemo(() => {
     const map = new Map<string, IssueWithLogbooks["logbooks"]>();
-    for (const logbook of issue.logbooks) {
+    for (const logbook of issueData.logbooks) {
       const dateKey = format(new Date(logbook.date), "yyyy-MM-dd");
       if (!map.has(dateKey)) map.set(dateKey, []);
       map.get(dateKey)!.push(logbook);
@@ -190,7 +190,7 @@ export default function IssueView({ issue }: IssueViewProps) {
 
   const internAvatarMap = useMemo(() => {
     const map = new Map<string, { name: string; image: string | null }>();
-    for (const logbook of issue.logbooks) {
+    for (const logbook of issueData.logbooks) {
       if (!map.has(logbook.internProfileId)) {
         map.set(logbook.internProfileId, {
           name: logbook.internProfile.user.name,
@@ -211,6 +211,7 @@ export default function IssueView({ issue }: IssueViewProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
+      setIssueData((prev) => ({ ...prev, status: IssueStatus.cancelled }));
       toast.success("Rencana kegiatan berhasil diarsipkan");
       setArchiveOpen(false);
     },
@@ -226,8 +227,14 @@ export default function IssueView({ issue }: IssueViewProps) {
       const res = await approveLogbook(logbookId);
       if (!res.success) throw new Error(res.error);
     },
-    onSuccess: () => {
+    onSuccess: (_data, logbookId) => {
       queryClient.invalidateQueries({ queryKey: ["issue", issue.id] });
+      setIssueData((prev) => ({
+        ...prev,
+        logbooks: prev.logbooks.map((lb) =>
+          lb.id === logbookId ? { ...lb, status: LogbookStatus.approved } : lb,
+        ),
+      }));
       toast.success("Logbook berhasil disetujui");
     },
     onError: (error) => {
@@ -248,8 +255,16 @@ export default function IssueView({ issue }: IssueViewProps) {
       const res = await requestRevision(logbookId, notes);
       if (!res.success) throw new Error(res.error);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["issue", issue.id] });
+      setIssueData((prev) => ({
+        ...prev,
+        logbooks: prev.logbooks.map((lb) =>
+          lb.id === variables.logbookId
+            ? { ...lb, status: LogbookStatus.revision, notes: variables.notes }
+            : lb,
+        ),
+      }));
       toast.success("Revisi logbook berhasil diminta");
       setRevisionDialog(null);
       setRevisionNotes("");
@@ -276,10 +291,10 @@ export default function IssueView({ issue }: IssueViewProps) {
     });
   }, [revisionDialog, revisionNotes, revisionMutation]);
 
-  const assignedCount = getAssignedInternCount(issue);
+  const assignedCount = getAssignedInternCount(issueData);
 
   return (
-    <ScrollArea className="max-w-[100vw] h-[calc(100vh-5rem)] pr-2">
+    <div className="w-full max-w-full min-w-0 h-[calc(100vh-5rem)] overflow-y-auto pr-2">
       <div className="w-full pb-8 space-y-8">
         <Link
           href="/supervisor/issues"
@@ -346,7 +361,7 @@ export default function IssueView({ issue }: IssueViewProps) {
                   <PencilIcon className="size-3.5" />
                   Edit
                 </Button>
-                {issue.status === IssueStatus.active && (
+                {issueData.status === IssueStatus.active && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -372,7 +387,7 @@ export default function IssueView({ issue }: IssueViewProps) {
                 variant="outline"
                 className="bg-primary/10 text-primary border-primary/20 text-[11px] font-bold"
               >
-                {issue.logbooks.length}
+                {issueData.logbooks.length}
               </Badge>
             </div>
           </div>
@@ -645,6 +660,6 @@ export default function IssueView({ issue }: IssueViewProps) {
           </DialogContent>
         </Dialog>
       </div>
-    </ScrollArea>
+    </div>
   );
 }

@@ -14,7 +14,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { DeptDistribution } from "../../types/dashboard-types";
+import type { TeamDistribution } from "../../types/dashboard-types";
 
 const colors = [
   "var(--chart-1)",
@@ -32,15 +32,15 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 type DeptBarChartProps = {
-  data: DeptDistribution[];
+  data: TeamDistribution[];
 };
 
 export function DeptBarChart({ data }: DeptBarChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Distribusi per Divisi</CardTitle>
-        <CardDescription>Jumlah intern aktif per divisi</CardDescription>
+        <CardTitle>Distribusi per Team</CardTitle>
+        <CardDescription>Jumlah intern aktif per team</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>

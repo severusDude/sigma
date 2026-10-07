@@ -15,7 +15,7 @@ export type InternDashboardData = {
   avgGrade: string | null;
   supervisorName: string | null;
   supervisorNip: string | null;
-  departmentName: string | null;
+  teamName: string | null;
   weeklyLogbooks: {
     week: string;
     approved: number;

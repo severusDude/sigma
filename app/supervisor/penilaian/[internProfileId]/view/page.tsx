@@ -1,8 +1,14 @@
+import type { Metadata } from "next"
 import { requireAuth } from "@/helpers/guard"
 import { Role } from "@/generated/prisma/enums"
 import { fetchSupervisorProfileId } from "@/features/supervisor/data/assessment-data"
 import { fetchAssessmentViewData } from "@/features/supervisor/data/assessment-view-data"
 import AssessmentViewPage from "@/features/supervisor/pages/assessment-view-page"
+
+export const metadata: Metadata = {
+  title: "Lihat Penilaian Intern",
+  robots: { index: false, follow: false },
+};
 
 export default async function Page({
   params,

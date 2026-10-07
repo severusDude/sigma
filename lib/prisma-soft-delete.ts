@@ -1,7 +1,7 @@
 import { createSoftDeleteExtension } from "@candoimage/prisma-extension-soft-delete";
 
 const SOFT_DELETE_MODELS = [
-  "Department",
+  "Team",
   "InternProfile",
   "SupervisorProfile",
   "Issue",

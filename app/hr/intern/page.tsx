@@ -1,14 +1,20 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import InternPage from "@/features/hr/pages/intern-page";
 import { fetchInterns } from "@/features/hr/data/intern-data";
 
+export const metadata: Metadata = {
+  title: "Manajemen Intern",
+  robots: { index: false, follow: false },
+};
+
 export default async function Page() {
   const interns = await fetchInterns();
 
-  const departments = await prisma.department.findMany({
+  const teams = await prisma.team.findMany({
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
 
-  return <InternPage interns={interns} departments={departments} />;
+  return <InternPage interns={interns} teams={teams} />;
 }
