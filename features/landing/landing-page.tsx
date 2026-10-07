@@ -253,7 +253,7 @@ function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Hero Content */}
           <div className="flex flex-col gap-8">
-            <span className={S.label + " bg-white"}>
+            <span className={S.label + " bg-white text-black"}>
               BPS Kota Tasikmalaya — Sistem Informasi Management Magang
             </span>
 
